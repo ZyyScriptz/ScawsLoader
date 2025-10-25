@@ -123,46 +123,22 @@ function ScawsHub:CreateLoadingScreen(settings)
         LoadingGui.Parent = CoreGui
     end
     
-    local Background = Instance.new("Frame")
-    Background.Name = "Background"
-    Background.Size = UDim2.new(1, 0, 1, 0)
-    Background.BackgroundColor3 = Config.Colors.Background
-    Background.BorderSizePixel = 0
-    Background.Parent = LoadingGui
-    
     local ImageLabel = Instance.new("ImageLabel")
     ImageLabel.Name = "Logo"
     ImageLabel.AnchorPoint = Vector2.new(0.5, 0.5)
     ImageLabel.Position = UDim2.new(0.5, 0, 0.5, 0)
-    ImageLabel.Size = UDim2.new(0, 400, 0, 400)
+    ImageLabel.Size = UDim2.new(0, 350, 0, 350)
     ImageLabel.BackgroundTransparency = 1
     ImageLabel.Image = imageId
     ImageLabel.ImageTransparency = 1
     ImageLabel.ScaleType = Enum.ScaleType.Fit
-    ImageLabel.Parent = Background
-    
-    local Credits = Instance.new("TextLabel")
-    Credits.Name = "Credits"
-    Credits.AnchorPoint = Vector2.new(0.5, 1)
-    Credits.Position = UDim2.new(0.5, 0, 0.95, 0)
-    Credits.Size = UDim2.new(0, 400, 0, 30)
-    Credits.BackgroundTransparency = 1
-    Credits.Font = Enum.Font.GothamBold
-    Credits.Text = "Created by Zyy"
-    Credits.TextColor3 = Config.Colors.Accent
-    Credits.TextSize = 18
-    Credits.TextTransparency = 1
-    Credits.Parent = Background
+    ImageLabel.Parent = LoadingGui
     
     Utils:Tween(ImageLabel, {ImageTransparency = 0, Size = UDim2.new(0, 450, 0, 450)}, 0.8)
-    task.wait(0.3)
-    Utils:Tween(Credits, {TextTransparency = 0}, 0.5)
     
     task.wait(duration)
     
-    Utils:Tween(ImageLabel, {ImageTransparency = 1, Size = UDim2.new(0, 500, 0, 500)}, 0.6)
-    Utils:Tween(Credits, {TextTransparency = 1}, 0.6)
-    Utils:Tween(Background, {BackgroundTransparency = 1}, 0.6, function()
+    Utils:Tween(ImageLabel, {ImageTransparency = 1, Size = UDim2.new(0, 500, 0, 500)}, 0.6, function()
         LoadingGui:Destroy()
     end)
 end
@@ -279,7 +255,7 @@ function ScawsHub:CreateWindow(settings)
     local Sidebar = Instance.new("Frame")
     Sidebar.Name = "Sidebar"
     Sidebar.Position = UDim2.new(0, 0, 0, 45)
-    Sidebar.Size = UDim2.new(0, Config.SidebarWidth, 1, -45)
+    Sidebar.Size = UDim2.new(0, Config.SidebarWidth, 1, -85)
     Sidebar.BackgroundColor3 = Config.Colors.Sidebar
     Sidebar.BorderSizePixel = 0
     Sidebar.Parent = Main
@@ -315,11 +291,68 @@ function ScawsHub:CreateWindow(settings)
     local ContentArea = Instance.new("Frame")
     ContentArea.Name = "ContentArea"
     ContentArea.Position = UDim2.new(0, Config.SidebarWidth, 0, 45)
-    ContentArea.Size = UDim2.new(1, -Config.SidebarWidth, 1, -45)
+    ContentArea.Size = UDim2.new(1, -Config.SidebarWidth, 1, -85)
     ContentArea.BackgroundColor3 = Config.Colors.Main
     ContentArea.BorderSizePixel = 0
     ContentArea.ClipsDescendants = true
     ContentArea.Parent = Main
+    
+    local CreditsBar = Instance.new("Frame")
+    CreditsBar.Name = "CreditsBar"
+    CreditsBar.Position = UDim2.new(0, 0, 1, -40)
+    CreditsBar.Size = UDim2.new(1, 0, 0, 40)
+    CreditsBar.BackgroundColor3 = Config.Colors.Topbar
+    CreditsBar.BorderSizePixel = 0
+    CreditsBar.Parent = Main
+    
+    local CreditsLabel = Instance.new("TextLabel")
+    CreditsLabel.Size = UDim2.new(0.5, -10, 1, 0)
+    CreditsLabel.Position = UDim2.new(0, 15, 0, 0)
+    CreditsLabel.BackgroundTransparency = 1
+    CreditsLabel.Font = Enum.Font.GothamBold
+    CreditsLabel.Text = "Created by Zyy"
+    CreditsLabel.TextColor3 = Config.Colors.Accent
+    CreditsLabel.TextSize = 14
+    CreditsLabel.TextXAlignment = Enum.TextXAlignment.Left
+    CreditsLabel.Parent = CreditsBar
+    
+    local GithubButton = Instance.new("TextButton")
+    GithubButton.AnchorPoint = Vector2.new(1, 0.5)
+    GithubButton.Position = UDim2.new(1, -10, 0.5, 0)
+    GithubButton.Size = UDim2.new(0, 180, 0, 28)
+    GithubButton.BackgroundColor3 = Config.Colors.Background
+    GithubButton.BorderSizePixel = 0
+    GithubButton.Font = Enum.Font.GothamSemibold
+    GithubButton.Text = "🔗 GitHub"
+    GithubButton.TextColor3 = Config.Colors.Text
+    GithubButton.TextSize = 13
+    GithubButton.Parent = CreditsBar
+    Utils:CreateCorner(GithubButton, 6)
+    Utils:CreateStroke(GithubButton, Config.Colors.Border, 1)
+    
+    GithubButton.MouseButton1Click:Connect(function()
+        Utils:Tween(GithubButton, {BackgroundColor3 = Config.Colors.Accent}, 0.15, function()
+            Utils:Tween(GithubButton, {BackgroundColor3 = Config.Colors.Background}, 0.15)
+        end)
+        
+        if setclipboard then
+            setclipboard("https://github.com/ZyyScriptz")
+            ScawsHub:CreateNotification({
+                Title = "Copied!",
+                Content = "GitHub link copied to clipboard",
+                Duration = 3,
+                Type = "Success"
+            })
+        end
+    end)
+    
+    GithubButton.MouseEnter:Connect(function()
+        Utils:Tween(GithubButton, {BackgroundColor3 = Config.Colors.Border}, 0.2)
+    end)
+    
+    GithubButton.MouseLeave:Connect(function()
+        Utils:Tween(GithubButton, {BackgroundColor3 = Config.Colors.Background}, 0.2)
+    end)
     
     Utils:MakeDraggable(Main, Topbar)
     
