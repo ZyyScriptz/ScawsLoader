@@ -1,17 +1,6 @@
 --[[
-    ScawsHUB - Modular UI Library
-    Inspired by Rayfield Interface Suite
+    ScawsHUB - Modular Library
     Version: 1.0.0
-    
-    Features:
-    - Sleek dark-themed interface
-    - Smooth animations using TweenService
-    - Draggable windows
-    - Tab system with sidebar
-    - Notification system
-    - Modular component architecture
-    - Performance optimized
-    - F2 to terminate script (debug mode)
 ]]
 
 -- Services
