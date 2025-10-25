@@ -123,22 +123,33 @@ function ScawsHub:CreateLoadingScreen(settings)
         LoadingGui.Parent = CoreGui
     end
     
+    local Container = Instance.new("Frame")
+    Container.Name = "Container"
+    Container.Size = UDim2.new(1, 0, 1, 0)
+    Container.BackgroundTransparency = 1
+    Container.BorderSizePixel = 0
+    Container.Parent = LoadingGui
+    
     local ImageLabel = Instance.new("ImageLabel")
     ImageLabel.Name = "Logo"
     ImageLabel.AnchorPoint = Vector2.new(0.5, 0.5)
     ImageLabel.Position = UDim2.new(0.5, 0, 0.5, 0)
-    ImageLabel.Size = UDim2.new(0, 350, 0, 350)
+    ImageLabel.Size = UDim2.new(0, 300, 0, 300)
     ImageLabel.BackgroundTransparency = 1
     ImageLabel.Image = imageId
     ImageLabel.ImageTransparency = 1
     ImageLabel.ScaleType = Enum.ScaleType.Fit
-    ImageLabel.Parent = LoadingGui
+    ImageLabel.Parent = Container
     
-    Utils:Tween(ImageLabel, {ImageTransparency = 0, Size = UDim2.new(0, 450, 0, 450)}, 0.8)
+    print("[ScawsHUB] Loading image:", imageId)
+    
+    Utils:Tween(ImageLabel, {ImageTransparency = 0, Size = UDim2.new(0, 400, 0, 400)}, 0.8)
     
     task.wait(duration)
     
-    Utils:Tween(ImageLabel, {ImageTransparency = 1, Size = UDim2.new(0, 500, 0, 500)}, 0.6, function()
+    Utils:Tween(Container, {BackgroundTransparency = 1}, 0.6)
+    Utils:Tween(ImageLabel, {ImageTransparency = 1, Size = UDim2.new(0, 450, 0, 450)}, 0.6, function()
+        task.wait(0.1)
         LoadingGui:Destroy()
     end)
 end
