@@ -105,7 +105,7 @@ end
 
 function ScawsHub:CreateLoadingScreen(settings)
     settings = settings or {}
-    local imageId = "rbxassetid://110652227231144"
+    local imageId = "rbxassetid://119216623675384"
     local duration = settings.Duration or 3
     
     local LoadingGui = Instance.new("ScreenGui")
