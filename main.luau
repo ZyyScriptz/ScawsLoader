@@ -141,13 +141,21 @@ function ScawsHub:CreateLoadingScreen(settings)
     LoadingGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     LoadingGui.IgnoreGuiInset = true
     
-    if gethui then
-        LoadingGui.Parent = gethui()
-    elseif syn and syn.protect_gui then
-        syn.protect_gui(LoadingGui)
-        LoadingGui.Parent = CoreGui
-    else
-        LoadingGui.Parent = CoreGui
+    local success, err = pcall(function()
+        if gethui then
+            LoadingGui.Parent = gethui()
+        elseif syn and syn.protect_gui then
+            syn.protect_gui(LoadingGui)
+            LoadingGui.Parent = CoreGui
+        elseif get_hidden_gui or gethui then
+            LoadingGui.Parent = (get_hidden_gui or gethui)()
+        else
+            LoadingGui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+        end
+    end)
+    
+    if not success then
+        LoadingGui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
     end
     
     local Container = Instance.new("Frame")
@@ -199,13 +207,21 @@ function ScawsHub:CreateWindow(settings)
     MainGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     MainGui.IgnoreGuiInset = true
     
-    if gethui then
-        MainGui.Parent = gethui()
-    elseif syn and syn.protect_gui then
-        syn.protect_gui(MainGui)
-        MainGui.Parent = CoreGui
-    else
-        MainGui.Parent = CoreGui
+    local success, err = pcall(function()
+        if gethui then
+            MainGui.Parent = gethui()
+        elseif syn and syn.protect_gui then
+            syn.protect_gui(MainGui)
+            MainGui.Parent = CoreGui
+        elseif get_hidden_gui or gethui then
+            MainGui.Parent = (get_hidden_gui or gethui)()
+        else
+            MainGui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+        end
+    end)
+    
+    if not success then
+        MainGui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
     end
     
     local Main = Instance.new("Frame")
@@ -679,7 +695,10 @@ function ScawsHub:CreateNotification(settings)
     local duration = settings.Duration or 5
     local type = settings.Type or "Info"
     
-    local notifGui = game:GetService("CoreGui"):FindFirstChild("ScawsHub_Notifications")
+    local Players = game:GetService("Players")
+    local PlayerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
+    
+    local notifGui = PlayerGui:FindFirstChild("ScawsHub_Notifications")
     if not notifGui then
         notifGui = Instance.new("ScreenGui")
         notifGui.Name = "ScawsHub_Notifications"
@@ -687,10 +706,18 @@ function ScawsHub:CreateNotification(settings)
         notifGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
         notifGui.IgnoreGuiInset = true
         
-        if gethui then
-            notifGui.Parent = gethui()
-        else
-            notifGui.Parent = CoreGui
+        local success, err = pcall(function()
+            if gethui then
+                notifGui.Parent = gethui()
+            elseif get_hidden_gui or gethui then
+                notifGui.Parent = (get_hidden_gui or gethui)()
+            else
+                notifGui.Parent = PlayerGui
+            end
+        end)
+        
+        if not success then
+            notifGui.Parent = PlayerGui
         end
     end
     
