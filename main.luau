@@ -209,10 +209,20 @@ function ScawsHub:CreateWindow(settings)
     Main.BackgroundColor3 = Config.Colors.Background
     Main.BackgroundTransparency = 0.15
     Main.BorderSizePixel = 0
-    Main.ClipsDescendants = true
+    Main.ClipsDescendants = false
     Main.Parent = MainGui
     Utils:CreateCorner(Main, 16)
     Utils:CreateStroke(Main, Config.Colors.Border, 1)
+    
+    local MainInner = Instance.new("Frame")
+    MainInner.Name = "MainInner"
+    MainInner.Size = UDim2.new(1, 0, 1, 0)
+    MainInner.Position = UDim2.new(0, 0, 0, 0)
+    MainInner.BackgroundTransparency = 1
+    MainInner.ClipsDescendants = true
+    MainInner.BorderSizePixel = 0
+    MainInner.Parent = Main
+    Utils:CreateCorner(MainInner, 16)
     
     Utils:Tween(Main, {Size = Config.WindowSize}, 0.65)
     
@@ -235,7 +245,7 @@ function ScawsHub:CreateWindow(settings)
     Topbar.BackgroundTransparency = 0.15
     Topbar.BorderSizePixel = 0
     Topbar.ClipsDescendants = true
-    Topbar.Parent = Main
+    Topbar.Parent = MainInner
     Utils:CreateCorner(Topbar, 16)
     
     local TopbarFix = Instance.new("Frame")
@@ -309,12 +319,12 @@ function ScawsHub:CreateWindow(settings)
     Sidebar.BackgroundTransparency = 0.15
     Sidebar.BorderSizePixel = 0
     Sidebar.ClipsDescendants = true
-    Sidebar.Parent = Main
+    Sidebar.Parent = MainInner
     
     local SidebarBottomFix = Instance.new("Frame")
     SidebarBottomFix.Name = "BottomFix"
-    SidebarBottomFix.Size = UDim2.new(1, 1, 0, 20)
-    SidebarBottomFix.Position = UDim2.new(0, 0, 1, -20)
+    SidebarBottomFix.Size = UDim2.new(1, 2, 0, 20)
+    SidebarBottomFix.Position = UDim2.new(0, -1, 1, -20)
     SidebarBottomFix.BackgroundColor3 = Config.Colors.Sidebar
     SidebarBottomFix.BackgroundTransparency = 0.15
     SidebarBottomFix.BorderSizePixel = 0
@@ -358,11 +368,11 @@ function ScawsHub:CreateWindow(settings)
     ContentArea.BackgroundTransparency = 0.15
     ContentArea.BorderSizePixel = 0
     ContentArea.ClipsDescendants = true
-    ContentArea.Parent = Main
+    ContentArea.Parent = MainInner
     
     local ContentBottomFix = Instance.new("Frame")
     ContentBottomFix.Name = "BottomFix"
-    ContentBottomFix.Size = UDim2.new(1, 0, 0, 20)
+    ContentBottomFix.Size = UDim2.new(1, 1, 0, 20)
     ContentBottomFix.Position = UDim2.new(0, 0, 1, -20)
     ContentBottomFix.BackgroundColor3 = Config.Colors.Main
     ContentBottomFix.BackgroundTransparency = 0.15
@@ -386,26 +396,63 @@ function ScawsHub:CreateWindow(settings)
     }
     
     CloseButton.MouseButton1Click:Connect(function()
-        Utils:Spring(CloseButton, {BackgroundTransparency = 0.3, Size = UDim2.new(0, 26, 0, 26)}, 0.15)
+        local tween = TweenService:Create(
+            CloseButton,
+            TweenInfo.new(0.12, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out),
+            {BackgroundTransparency = 0.3, Size = UDim2.new(0, 26, 0, 26)}
+        )
+        tween:Play()
         task.wait(0.08)
-        Utils:Spring(CloseButton, {BackgroundTransparency = 0.6, Size = UDim2.new(0, 30, 0, 30)}, 0.15)
-        Utils:Tween(Main, {Size = UDim2.new(0, 0, 0, 0)}, 0.5, function()
+        local tween2 = TweenService:Create(
+            CloseButton,
+            TweenInfo.new(0.18, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out),
+            {BackgroundTransparency = 0.6, Size = UDim2.new(0, 30, 0, 30)}
+        )
+        tween2:Play()
+        
+        local closeTween = TweenService:Create(
+            Main,
+            TweenInfo.new(0.5, Enum.EasingStyle.Cubic, Enum.EasingDirection.In),
+            {Size = UDim2.new(0, 0, 0, 0)}
+        )
+        closeTween:Play()
+        closeTween.Completed:Connect(function()
             MainGui:Destroy()
         end)
     end)
     
     MinimizeButton.MouseButton1Click:Connect(function()
-        Utils:Spring(MinimizeButton, {BackgroundTransparency = 0.3, Size = UDim2.new(0, 26, 0, 26)}, 0.15)
+        local tween = TweenService:Create(
+            MinimizeButton,
+            TweenInfo.new(0.12, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out),
+            {BackgroundTransparency = 0.3, Size = UDim2.new(0, 26, 0, 26)}
+        )
+        tween:Play()
         task.wait(0.08)
-        Utils:Spring(MinimizeButton, {BackgroundTransparency = 0.6, Size = UDim2.new(0, 30, 0, 30)}, 0.15)
+        local tween2 = TweenService:Create(
+            MinimizeButton,
+            TweenInfo.new(0.18, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out),
+            {BackgroundTransparency = 0.6, Size = UDim2.new(0, 30, 0, 30)}
+        )
+        tween2:Play()
         
         Window.Minimized = not Window.Minimized
         if Window.Minimized then
             MinimizeButton.Text = "+"
-            Utils:Tween(Main, {Size = UDim2.new(0, Config.WindowSize.X.Offset, 0, 45)}, 0.45)
+            local minTween = TweenService:Create(
+                Main,
+                TweenInfo.new(0.45, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out),
+                {Size = UDim2.new(0, Config.WindowSize.X.Offset, 0, 45)}
+            )
+            minTween:Play()
         else
             MinimizeButton.Text = "−"
-            Utils:Tween(Main, {Size = Config.WindowSize}, 0.45)
+            local maxTween = TweenService:Create(
+                Main,
+                TweenInfo.new(0.45, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out),
+                {Size = Config.WindowSize}
+            )
+            maxTween:Play()
         end
     end)
     
@@ -783,8 +830,8 @@ function ScawsHub:CreateWindow(settings)
             for _, option in ipairs(options) do
                 local OptionButton = Instance.new("TextButton")
                 OptionButton.Size = UDim2.new(1, -12, 0, 32)
-                OptionButton.BackgroundColor3 = Config.Colors.Border
-                OptionButton.BackgroundTransparency = 0.5
+                OptionButton.BackgroundColor3 = Config.Colors.Background
+                OptionButton.BackgroundTransparency = 0.3
                 OptionButton.BorderSizePixel = 0
                 OptionButton.Font = Enum.Font.Gotham
                 OptionButton.Text = "  " .. option
@@ -802,11 +849,11 @@ function ScawsHub:CreateWindow(settings)
                 end)
                 
                 OptionButton.MouseEnter:Connect(function()
-                    Utils:Spring(OptionButton, {BackgroundColor3 = Config.Colors.Accent, BackgroundTransparency = 0.2}, 0.25)
+                    Utils:Spring(OptionButton, {BackgroundColor3 = Config.Colors.Accent, BackgroundTransparency = 0.15}, 0.25)
                 end)
                 
                 OptionButton.MouseLeave:Connect(function()
-                    Utils:Spring(OptionButton, {BackgroundColor3 = Config.Colors.Border, BackgroundTransparency = 0.5}, 0.25)
+                    Utils:Spring(OptionButton, {BackgroundColor3 = Config.Colors.Background, BackgroundTransparency = 0.3}, 0.25)
                 end)
             end
             
@@ -850,16 +897,43 @@ function ScawsHub:CreateWindow(settings)
         
         for _, t in ipairs(self.Tabs) do
             if t == tab then
-                Utils:Spring(t.Button, {BackgroundTransparency = 0.75, TextColor3 = Config.Colors.Text}, 0.3)
+                Utils:Spring(t.Button, {BackgroundTransparency = 0.7, TextColor3 = Config.Colors.Text}, 0.35)
+                
+                if self.CurrentTab and self.CurrentTab.Content.Visible then
+                    for _, element in ipairs(self.CurrentTab.Content:GetChildren()) do
+                        if element:IsA("GuiObject") and not element:IsA("UIListLayout") then
+                            Utils:Tween(element, {Position = UDim2.new(element.Position.X.Scale, element.Position.X.Offset - 30, element.Position.Y.Scale, element.Position.Y.Offset)}, 0.25)
+                            Utils:Tween(element, {BackgroundTransparency = 1}, 0.25)
+                            
+                            if element:IsA("TextLabel") or element:IsA("TextButton") then
+                                Utils:Tween(element, {TextTransparency = 1}, 0.25)
+                            end
+                            
+                            for _, child in ipairs(element:GetChildren()) do
+                                if child:IsA("TextLabel") or child:IsA("TextButton") then
+                                    Utils:Tween(child, {TextTransparency = 1}, 0.25)
+                                elseif child:IsA("Frame") and child.Name ~= "UICorner" and child.Name ~= "UIStroke" then
+                                    Utils:Tween(child, {BackgroundTransparency = 1}, 0.25)
+                                end
+                            end
+                        end
+                    end
+                end
+                
+                task.wait(0.25)
+                
+                if self.CurrentTab then
+                    self.CurrentTab.Content.Visible = false
+                end
                 
                 t.Content.Visible = true
-                t.Content.Position = UDim2.new(0, 10, 0, 10)
-                
-                task.wait(0.15)
                 
                 for _, element in ipairs(t.Content:GetChildren()) do
                     if element:IsA("GuiObject") and not element:IsA("UIListLayout") then
                         local originalBgTrans = element.BackgroundTransparency
+                        local originalPos = element.Position
+                        
+                        element.Position = UDim2.new(originalPos.X.Scale, originalPos.X.Offset + 30, originalPos.Y.Scale, originalPos.Y.Offset)
                         element.BackgroundTransparency = 1
                         
                         if element:IsA("TextLabel") or element:IsA("TextButton") then
@@ -875,49 +949,30 @@ function ScawsHub:CreateWindow(settings)
                         end
                         
                         task.spawn(function()
-                            Utils:Tween(element, {BackgroundTransparency = originalBgTrans}, 0.35)
+                            local tween = TweenService:Create(
+                                element,
+                                TweenInfo.new(0.45, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out),
+                                {Position = originalPos, BackgroundTransparency = originalBgTrans}
+                            )
+                            tween:Play()
+                            
                             if element:IsA("TextLabel") or element:IsA("TextButton") then
-                                Utils:Tween(element, {TextTransparency = 0}, 0.35)
+                                Utils:Tween(element, {TextTransparency = 0}, 0.45)
                             end
                             
                             for _, child in ipairs(element:GetChildren()) do
                                 if child:IsA("TextLabel") or child:IsA("TextButton") then
-                                    Utils:Tween(child, {TextTransparency = 0}, 0.35)
+                                    Utils:Tween(child, {TextTransparency = 0}, 0.45)
                                 elseif child:IsA("Frame") and child.Name ~= "UICorner" and child.Name ~= "UIStroke" then
                                     local origTrans = child:GetAttribute("OriginalTransparency") or 0.2
-                                    Utils:Tween(child, {BackgroundTransparency = origTrans}, 0.35)
+                                    Utils:Tween(child, {BackgroundTransparency = origTrans}, 0.45)
                                 end
                             end
                         end)
                     end
                 end
             else
-                Utils:Spring(t.Button, {BackgroundTransparency = 1, TextColor3 = Config.Colors.TextDark}, 0.3)
-                
-                if t.Content.Visible then
-                    for _, element in ipairs(t.Content:GetChildren()) do
-                        if element:IsA("GuiObject") and not element:IsA("UIListLayout") then
-                            task.spawn(function()
-                                Utils:Tween(element, {BackgroundTransparency = 1}, 0.2)
-                                if element:IsA("TextLabel") or element:IsA("TextButton") then
-                                    Utils:Tween(element, {TextTransparency = 1}, 0.2)
-                                end
-                                
-                                for _, child in ipairs(element:GetChildren()) do
-                                    if child:IsA("TextLabel") or child:IsA("TextButton") then
-                                        Utils:Tween(child, {TextTransparency = 1}, 0.2)
-                                    elseif child:IsA("Frame") and child.Name ~= "UICorner" and child.Name ~= "UIStroke" then
-                                        Utils:Tween(child, {BackgroundTransparency = 1}, 0.2)
-                                    end
-                                end
-                            end)
-                        end
-                    end
-                    
-                    task.delay(0.25, function()
-                        t.Content.Visible = false
-                    end)
-                end
+                Utils:Spring(t.Button, {BackgroundTransparency = 1, TextColor3 = Config.Colors.TextDark}, 0.35)
             end
         end
         
