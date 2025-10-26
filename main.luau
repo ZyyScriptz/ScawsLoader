@@ -271,14 +271,14 @@ function ScawsHub:CreateWindow(settings)
     local CreditsLabel = Instance.new("TextLabel")
     CreditsLabel.Name = "Credits"
     CreditsLabel.Size = UDim2.new(0, 100, 1, 0)
-    CreditsLabel.Position = UDim2.new(0, 18, 0, 18)
+    CreditsLabel.Position = UDim2.new(0, 18, 0, 20)
     CreditsLabel.BackgroundTransparency = 1
     CreditsLabel.Font = Enum.Font.Gotham
     CreditsLabel.Text = "by ScawsHub"
     CreditsLabel.TextColor3 = Config.Colors.TextDark
     CreditsLabel.TextSize = 9
     CreditsLabel.TextXAlignment = Enum.TextXAlignment.Left
-    CreditsLabel.TextTransparency = 0.4
+    CreditsLabel.TextTransparency = 0.6
     CreditsLabel.Parent = Topbar
     
     local CloseButton = Instance.new("TextButton")
