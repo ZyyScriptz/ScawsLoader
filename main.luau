@@ -12,15 +12,15 @@ local Config = {
     EasingDirection = Enum.EasingDirection.Out,
     
     Colors = {
-        Background = Color3.fromRGB(20, 20, 25),
-        Topbar = Color3.fromRGB(25, 25, 30),
-        Sidebar = Color3.fromRGB(25, 25, 30),
-        Main = Color3.fromRGB(30, 30, 35),
+        Background = Color3.fromRGB(28, 28, 35),
+        Topbar = Color3.fromRGB(32, 32, 40),
+        Sidebar = Color3.fromRGB(32, 32, 40),
+        Main = Color3.fromRGB(35, 35, 42),
         Accent = Color3.fromRGB(88, 101, 242),
         AccentHover = Color3.fromRGB(108, 121, 262),
         Text = Color3.fromRGB(255, 255, 255),
-        TextDark = Color3.fromRGB(150, 150, 150),
-        Border = Color3.fromRGB(40, 40, 45),
+        TextDark = Color3.fromRGB(160, 160, 170),
+        Border = Color3.fromRGB(50, 50, 58),
         Success = Color3.fromRGB(67, 181, 129),
         Warning = Color3.fromRGB(250, 166, 26),
         Error = Color3.fromRGB(240, 71, 71),
@@ -203,7 +203,7 @@ function ScawsHub:CreateWindow(settings)
     Main.Position = UDim2.new(0.5, 0, 0.5, 0)
     Main.Size = UDim2.new(0, 0, 0, 0)
     Main.BackgroundColor3 = Config.Colors.Background
-    Main.BackgroundTransparency = 0.05
+    Main.BackgroundTransparency = 0.15
     Main.BorderSizePixel = 0
     Main.ClipsDescendants = true
     Main.Parent = MainGui
@@ -228,7 +228,7 @@ function ScawsHub:CreateWindow(settings)
     Topbar.Name = "Topbar"
     Topbar.Size = UDim2.new(1, 0, 0, 45)
     Topbar.BackgroundColor3 = Config.Colors.Topbar
-    Topbar.BackgroundTransparency = 0.05
+    Topbar.BackgroundTransparency = 0.15
     Topbar.BorderSizePixel = 0
     Topbar.Parent = Main
     Utils:CreateCorner(Topbar, 16)
@@ -237,7 +237,7 @@ function ScawsHub:CreateWindow(settings)
     TopbarFix.Size = UDim2.new(1, 0, 0, 16)
     TopbarFix.Position = UDim2.new(0, 0, 1, -16)
     TopbarFix.BackgroundColor3 = Config.Colors.Topbar
-    TopbarFix.BackgroundTransparency = 0.05
+    TopbarFix.BackgroundTransparency = 0.15
     TopbarFix.BorderSizePixel = 0
     TopbarFix.Parent = Topbar
     
@@ -288,9 +288,27 @@ function ScawsHub:CreateWindow(settings)
     Sidebar.Position = UDim2.new(0, 0, 0, 45)
     Sidebar.Size = UDim2.new(0, Config.SidebarWidth, 1, -45)
     Sidebar.BackgroundColor3 = Config.Colors.Sidebar
-    Sidebar.BackgroundTransparency = 0.1
+    Sidebar.BackgroundTransparency = 0.15
     Sidebar.BorderSizePixel = 0
     Sidebar.Parent = Main
+    
+    local SidebarRoundFix = Instance.new("Frame")
+    SidebarRoundFix.Name = "RoundFix"
+    SidebarRoundFix.Size = UDim2.new(0, 16, 0, 16)
+    SidebarRoundFix.Position = UDim2.new(0, 0, 1, -16)
+    SidebarRoundFix.BackgroundColor3 = Config.Colors.Sidebar
+    SidebarRoundFix.BackgroundTransparency = 0.15
+    SidebarRoundFix.BorderSizePixel = 0
+    SidebarRoundFix.Parent = Sidebar
+    
+    local BottomLeftCorner = Instance.new("Frame")
+    BottomLeftCorner.Size = UDim2.new(0, 16, 0, 16)
+    BottomLeftCorner.Position = UDim2.new(0, 0, 1, -16)
+    BottomLeftCorner.BackgroundColor3 = Config.Colors.Background
+    BottomLeftCorner.BackgroundTransparency = 0.15
+    BottomLeftCorner.BorderSizePixel = 0
+    BottomLeftCorner.Parent = Main
+    Utils:CreateCorner(BottomLeftCorner, 16)
     
     local Separator = Instance.new("Frame")
     Separator.Name = "Separator"
@@ -327,10 +345,27 @@ function ScawsHub:CreateWindow(settings)
     ContentArea.Position = UDim2.new(0, Config.SidebarWidth, 0, 45)
     ContentArea.Size = UDim2.new(1, -Config.SidebarWidth, 1, -45)
     ContentArea.BackgroundColor3 = Config.Colors.Main
-    ContentArea.BackgroundTransparency = 0.05
+    ContentArea.BackgroundTransparency = 0.15
     ContentArea.BorderSizePixel = 0
     ContentArea.ClipsDescendants = true
     ContentArea.Parent = Main
+    
+    local ContentRoundFix = Instance.new("Frame")
+    ContentRoundFix.Size = UDim2.new(0, 16, 0, 16)
+    ContentRoundFix.Position = UDim2.new(1, -16, 1, -16)
+    ContentRoundFix.BackgroundColor3 = Config.Colors.Main
+    ContentRoundFix.BackgroundTransparency = 0.15
+    ContentRoundFix.BorderSizePixel = 0
+    ContentRoundFix.Parent = ContentArea
+    
+    local BottomRightCorner = Instance.new("Frame")
+    BottomRightCorner.Size = UDim2.new(0, 16, 0, 16)
+    BottomRightCorner.Position = UDim2.new(1, -16, 1, -16)
+    BottomRightCorner.BackgroundColor3 = Config.Colors.Background
+    BottomRightCorner.BackgroundTransparency = 0.15
+    BottomRightCorner.BorderSizePixel = 0
+    BottomRightCorner.Parent = Main
+    Utils:CreateCorner(BottomRightCorner, 16)
     
     Utils:MakeDraggable(Main, Topbar)
     
@@ -808,16 +843,52 @@ function ScawsHub:CreateWindow(settings)
         for _, t in ipairs(self.Tabs) do
             if t == tab then
                 Utils:Spring(t.Button, {BackgroundTransparency = 0.75, TextColor3 = Config.Colors.Text}, 0.3)
-                t.Content.Visible = false
                 Utils:Tween(t.Content, {Position = UDim2.new(0, 10, 0, 10)}, 0.001)
-                task.wait(0.15)
+                
+                for _, element in ipairs(t.Content:GetDescendants()) do
+                    if element:IsA("GuiObject") then
+                        element.Visible = false
+                    end
+                end
+                
+                task.wait(0.1)
                 t.Content.Visible = true
-                Utils:Tween(t.Content, {Position = UDim2.new(0, 10, 0, 10)}, 0.4)
+                
+                for _, element in ipairs(t.Content:GetDescendants()) do
+                    if element:IsA("GuiObject") then
+                        element.Visible = true
+                        if element:IsA("Frame") or element:IsA("TextButton") or element:IsA("TextLabel") then
+                            local originalTrans = element.BackgroundTransparency
+                            element.BackgroundTransparency = 1
+                            Utils:Tween(element, {BackgroundTransparency = originalTrans}, 0.3)
+                            
+                            if element:IsA("TextLabel") or element:IsA("TextButton") then
+                                local originalTextTrans = element.TextTransparency
+                                element.TextTransparency = 1
+                                Utils:Tween(element, {TextTransparency = originalTextTrans}, 0.3)
+                            end
+                        end
+                    end
+                end
             else
                 Utils:Spring(t.Button, {BackgroundTransparency = 1, TextColor3 = Config.Colors.TextDark}, 0.3)
-                Utils:Tween(t.Content, {Position = UDim2.new(0, -20, 0, 10)}, 0.2)
-                task.wait(0.15)
-                t.Content.Visible = false
+                
+                if t.Content.Visible then
+                    for _, element in ipairs(t.Content:GetDescendants()) do
+                        if element:IsA("GuiObject") then
+                            if element:IsA("Frame") or element:IsA("TextButton") or element:IsA("TextLabel") then
+                                Utils:Tween(element, {BackgroundTransparency = 1}, 0.2)
+                                
+                                if element:IsA("TextLabel") or element:IsA("TextButton") then
+                                    Utils:Tween(element, {TextTransparency = 1}, 0.2)
+                                end
+                            end
+                        end
+                    end
+                    
+                    task.wait(0.2)
+                    t.Content.Visible = false
+                end
             end
         end
         self.CurrentTab = tab
@@ -859,7 +930,7 @@ function ScawsHub:CreateNotification(settings)
     Notification.Size = UDim2.new(0, 340, 0, 90)
     Notification.Position = UDim2.new(1, 360, 1, -110 - #existingNotifs * 100)
     Notification.BackgroundColor3 = Config.Colors.Background
-    Notification.BackgroundTransparency = 0.05
+    Notification.BackgroundTransparency = 0.15
     Notification.BorderSizePixel = 0
     Notification.Parent = notifGui
     Utils:CreateCorner(Notification, 14)
