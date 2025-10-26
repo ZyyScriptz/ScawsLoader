@@ -263,7 +263,7 @@ function ScawsHub:CreateWindow(settings)
     CreditsLabel.Position = UDim2.new(0, 18, 0, 18)
     CreditsLabel.BackgroundTransparency = 1
     CreditsLabel.Font = Enum.Font.Gotham
-    CreditsLabel.Text = "ScawsHub"
+    CreditsLabel.Text = "by ScawsHub"
     CreditsLabel.TextColor3 = Config.Colors.TextDark
     CreditsLabel.TextSize = 9
     CreditsLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -307,16 +307,17 @@ function ScawsHub:CreateWindow(settings)
     Sidebar.BackgroundColor3 = Config.Colors.Sidebar
     Sidebar.BackgroundTransparency = 0.15
     Sidebar.BorderSizePixel = 0
-    Sidebar.ClipsDescendants = true
+    Sidebar.ClipsDescendants = false
     Sidebar.Parent = Main
     
-    local SidebarBottomCorner = Instance.new("Frame")
-    SidebarBottomCorner.Size = UDim2.new(1, 0, 0, 16)
-    SidebarBottomCorner.Position = UDim2.new(0, 0, 1, -16)
-    SidebarBottomCorner.BackgroundColor3 = Config.Colors.Sidebar
-    SidebarBottomCorner.BackgroundTransparency = 0.15
-    SidebarBottomCorner.BorderSizePixel = 0
-    SidebarBottomCorner.Parent = Sidebar
+    local SidebarBottomFix = Instance.new("Frame")
+    SidebarBottomFix.Name = "BottomFix"
+    SidebarBottomFix.Size = UDim2.new(1, 0, 0, 16)
+    SidebarBottomFix.Position = UDim2.new(0, 0, 1, -16)
+    SidebarBottomFix.BackgroundColor3 = Config.Colors.Sidebar
+    SidebarBottomFix.BackgroundTransparency = 0.15
+    SidebarBottomFix.BorderSizePixel = 0
+    SidebarBottomFix.Parent = Sidebar
     
     local Separator = Instance.new("Frame")
     Separator.Name = "Separator"
@@ -329,7 +330,7 @@ function ScawsHub:CreateWindow(settings)
     
     local TabContainer = Instance.new("ScrollingFrame")
     TabContainer.Name = "TabContainer"
-    TabContainer.Size = UDim2.new(1, -10, 1, -55)
+    TabContainer.Size = UDim2.new(1, -10, 1, -10)
     TabContainer.Position = UDim2.new(0, 5, 0, 5)
     TabContainer.BackgroundTransparency = 1
     TabContainer.BorderSizePixel = 0
@@ -348,21 +349,6 @@ function ScawsHub:CreateWindow(settings)
         TabContainer.CanvasSize = UDim2.new(0, 0, 0, TabLayout.AbsoluteContentSize.Y + 10)
     end)
     
-    local SessionInfoButton = Instance.new("TextButton")
-    SessionInfoButton.Name = "SessionInfo"
-    SessionInfoButton.Size = UDim2.new(1, -10, 0, 36)
-    SessionInfoButton.Position = UDim2.new(0, 5, 1, -41)
-    SessionInfoButton.BackgroundColor3 = Config.Colors.Background
-    SessionInfoButton.BackgroundTransparency = 1
-    SessionInfoButton.BorderSizePixel = 0
-    SessionInfoButton.Font = Enum.Font.GothamSemibold
-    SessionInfoButton.Text = "  Session Info"
-    SessionInfoButton.TextColor3 = Config.Colors.TextDark
-    SessionInfoButton.TextSize = 14
-    SessionInfoButton.TextXAlignment = Enum.TextXAlignment.Left
-    SessionInfoButton.Parent = Sidebar
-    Utils:CreateCorner(SessionInfoButton, 10)
-    
     local ContentArea = Instance.new("Frame")
     ContentArea.Name = "ContentArea"
     ContentArea.Position = UDim2.new(0, Config.SidebarWidth, 0, 45)
@@ -373,21 +359,14 @@ function ScawsHub:CreateWindow(settings)
     ContentArea.ClipsDescendants = true
     ContentArea.Parent = Main
     
-    local ContentBottomCorner = Instance.new("Frame")
-    ContentBottomCorner.Size = UDim2.new(1, 0, 0, 16)
-    ContentBottomCorner.Position = UDim2.new(0, 0, 1, -16)
-    ContentBottomCorner.BackgroundColor3 = Config.Colors.Main
-    ContentBottomCorner.BackgroundTransparency = 0.15
-    ContentBottomCorner.BorderSizePixel = 0
-    ContentBottomCorner.Parent = ContentArea
-    
-    local BottomCornerFrame = Instance.new("Frame")
-    BottomCornerFrame.Size = UDim2.new(1, 0, 0, 16)
-    BottomCornerFrame.Position = UDim2.new(0, 0, 1, -16)
-    BottomCornerFrame.BackgroundColor3 = Config.Colors.Background
-    BottomCornerFrame.BackgroundTransparency = 0.15
-    BottomCornerFrame.BorderSizePixel = 0
-    BottomCornerFrame.Parent = Main
+    local ContentBottomFix = Instance.new("Frame")
+    ContentBottomFix.Name = "BottomFix"
+    ContentBottomFix.Size = UDim2.new(1, 0, 0, 16)
+    ContentBottomFix.Position = UDim2.new(0, 0, 1, -16)
+    ContentBottomFix.BackgroundColor3 = Config.Colors.Main
+    ContentBottomFix.BackgroundTransparency = 0.15
+    ContentBottomFix.BorderSizePixel = 0
+    ContentBottomFix.Parent = ContentArea
     
     Utils:MakeDraggable(Main, Topbar)
     
@@ -398,7 +377,6 @@ function ScawsHub:CreateWindow(settings)
         Sidebar = Sidebar,
         TabContainer = TabContainer,
         ContentArea = ContentArea,
-        SessionInfoButton = SessionInfoButton,
         Tabs = {},
         CurrentTab = nil,
         Visible = true,
@@ -444,31 +422,12 @@ function ScawsHub:CreateWindow(settings)
         Utils:Spring(MinimizeButton, {BackgroundTransparency = 0.6}, 0.25)
     end)
     
-    local SessionInfoTab = Window:CreateSessionInfoTab()
-    
-    SessionInfoButton.MouseButton1Click:Connect(function()
-        Window:SelectTab(SessionInfoTab)
-    end)
-    
-    SessionInfoButton.MouseEnter:Connect(function()
-        if Window.CurrentTab ~= SessionInfoTab then
-            Utils:Spring(SessionInfoButton, {BackgroundTransparency = 0.88}, 0.3)
-        end
-    end)
-    
-    SessionInfoButton.MouseLeave:Connect(function()
-        if Window.CurrentTab ~= SessionInfoTab then
-            Utils:Spring(SessionInfoButton, {BackgroundTransparency = 1}, 0.3)
-        end
-    end)
-    
     function Window:CreateTab(name, icon)
         local Tab = {}
         Tab.Name = name
         Tab.Button = nil
         Tab.Content = nil
         Tab.Elements = {}
-        Tab.IsSessionInfo = false
         
         local TabButton = Instance.new("TextButton")
         TabButton.Name = name
@@ -529,9 +488,7 @@ function ScawsHub:CreateWindow(settings)
         table.insert(Window.Tabs, Tab)
         
         if #Window.Tabs == 1 then
-            task.delay(0.1, function()
-                Window:SelectTab(Tab)
-            end)
+            Window:SelectTab(Tab)
         end
         
         function Tab:CreateButton(settings)
@@ -884,180 +841,6 @@ function ScawsHub:CreateWindow(settings)
         return Tab
     end
     
-    function Window:CreateSessionInfoTab()
-        local Tab = {}
-        Tab.Name = "Session Info"
-        Tab.Button = SessionInfoButton
-        Tab.Content = nil
-        Tab.Elements = {}
-        Tab.IsSessionInfo = true
-        
-        local TabContent = Instance.new("ScrollingFrame")
-        TabContent.Name = "SessionInfo_Content"
-        TabContent.Size = UDim2.new(1, -20, 1, -20)
-        TabContent.Position = UDim2.new(0, 10, 0, 10)
-        TabContent.BackgroundTransparency = 1
-        TabContent.BorderSizePixel = 0
-        TabContent.ScrollBarThickness = 4
-        TabContent.ScrollBarImageColor3 = Config.Colors.Accent
-        TabContent.ScrollBarImageTransparency = 0.3
-        TabContent.CanvasSize = UDim2.new(0, 0, 0, 0)
-        TabContent.Visible = false
-        TabContent.Parent = ContentArea
-        
-        local ContentLayout = Instance.new("UIListLayout")
-        ContentLayout.SortOrder = Enum.SortOrder.LayoutOrder
-        ContentLayout.Padding = UDim.new(0, 10)
-        ContentLayout.Parent = TabContent
-        
-        ContentLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-            TabContent.CanvasSize = UDim2.new(0, 0, 0, ContentLayout.AbsoluteContentSize.Y + 20)
-        end)
-        
-        Tab.Content = TabContent
-        
-        local function CreateInfoFrame(labelText, valueText)
-            local InfoFrame = Instance.new("Frame")
-            InfoFrame.Size = UDim2.new(1, 0, 0, 36)
-            InfoFrame.BackgroundColor3 = Config.Colors.Background
-            InfoFrame.BackgroundTransparency = 0.2
-            InfoFrame.BorderSizePixel = 0
-            InfoFrame.Parent = TabContent
-            Utils:CreateCorner(InfoFrame, 10)
-            Utils:CreateStroke(InfoFrame, Config.Colors.Border, 1)
-            
-            local Label = Instance.new("TextLabel")
-            Label.Size = UDim2.new(0.5, -16, 1, 0)
-            Label.Position = UDim2.new(0, 12, 0, 0)
-            Label.BackgroundTransparency = 1
-            Label.Font = Enum.Font.GothamSemibold
-            Label.Text = labelText
-            Label.TextColor3 = Config.Colors.TextDark
-            Label.TextSize = 12
-            Label.TextXAlignment = Enum.TextXAlignment.Left
-            Label.Parent = InfoFrame
-            
-            local Value = Instance.new("TextLabel")
-            Value.Size = UDim2.new(0.5, -16, 1, 0)
-            Value.Position = UDim2.new(0.5, 4, 0, 0)
-            Value.BackgroundTransparency = 1
-            Value.Font = Enum.Font.GothamBold
-            Value.Text = valueText
-            Value.TextColor3 = Config.Colors.Accent
-            Value.TextSize = 12
-            Value.TextXAlignment = Enum.TextXAlignment.Right
-            Value.Parent = InfoFrame
-            
-            return Value
-        end
-        
-        local uptimeLabel = CreateInfoFrame("Uptime", "0s")
-        local fpsLabel = CreateInfoFrame("FPS", "0")
-        local pingLabel = CreateInfoFrame("Ping", "0ms")
-        local jobIdLabel = CreateInfoFrame("Job ID", game.JobId)
-        local placeIdLabel = CreateInfoFrame("Place ID", tostring(game.PlaceId))
-        local playerCountLabel = CreateInfoFrame("Players", tostring(#Players:GetPlayers()))
-        
-        local function CreateActionButton(text, callback)
-            local ButtonFrame = Instance.new("Frame")
-            ButtonFrame.Size = UDim2.new(1, 0, 0, 40)
-            ButtonFrame.BackgroundColor3 = Config.Colors.Background
-            ButtonFrame.BackgroundTransparency = 0.2
-            ButtonFrame.BorderSizePixel = 0
-            ButtonFrame.Parent = TabContent
-            Utils:CreateCorner(ButtonFrame, 10)
-            Utils:CreateStroke(ButtonFrame, Config.Colors.Border, 1)
-            
-            local Button = Instance.new("TextButton")
-            Button.Size = UDim2.new(1, -20, 1, -8)
-            Button.Position = UDim2.new(0, 10, 0, 4)
-            Button.BackgroundTransparency = 1
-            Button.Font = Enum.Font.GothamSemibold
-            Button.Text = text
-            Button.TextColor3 = Config.Colors.Text
-            Button.TextSize = 13
-            Button.TextXAlignment = Enum.TextXAlignment.Center
-            Button.Parent = ButtonFrame
-            
-            Button.MouseButton1Click:Connect(function()
-                Utils:Spring(ButtonFrame, {BackgroundColor3 = Config.Colors.Accent, BackgroundTransparency = 0}, 0.15)
-                task.wait(0.1)
-                Utils:Spring(ButtonFrame, {BackgroundColor3 = Config.Colors.Background, BackgroundTransparency = 0.2}, 0.2)
-                callback()
-            end)
-            
-            Button.MouseEnter:Connect(function()
-                Utils:Spring(ButtonFrame, {BackgroundColor3 = Config.Colors.Border, BackgroundTransparency = 0.1}, 0.25)
-            end)
-            
-            Button.MouseLeave:Connect(function()
-                Utils:Spring(ButtonFrame, {BackgroundColor3 = Config.Colors.Background, BackgroundTransparency = 0.2}, 0.25)
-            end)
-        end
-        
-        CreateActionButton("Rejoin Server", function()
-            TeleportService:Teleport(game.PlaceId, Players.LocalPlayer)
-        end)
-        
-        CreateActionButton("Server Hop", function()
-            local servers = game:GetService("HttpService"):JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100"))
-            if servers and servers.data then
-                for _, server in ipairs(servers.data) do
-                    if server.id ~= game.JobId and server.playing < server.maxPlayers then
-                        TeleportService:TeleportToPlaceInstance(game.PlaceId, server.id, Players.LocalPlayer)
-                        return
-                    end
-                end
-            end
-        end)
-        
-        local CreditsFrame = Instance.new("Frame")
-        CreditsFrame.Size = UDim2.new(1, 0, 0, 32)
-        CreditsFrame.BackgroundTransparency = 1
-        CreditsFrame.Parent = TabContent
-        
-        local CreditsText = Instance.new("TextLabel")
-        CreditsText.Size = UDim2.new(1, -24, 1, 0)
-        CreditsText.Position = UDim2.new(0, 12, 0, 0)
-        CreditsText.BackgroundTransparency = 1
-        CreditsText.Font = Enum.Font.GothamBold
-        CreditsText.Text = "ScawsHub"
-        CreditsText.TextColor3 = Config.Colors.Accent
-        CreditsText.TextSize = 11
-        CreditsText.TextXAlignment = Enum.TextXAlignment.Center
-        CreditsText.TextTransparency = 0.3
-        CreditsText.Parent = CreditsFrame
-        
-        local lastUpdate = tick()
-        local frameCount = 0
-        local fps = 0
-        
-        RunService.RenderStepped:Connect(function()
-            frameCount = frameCount + 1
-            if tick() - lastUpdate >= 1 then
-                fps = frameCount
-                frameCount = 0
-                lastUpdate = tick()
-                
-                if Tab.Content.Visible then
-                    local uptime = math.floor(tick() - SessionStartTime)
-                    local hours = math.floor(uptime / 3600)
-                    local minutes = math.floor((uptime % 3600) / 60)
-                    local seconds = uptime % 60
-                    
-                    uptimeLabel.Text = string.format("%02d:%02d:%02d", hours, minutes, seconds)
-                    fpsLabel.Text = tostring(fps)
-                    pingLabel.Text = tostring(math.floor(game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValue())) .. "ms"
-                    playerCountLabel.Text = tostring(#Players:GetPlayers())
-                end
-            end
-        end)
-        
-        table.insert(Window.Tabs, Tab)
-        
-        return Tab
-    end
-    
     function Window:SelectTab(tab)
         if self.IsTransitioning then return end
         if self.CurrentTab == tab then return end
@@ -1066,94 +849,71 @@ function ScawsHub:CreateWindow(settings)
         
         for _, t in ipairs(self.Tabs) do
             if t == tab then
-                if t.IsSessionInfo then
-                    Utils:Spring(SessionInfoButton, {BackgroundTransparency = 0.75, TextColor3 = Config.Colors.Text}, 0.3)
-                else
-                    Utils:Spring(t.Button, {BackgroundTransparency = 0.75, TextColor3 = Config.Colors.Text}, 0.3)
-                end
+                Utils:Spring(t.Button, {BackgroundTransparency = 0.75, TextColor3 = Config.Colors.Text}, 0.3)
+                
+                t.Content.Visible = true
+                t.Content.Position = UDim2.new(0, 10, 0, 10)
                 
                 task.wait(0.15)
                 
-                t.Content.Visible = true
-                t.Content.Position = UDim2.new(0, 30, 0, 10)
-                
                 for _, element in ipairs(t.Content:GetChildren()) do
                     if element:IsA("GuiObject") and not element:IsA("UIListLayout") then
+                        local originalBgTrans = element.BackgroundTransparency
                         element.BackgroundTransparency = 1
                         
-                        for _, child in ipairs(element:GetDescendants()) do
+                        if element:IsA("TextLabel") or element:IsA("TextButton") then
+                            element.TextTransparency = 1
+                        end
+                        
+                        for _, child in ipairs(element:GetChildren()) do
                             if child:IsA("TextLabel") or child:IsA("TextButton") then
                                 child.TextTransparency = 1
-                            elseif child:IsA("Frame") or child:IsA("ImageLabel") then
+                            elseif child:IsA("Frame") and child.Name ~= "UICorner" and child.Name ~= "UIStroke" then
                                 child.BackgroundTransparency = 1
-                                if child:IsA("ImageLabel") then
-                                    child.ImageTransparency = 1
-                                end
                             end
                         end
-                    end
-                end
-                
-                Utils:Tween(t.Content, {Position = UDim2.new(0, 10, 0, 10)}, 0.3)
-                
-                task.wait(0.05)
-                
-                for i, element in ipairs(t.Content:GetChildren()) do
-                    if element:IsA("GuiObject") and not element:IsA("UIListLayout") then
+                        
                         task.spawn(function()
-                            task.wait(i * 0.02)
-                            
-                            local originalBgTrans = 0.2
-                            if element:FindFirstChild("BackgroundTransparency") then
-                                originalBgTrans = element.BackgroundTransparency
+                            Utils:Tween(element, {BackgroundTransparency = originalBgTrans}, 0.35)
+                            if element:IsA("TextLabel") or element:IsA("TextButton") then
+                                Utils:Tween(element, {TextTransparency = 0}, 0.35)
                             end
                             
-                            Utils:Tween(element, {BackgroundTransparency = originalBgTrans}, 0.25)
-                            
-                            for _, child in ipairs(element:GetDescendants()) do
+                            for _, child in ipairs(element:GetChildren()) do
                                 if child:IsA("TextLabel") or child:IsA("TextButton") then
-                                    Utils:Tween(child, {TextTransparency = 0}, 0.25)
+                                    Utils:Tween(child, {TextTransparency = 0}, 0.35)
                                 elseif child:IsA("Frame") and child.Name ~= "UICorner" and child.Name ~= "UIStroke" then
-                                    local childBgTrans = 0
-                                    if child.Name == "Separator" then
-                                        childBgTrans = 0.5
-                                    end
-                                    Utils:Tween(child, {BackgroundTransparency = childBgTrans}, 0.25)
-                                elseif child:IsA("ImageLabel") then
-                                    Utils:Tween(child, {ImageTransparency = 0}, 0.25)
+                                    local origTrans = child:GetAttribute("OriginalTransparency") or 0.2
+                                    Utils:Tween(child, {BackgroundTransparency = origTrans}, 0.35)
                                 end
                             end
                         end)
                     end
                 end
             else
-                if t.IsSessionInfo then
-                    Utils:Spring(SessionInfoButton, {BackgroundTransparency = 1, TextColor3 = Config.Colors.TextDark}, 0.3)
-                else
-                    Utils:Spring(t.Button, {BackgroundTransparency = 1, TextColor3 = Config.Colors.TextDark}, 0.3)
-                end
+                Utils:Spring(t.Button, {BackgroundTransparency = 1, TextColor3 = Config.Colors.TextDark}, 0.3)
                 
                 if t.Content.Visible then
                     for _, element in ipairs(t.Content:GetChildren()) do
                         if element:IsA("GuiObject") and not element:IsA("UIListLayout") then
                             task.spawn(function()
-                                Utils:Tween(element, {BackgroundTransparency = 1}, 0.15)
+                                Utils:Tween(element, {BackgroundTransparency = 1}, 0.2)
+                                if element:IsA("TextLabel") or element:IsA("TextButton") then
+                                    Utils:Tween(element, {TextTransparency = 1}, 0.2)
+                                end
                                 
-                                for _, child in ipairs(element:GetDescendants()) do
+                                for _, child in ipairs(element:GetChildren()) do
                                     if child:IsA("TextLabel") or child:IsA("TextButton") then
-                                        Utils:Tween(child, {TextTransparency = 1}, 0.15)
-                                    elseif child:IsA("Frame") or child:IsA("ImageLabel") then
-                                        if child:IsA("ImageLabel") then
-                                            Utils:Tween(child, {ImageTransparency = 1}, 0.15)
-                                        end
-                                        Utils:Tween(child, {BackgroundTransparency = 1}, 0.15)
+                                        Utils:Tween(child, {TextTransparency = 1}, 0.2)
+                                    elseif child:IsA("Frame") and child.Name ~= "UICorner" and child.Name ~= "UIStroke" then
+                                        Utils:Tween(child, {BackgroundTransparency = 1}, 0.2)
                                     end
                                 end
                             end)
                         end
                     end
                     
-                    task.delay(0.15, function()
+                    task.delay(0.25, function()
                         t.Content.Visible = false
                     end)
                 end
@@ -1162,7 +922,7 @@ function ScawsHub:CreateWindow(settings)
         
         self.CurrentTab = tab
         
-        task.delay(0.4, function()
+        task.delay(0.5, function()
             self.IsTransitioning = false
         end)
     end
@@ -1203,25 +963,22 @@ function ScawsHub:CreateNotification(settings)
     Notification.Size = UDim2.new(0, 340, 0, 90)
     Notification.Position = UDim2.new(1, 360, 1, -110 - #existingNotifs * 100)
     Notification.BackgroundColor3 = Config.Colors.Background
-    Notification.BackgroundTransparency = 0.08
+    Notification.BackgroundTransparency = 0.05
     Notification.BorderSizePixel = 0
-    Notification.ClipsDescendants = false
     Notification.Parent = notifGui
     Utils:CreateCorner(Notification, 14)
     Utils:CreateStroke(Notification, Config.Colors.Border, 1)
     
-    local Blur = Instance.new("ImageLabel")
-    Blur.Name = "Blur"
-    Blur.AnchorPoint = Vector2.new(0.5, 0.5)
-    Blur.Position = UDim2.new(0.5, 0, 0.5, 0)
-    Blur.Size = UDim2.new(1, 40, 1, 40)
-    Blur.BackgroundTransparency = 1
-    Blur.Image = "rbxassetid://5554236805"
-    Blur.ImageColor3 = Config.Colors.Background
-    Blur.ImageTransparency = 0.5
-    Blur.ZIndex = -1
-    Blur.Parent = Notification
-    Utils:CreateCorner(Blur, 18)
+    local BlurFrame = Instance.new("Frame")
+    BlurFrame.Name = "BlurFrame"
+    BlurFrame.Size = UDim2.new(1, 0, 1, 0)
+    BlurFrame.Position = UDim2.new(0, 0, 0, 0)
+    BlurFrame.BackgroundColor3 = Config.Colors.Background
+    BlurFrame.BackgroundTransparency = 0.3
+    BlurFrame.BorderSizePixel = 0
+    BlurFrame.ZIndex = 0
+    BlurFrame.Parent = Notification
+    Utils:CreateCorner(BlurFrame, 14)
     
     local Shadow = Instance.new("ImageLabel")
     Shadow.Name = "Shadow"
@@ -1232,9 +989,9 @@ function ScawsHub:CreateNotification(settings)
     Shadow.Image = "rbxassetid://5554236805"
     Shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
     Shadow.ImageTransparency = 0.4
-    Shadow.ZIndex = -2
+    Shadow.ZIndex = -1
     Shadow.Parent = Notification
-    Utils:CreateCorner(Shadow, 16)
+    Utils:CreateCorner(Shadow, 14)
     
     local colorMap = {
         Info = Config.Colors.Accent,
@@ -1248,6 +1005,7 @@ function ScawsHub:CreateNotification(settings)
     Indicator.Position = UDim2.new(0, 8, 0, 8)
     Indicator.BackgroundColor3 = colorMap[type] or Config.Colors.Accent
     Indicator.BorderSizePixel = 0
+    Indicator.ZIndex = 2
     Indicator.Parent = Notification
     Utils:CreateCorner(Indicator, 2)
     
@@ -1260,6 +1018,7 @@ function ScawsHub:CreateNotification(settings)
     Title.TextColor3 = Config.Colors.Text
     Title.TextSize = 15
     Title.TextXAlignment = Enum.TextXAlignment.Left
+    Title.ZIndex = 2
     Title.Parent = Notification
     
     local Content = Instance.new("TextLabel")
@@ -1273,17 +1032,32 @@ function ScawsHub:CreateNotification(settings)
     Content.TextXAlignment = Enum.TextXAlignment.Left
     Content.TextYAlignment = Enum.TextYAlignment.Top
     Content.TextWrapped = true
+    Content.ZIndex = 2
     Content.Parent = Notification
+    
+    local Credits = Instance.new("TextLabel")
+    Credits.Size = UDim2.new(0, 80, 0, 12)
+    Credits.Position = UDim2.new(1, -88, 1, -18)
+    Credits.BackgroundTransparency = 1
+    Credits.Font = Enum.Font.Gotham
+    Credits.Text = "ScawsHub"
+    Credits.TextColor3 = Config.Colors.TextDark
+    Credits.TextSize = 9
+    Credits.TextXAlignment = Enum.TextXAlignment.Right
+    Credits.TextTransparency = 0.5
+    Credits.ZIndex = 2
+    Credits.Parent = Notification
     
     local targetPos = UDim2.new(1, -350, 1, -110 - #existingNotifs * 100)
     Utils:Spring(Notification, {Position = targetPos}, 0.5)
     
     task.delay(duration, function()
         Utils:Spring(Notification, {Position = UDim2.new(1, 360, 1, Notification.Position.Y.Offset), BackgroundTransparency = 1}, 0.5)
+        Utils:Spring(BlurFrame, {BackgroundTransparency = 1}, 0.5)
         Utils:Spring(Shadow, {ImageTransparency = 1}, 0.5)
-        Utils:Spring(Blur, {ImageTransparency = 1}, 0.5)
         Utils:Spring(Title, {TextTransparency = 1}, 0.5)
         Utils:Spring(Content, {TextTransparency = 1}, 0.5)
+        Utils:Spring(Credits, {TextTransparency = 1}, 0.5)
         Utils:Spring(Indicator, {BackgroundTransparency = 1}, 0.5)
         
         task.wait(0.5)
