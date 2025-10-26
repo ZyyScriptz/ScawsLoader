@@ -2,6 +2,8 @@ local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
+local RunService = game:GetService("RunService")
+local TeleportService = game:GetService("TeleportService")
 
 local ScawsHub = {}
 ScawsHub.__index = ScawsHub
@@ -29,6 +31,8 @@ local Config = {
     WindowSize = UDim2.new(0, 550, 0, 400),
     SidebarWidth = 150,
 }
+
+local SessionStartTime = tick()
 
 local Utils = {}
 
@@ -253,6 +257,19 @@ function ScawsHub:CreateWindow(settings)
     TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
     TitleLabel.Parent = Topbar
     
+    local CreditsLabel = Instance.new("TextLabel")
+    CreditsLabel.Name = "Credits"
+    CreditsLabel.Size = UDim2.new(0, 100, 1, 0)
+    CreditsLabel.Position = UDim2.new(0, 18, 0, 18)
+    CreditsLabel.BackgroundTransparency = 1
+    CreditsLabel.Font = Enum.Font.Gotham
+    CreditsLabel.Text = "ScawsHub"
+    CreditsLabel.TextColor3 = Config.Colors.TextDark
+    CreditsLabel.TextSize = 9
+    CreditsLabel.TextXAlignment = Enum.TextXAlignment.Left
+    CreditsLabel.TextTransparency = 0.4
+    CreditsLabel.Parent = Topbar
+    
     local CloseButton = Instance.new("TextButton")
     CloseButton.Name = "CloseButton"
     CloseButton.AnchorPoint = Vector2.new(1, 0.5)
@@ -290,25 +307,8 @@ function ScawsHub:CreateWindow(settings)
     Sidebar.BackgroundColor3 = Config.Colors.Sidebar
     Sidebar.BackgroundTransparency = 0.15
     Sidebar.BorderSizePixel = 0
+    Sidebar.ClipsDescendants = false
     Sidebar.Parent = Main
-    
-    local SidebarRoundFix = Instance.new("Frame")
-    SidebarRoundFix.Name = "RoundFix"
-    SidebarRoundFix.Size = UDim2.new(0, 16, 0, 16)
-    SidebarRoundFix.Position = UDim2.new(0, 0, 1, -16)
-    SidebarRoundFix.BackgroundColor3 = Config.Colors.Sidebar
-    SidebarRoundFix.BackgroundTransparency = 0.15
-    SidebarRoundFix.BorderSizePixel = 0
-    SidebarRoundFix.Parent = Sidebar
-    
-    local BottomLeftCorner = Instance.new("Frame")
-    BottomLeftCorner.Size = UDim2.new(0, 16, 0, 16)
-    BottomLeftCorner.Position = UDim2.new(0, 0, 1, -16)
-    BottomLeftCorner.BackgroundColor3 = Config.Colors.Background
-    BottomLeftCorner.BackgroundTransparency = 0.15
-    BottomLeftCorner.BorderSizePixel = 0
-    BottomLeftCorner.Parent = Main
-    Utils:CreateCorner(BottomLeftCorner, 16)
     
     local Separator = Instance.new("Frame")
     Separator.Name = "Separator"
@@ -350,23 +350,6 @@ function ScawsHub:CreateWindow(settings)
     ContentArea.ClipsDescendants = true
     ContentArea.Parent = Main
     
-    local ContentRoundFix = Instance.new("Frame")
-    ContentRoundFix.Size = UDim2.new(0, 16, 0, 16)
-    ContentRoundFix.Position = UDim2.new(1, -16, 1, -16)
-    ContentRoundFix.BackgroundColor3 = Config.Colors.Main
-    ContentRoundFix.BackgroundTransparency = 0.15
-    ContentRoundFix.BorderSizePixel = 0
-    ContentRoundFix.Parent = ContentArea
-    
-    local BottomRightCorner = Instance.new("Frame")
-    BottomRightCorner.Size = UDim2.new(0, 16, 0, 16)
-    BottomRightCorner.Position = UDim2.new(1, -16, 1, -16)
-    BottomRightCorner.BackgroundColor3 = Config.Colors.Background
-    BottomRightCorner.BackgroundTransparency = 0.15
-    BottomRightCorner.BorderSizePixel = 0
-    BottomRightCorner.Parent = Main
-    Utils:CreateCorner(BottomRightCorner, 16)
-    
     Utils:MakeDraggable(Main, Topbar)
     
     local Window = {
@@ -380,6 +363,7 @@ function ScawsHub:CreateWindow(settings)
         CurrentTab = nil,
         Visible = true,
         Minimized = false,
+        IsTransitioning = false,
     }
     
     CloseButton.MouseButton1Click:Connect(function()
@@ -840,58 +824,62 @@ function ScawsHub:CreateWindow(settings)
     end
     
     function Window:SelectTab(tab)
+        if self.IsTransitioning then return end
+        if self.CurrentTab == tab then return end
+        
+        self.IsTransitioning = true
+        
         for _, t in ipairs(self.Tabs) do
             if t == tab then
                 Utils:Spring(t.Button, {BackgroundTransparency = 0.75, TextColor3 = Config.Colors.Text}, 0.3)
-                Utils:Tween(t.Content, {Position = UDim2.new(0, 10, 0, 10)}, 0.001)
                 
-                for _, element in ipairs(t.Content:GetDescendants()) do
-                    if element:IsA("GuiObject") then
-                        element.Visible = false
-                    end
-                end
-                
-                task.wait(0.1)
                 t.Content.Visible = true
+                t.Content.Position = UDim2.new(0, 10, 0, 10)
                 
-                for _, element in ipairs(t.Content:GetDescendants()) do
-                    if element:IsA("GuiObject") then
-                        element.Visible = true
-                        if element:IsA("Frame") or element:IsA("TextButton") or element:IsA("TextLabel") then
-                            local originalTrans = element.BackgroundTransparency
-                            element.BackgroundTransparency = 1
-                            Utils:Tween(element, {BackgroundTransparency = originalTrans}, 0.3)
-                            
-                            if element:IsA("TextLabel") or element:IsA("TextButton") then
-                                local originalTextTrans = element.TextTransparency
-                                element.TextTransparency = 1
-                                Utils:Tween(element, {TextTransparency = originalTextTrans}, 0.3)
-                            end
+                for _, element in ipairs(t.Content:GetChildren()) do
+                    if element:IsA("GuiObject") and not element:IsA("UIListLayout") then
+                        local originalBgTrans = element.BackgroundTransparency
+                        element.BackgroundTransparency = 1
+                        
+                        if element:IsA("TextLabel") or element:IsA("TextButton") then
+                            element.TextTransparency = 1
                         end
+                        
+                        task.spawn(function()
+                            Utils:Tween(element, {BackgroundTransparency = originalBgTrans}, 0.35)
+                            if element:IsA("TextLabel") or element:IsA("TextButton") then
+                                Utils:Tween(element, {TextTransparency = 0}, 0.35)
+                            end
+                        end)
                     end
                 end
             else
                 Utils:Spring(t.Button, {BackgroundTransparency = 1, TextColor3 = Config.Colors.TextDark}, 0.3)
                 
                 if t.Content.Visible then
-                    for _, element in ipairs(t.Content:GetDescendants()) do
-                        if element:IsA("GuiObject") then
-                            if element:IsA("Frame") or element:IsA("TextButton") or element:IsA("TextLabel") then
+                    for _, element in ipairs(t.Content:GetChildren()) do
+                        if element:IsA("GuiObject") and not element:IsA("UIListLayout") then
+                            task.spawn(function()
                                 Utils:Tween(element, {BackgroundTransparency = 1}, 0.2)
-                                
                                 if element:IsA("TextLabel") or element:IsA("TextButton") then
                                     Utils:Tween(element, {TextTransparency = 1}, 0.2)
                                 end
-                            end
+                            end)
                         end
                     end
                     
-                    task.wait(0.2)
-                    t.Content.Visible = false
+                    task.delay(0.2, function()
+                        t.Content.Visible = false
+                    end)
                 end
             end
         end
+        
         self.CurrentTab = tab
+        
+        task.delay(0.4, function()
+            self.IsTransitioning = false
+        end)
     end
     
     return Window
