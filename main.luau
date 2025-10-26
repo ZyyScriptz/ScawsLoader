@@ -230,11 +230,11 @@ function ScawsHub:CreateWindow(settings)
     Shadow.Name = "Shadow"
     Shadow.AnchorPoint = Vector2.new(0.5, 0.5)
     Shadow.Position = UDim2.new(0.5, 0, 0.5, 0)
-    Shadow.Size = UDim2.new(1, 50, 1, 50)
+    Shadow.Size = UDim2.new(1, 45, 1, 45)
     Shadow.BackgroundTransparency = 1
     Shadow.Image = "rbxassetid://5554236805"
     Shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-    Shadow.ImageTransparency = 0.3
+    Shadow.ImageTransparency = 0.2
     Shadow.ZIndex = 0
     Shadow.Parent = Main
     
@@ -1047,7 +1047,7 @@ function ScawsHub:CreateNotification(settings)
     Shadow.ImageTransparency = 0.4
     Shadow.ZIndex = -1
     Shadow.Parent = Notification
-    Utils:CreateCorner(Shadow, 18)
+    Utils:CreateCorner(Shadow, 25)
     
     local colorMap = {
         Info = Config.Colors.Accent,
