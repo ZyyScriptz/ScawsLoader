@@ -307,16 +307,16 @@ function ScawsHub:CreateWindow(settings)
     Sidebar.BackgroundColor3 = Config.Colors.Sidebar
     Sidebar.BackgroundTransparency = 0.15
     Sidebar.BorderSizePixel = 0
-    Sidebar.ClipsDescendants = true
+    Sidebar.ClipsDescendants = false
     Sidebar.Parent = Main
     
-    local SidebarBottomCorner = Instance.new("Frame")
-    SidebarBottomCorner.Size = UDim2.new(1, 0, 0, 16)
-    SidebarBottomCorner.Position = UDim2.new(0, 0, 1, -16)
-    SidebarBottomCorner.BackgroundColor3 = Config.Colors.Sidebar
-    SidebarBottomCorner.BackgroundTransparency = 0.15
-    SidebarBottomCorner.BorderSizePixel = 0
-    SidebarBottomCorner.Parent = Sidebar
+    local SidebarCorner = Instance.new("Frame")
+    SidebarCorner.Size = UDim2.new(1, 0, 0, 16)
+    SidebarCorner.Position = UDim2.new(0, 0, 1, -16)
+    SidebarCorner.BackgroundColor3 = Config.Colors.Sidebar
+    SidebarCorner.BackgroundTransparency = 0.15
+    SidebarCorner.BorderSizePixel = 0
+    SidebarCorner.Parent = Sidebar
     
     local Separator = Instance.new("Frame")
     Separator.Name = "Separator"
@@ -373,21 +373,21 @@ function ScawsHub:CreateWindow(settings)
     ContentArea.ClipsDescendants = true
     ContentArea.Parent = Main
     
-    local ContentBottomCorner = Instance.new("Frame")
-    ContentBottomCorner.Size = UDim2.new(1, 0, 0, 16)
-    ContentBottomCorner.Position = UDim2.new(0, 0, 1, -16)
-    ContentBottomCorner.BackgroundColor3 = Config.Colors.Main
-    ContentBottomCorner.BackgroundTransparency = 0.15
-    ContentBottomCorner.BorderSizePixel = 0
-    ContentBottomCorner.Parent = ContentArea
+    local ContentCorner = Instance.new("Frame")
+    ContentCorner.Size = UDim2.new(1, 0, 0, 16)
+    ContentCorner.Position = UDim2.new(0, 0, 1, -16)
+    ContentCorner.BackgroundColor3 = Config.Colors.Main
+    ContentCorner.BackgroundTransparency = 0.15
+    ContentCorner.BorderSizePixel = 0
+    ContentCorner.Parent = ContentArea
     
-    local BottomCornerFrame = Instance.new("Frame")
-    BottomCornerFrame.Size = UDim2.new(1, 0, 0, 16)
-    BottomCornerFrame.Position = UDim2.new(0, 0, 1, -16)
-    BottomCornerFrame.BackgroundColor3 = Config.Colors.Background
-    BottomCornerFrame.BackgroundTransparency = 0.15
-    BottomCornerFrame.BorderSizePixel = 0
-    BottomCornerFrame.Parent = Main
+    local BottomFix = Instance.new("Frame")
+    BottomFix.Size = UDim2.new(1, 0, 0, 16)
+    BottomFix.Position = UDim2.new(0, 0, 1, -16)
+    BottomFix.BackgroundColor3 = Config.Colors.Background
+    BottomFix.BackgroundTransparency = 0.15
+    BottomFix.BorderSizePixel = 0
+    BottomFix.Parent = Main
     
     Utils:MakeDraggable(Main, Topbar)
     
@@ -1000,15 +1000,17 @@ function ScawsHub:CreateWindow(settings)
         end)
         
         CreateActionButton("Server Hop", function()
-            local servers = game:GetService("HttpService"):JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100"))
-            if servers and servers.data then
-                for _, server in ipairs(servers.data) do
-                    if server.id ~= game.JobId and server.playing < server.maxPlayers then
-                        TeleportService:TeleportToPlaceInstance(game.PlaceId, server.id, Players.LocalPlayer)
-                        return
+            local success, result = pcall(function()
+                local servers = game:GetService("HttpService"):JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100"))
+                if servers and servers.data then
+                    for _, server in ipairs(servers.data) do
+                        if server.id ~= game.JobId and server.playing < server.maxPlayers then
+                            TeleportService:TeleportToPlaceInstance(game.PlaceId, server.id, Players.LocalPlayer)
+                            return
+                        end
                     end
                 end
-            end
+            end)
         end)
         
         local CreditsFrame = Instance.new("Frame")
@@ -1047,13 +1049,21 @@ function ScawsHub:CreateWindow(settings)
                     
                     uptimeLabel.Text = string.format("%02d:%02d:%02d", hours, minutes, seconds)
                     fpsLabel.Text = tostring(fps)
-                    pingLabel.Text = tostring(math.floor(game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValue())) .. "ms"
+                    
+                    local success, ping = pcall(function()
+                        return math.floor(game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValue())
+                    end)
+                    
+                    if success then
+                        pingLabel.Text = tostring(ping) .. "ms"
+                    else
+                        pingLabel.Text = "N/A"
+                    end
+                    
                     playerCountLabel.Text = tostring(#Players:GetPlayers())
                 end
             end
         end)
-        
-        table.insert(Window.Tabs, Tab)
         
         return Tab
     end
@@ -1084,11 +1094,10 @@ function ScawsHub:CreateWindow(settings)
                         for _, child in ipairs(element:GetDescendants()) do
                             if child:IsA("TextLabel") or child:IsA("TextButton") then
                                 child.TextTransparency = 1
-                            elseif child:IsA("Frame") or child:IsA("ImageLabel") then
+                            elseif child:IsA("Frame") and child.Name ~= "UICorner" and child.Name ~= "UIStroke" then
                                 child.BackgroundTransparency = 1
-                                if child:IsA("ImageLabel") then
-                                    child.ImageTransparency = 1
-                                end
+                            elseif child:IsA("ImageLabel") then
+                                child.ImageTransparency = 1
                             end
                         end
                     end
@@ -1104,8 +1113,8 @@ function ScawsHub:CreateWindow(settings)
                             task.wait(i * 0.02)
                             
                             local originalBgTrans = 0.2
-                            if element:FindFirstChild("BackgroundTransparency") then
-                                originalBgTrans = element.BackgroundTransparency
+                            if element.Name == "CreditsFrame" then
+                                originalBgTrans = 1
                             end
                             
                             Utils:Tween(element, {BackgroundTransparency = originalBgTrans}, 0.25)
@@ -1114,13 +1123,15 @@ function ScawsHub:CreateWindow(settings)
                                 if child:IsA("TextLabel") or child:IsA("TextButton") then
                                     Utils:Tween(child, {TextTransparency = 0}, 0.25)
                                 elseif child:IsA("Frame") and child.Name ~= "UICorner" and child.Name ~= "UIStroke" then
-                                    local childBgTrans = 0
+                                    local childTrans = 0
                                     if child.Name == "Separator" then
-                                        childBgTrans = 0.5
+                                        childTrans = 0.5
+                                    elseif child.Name:find("Corner") or child.Name:find("Fix") then
+                                        childTrans = 0.15
                                     end
-                                    Utils:Tween(child, {BackgroundTransparency = childBgTrans}, 0.25)
+                                    Utils:Tween(child, {BackgroundTransparency = childTrans}, 0.25)
                                 elseif child:IsA("ImageLabel") then
-                                    Utils:Tween(child, {ImageTransparency = 0}, 0.25)
+                                    Utils:Tween(child, {ImageTransparency = 0.3}, 0.25)
                                 end
                             end
                         end)
@@ -1177,7 +1188,7 @@ function ScawsHub:CreateNotification(settings)
     local duration = settings.Duration or 5
     local type = settings.Type or "Info"
     
-    local notifGui = game:GetService("CoreGui"):FindFirstChild("ScawsHub_Notifications")
+    local notifGui = CoreGui:FindFirstChild("ScawsHub_Notifications")
     if not notifGui then
         notifGui = Instance.new("ScreenGui")
         notifGui.Name = "ScawsHub_Notifications"
