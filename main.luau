@@ -234,12 +234,13 @@ function ScawsHub:CreateWindow(settings)
     Topbar.BackgroundColor3 = Config.Colors.Topbar
     Topbar.BackgroundTransparency = 0.15
     Topbar.BorderSizePixel = 0
+    Topbar.ClipsDescendants = true
     Topbar.Parent = Main
     Utils:CreateCorner(Topbar, 16)
     
     local TopbarFix = Instance.new("Frame")
-    TopbarFix.Size = UDim2.new(1, 0, 0, 16)
-    TopbarFix.Position = UDim2.new(0, 0, 1, -16)
+    TopbarFix.Size = UDim2.new(1, 0, 0, 20)
+    TopbarFix.Position = UDim2.new(0, 0, 1, -20)
     TopbarFix.BackgroundColor3 = Config.Colors.Topbar
     TopbarFix.BackgroundTransparency = 0.15
     TopbarFix.BorderSizePixel = 0
@@ -307,13 +308,13 @@ function ScawsHub:CreateWindow(settings)
     Sidebar.BackgroundColor3 = Config.Colors.Sidebar
     Sidebar.BackgroundTransparency = 0.15
     Sidebar.BorderSizePixel = 0
-    Sidebar.ClipsDescendants = false
+    Sidebar.ClipsDescendants = true
     Sidebar.Parent = Main
     
     local SidebarBottomFix = Instance.new("Frame")
     SidebarBottomFix.Name = "BottomFix"
-    SidebarBottomFix.Size = UDim2.new(1, 0, 0, 16)
-    SidebarBottomFix.Position = UDim2.new(0, 0, 1, -16)
+    SidebarBottomFix.Size = UDim2.new(1, 1, 0, 20)
+    SidebarBottomFix.Position = UDim2.new(0, 0, 1, -20)
     SidebarBottomFix.BackgroundColor3 = Config.Colors.Sidebar
     SidebarBottomFix.BackgroundTransparency = 0.15
     SidebarBottomFix.BorderSizePixel = 0
@@ -361,8 +362,8 @@ function ScawsHub:CreateWindow(settings)
     
     local ContentBottomFix = Instance.new("Frame")
     ContentBottomFix.Name = "BottomFix"
-    ContentBottomFix.Size = UDim2.new(1, 0, 0, 16)
-    ContentBottomFix.Position = UDim2.new(0, 0, 1, -16)
+    ContentBottomFix.Size = UDim2.new(1, 0, 0, 20)
+    ContentBottomFix.Position = UDim2.new(0, 0, 1, -20)
     ContentBottomFix.BackgroundColor3 = Config.Colors.Main
     ContentBottomFix.BackgroundTransparency = 0.15
     ContentBottomFix.BorderSizePixel = 0
@@ -984,14 +985,14 @@ function ScawsHub:CreateNotification(settings)
     Shadow.Name = "Shadow"
     Shadow.AnchorPoint = Vector2.new(0.5, 0.5)
     Shadow.Position = UDim2.new(0.5, 0, 0.5, 0)
-    Shadow.Size = UDim2.new(1, 30, 1, 30)
+    Shadow.Size = UDim2.new(1, 60, 1, 40)
     Shadow.BackgroundTransparency = 1
     Shadow.Image = "rbxassetid://5554236805"
     Shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
     Shadow.ImageTransparency = 0.4
     Shadow.ZIndex = -1
     Shadow.Parent = Notification
-    Utils:CreateCorner(Shadow, 14)
+    Utils:CreateCorner(Shadow, 18)
     
     local colorMap = {
         Info = Config.Colors.Accent,
