@@ -270,7 +270,7 @@ function ScawsHub:CreateWindow(settings)
     local TitleLabel = Instance.new("TextLabel")
     TitleLabel.Name = "Title"
     TitleLabel.Size = UDim2.new(0, 200, 1, 0)
-    TitleLabel.Position = UDim2.new(0, 18, 0, 0)
+    TitleLabel.Position = UDim2.new(0, 18, 0, -5)
     TitleLabel.BackgroundTransparency = 1
     TitleLabel.Font = Enum.Font.GothamBold
     TitleLabel.Text = windowTitle
@@ -282,7 +282,7 @@ function ScawsHub:CreateWindow(settings)
     local CreditsLabel = Instance.new("TextLabel")
     CreditsLabel.Name = "Credits"
     CreditsLabel.Size = UDim2.new(0, 100, 1, 0)
-    CreditsLabel.Position = UDim2.new(0, 18, 0, 20)
+    CreditsLabel.Position = UDim2.new(0, 18, 0, 15)
     CreditsLabel.BackgroundTransparency = 1
     CreditsLabel.Font = Enum.Font.Gotham
     CreditsLabel.Text = "by ScawsHub"
@@ -295,7 +295,7 @@ function ScawsHub:CreateWindow(settings)
     local CloseButton = Instance.new("TextButton")
     CloseButton.Name = "CloseButton"
     CloseButton.AnchorPoint = Vector2.new(1, 0.5)
-    CloseButton.Position = UDim2.new(1, -12, 0.5, 0)
+    CloseButton.Position = UDim2.new(1, -8, 0.5, 0)
     CloseButton.Size = UDim2.new(0, 30, 0, 30)
     CloseButton.BackgroundColor3 = Config.Colors.Border
     CloseButton.BackgroundTransparency = 0.6
@@ -310,7 +310,7 @@ function ScawsHub:CreateWindow(settings)
     local MinimizeButton = Instance.new("TextButton")
     MinimizeButton.Name = "MinimizeButton"
     MinimizeButton.AnchorPoint = Vector2.new(1, 0.5)
-    MinimizeButton.Position = UDim2.new(1, -47, 0.5, 0)
+    MinimizeButton.Position = UDim2.new(1, -43, 0.5, 0)
     MinimizeButton.Size = UDim2.new(0, 30, 0, 30)
     MinimizeButton.BackgroundColor3 = Config.Colors.Border
     MinimizeButton.BackgroundTransparency = 0.6
@@ -511,7 +511,7 @@ function ScawsHub:CreateWindow(settings)
         TabContent.Position = UDim2.new(0, 10, 0, 10)
         TabContent.BackgroundTransparency = 1
         TabContent.BorderSizePixel = 0
-        TabContent.ScrollBarThickness = 4
+        TabContent.ScrollBarThickness = 3
         TabContent.ScrollBarImageColor3 = Config.Colors.Accent
         TabContent.ScrollBarImageTransparency = 0.3
         TabContent.CanvasSize = UDim2.new(0, 0, 0, 0)
@@ -558,7 +558,7 @@ function ScawsHub:CreateWindow(settings)
             
             local ButtonFrame = Instance.new("Frame")
             ButtonFrame.Name = buttonName
-            ButtonFrame.Size = UDim2.new(1, 0, 0, 40)
+            ButtonFrame.Size = UDim2.new(1, -6, 0, 40)
             ButtonFrame.BackgroundColor3 = Config.Colors.Background
             ButtonFrame.BackgroundTransparency = 0.2
             ButtonFrame.BorderSizePixel = 0
@@ -603,7 +603,7 @@ function ScawsHub:CreateWindow(settings)
             
             local ToggleFrame = Instance.new("Frame")
             ToggleFrame.Name = toggleName
-            ToggleFrame.Size = UDim2.new(1, 0, 0, 40)
+            ToggleFrame.Size = UDim2.new(1, -6, 0, 40)
             ToggleFrame.BackgroundColor3 = Config.Colors.Background
             ToggleFrame.BackgroundTransparency = 0.2
             ToggleFrame.BorderSizePixel = 0
@@ -675,7 +675,7 @@ function ScawsHub:CreateWindow(settings)
             
             local SliderFrame = Instance.new("Frame")
             SliderFrame.Name = sliderName
-            SliderFrame.Size = UDim2.new(1, 0, 0, 58)
+            SliderFrame.Size = UDim2.new(1, -6, 0, 58)
             SliderFrame.BackgroundColor3 = Config.Colors.Background
             SliderFrame.BackgroundTransparency = 0.2
             SliderFrame.BorderSizePixel = 0
@@ -772,7 +772,7 @@ function ScawsHub:CreateWindow(settings)
             
             local DropdownFrame = Instance.new("Frame")
             DropdownFrame.Name = dropdownName
-            DropdownFrame.Size = UDim2.new(1, 0, 0, 40)
+            DropdownFrame.Size = UDim2.new(1, -6, 0, 40)
             DropdownFrame.BackgroundColor3 = Config.Colors.Background
             DropdownFrame.BackgroundTransparency = 0.2
             DropdownFrame.BorderSizePixel = 0
@@ -822,10 +822,10 @@ function ScawsHub:CreateWindow(settings)
             local function ToggleDropdown()
                 isOpen = not isOpen
                 if isOpen then
-                    Utils:Spring(DropdownFrame, {Size = UDim2.new(1, 0, 0, 40 + #options * 34 + 6)}, 0.35)
+                    Utils:Spring(DropdownFrame, {Size = UDim2.new(1, -6, 0, 40 + #options * 34 + 6)}, 0.35)
                     Utils:Spring(Arrow, {Rotation = 270}, 0.35)
                 else
-                    Utils:Spring(DropdownFrame, {Size = UDim2.new(1, 0, 0, 40)}, 0.35)
+                    Utils:Spring(DropdownFrame, {Size = UDim2.new(1, -6, 0, 40)}, 0.35)
                     Utils:Spring(Arrow, {Rotation = 90}, 0.35)
                 end
             end
@@ -874,7 +874,7 @@ function ScawsHub:CreateWindow(settings)
         
         function Tab:CreateLabel(text)
             local LabelFrame = Instance.new("Frame")
-            LabelFrame.Size = UDim2.new(1, 0, 0, 28)
+            LabelFrame.Size = UDim2.new(1, -6, 0, 28)
             LabelFrame.BackgroundTransparency = 1
             LabelFrame.Parent = TabContent
             
@@ -1048,23 +1048,21 @@ function ScawsHub:CreateNotification(settings)
     
     local Notification = Instance.new("Frame")
     Notification.Size = UDim2.new(0, 0, 0, 90)
-    Notification.BackgroundColor3 = Config.Colors.Background
-    Notification.BackgroundTransparency = 0.05
+    Notification.BackgroundTransparency = 1
     Notification.BorderSizePixel = 0
     Notification.Parent = NotifContainer
-    Utils:CreateCorner(Notification, 14)
-    Utils:CreateStroke(Notification, Config.Colors.Border, 1)
     
     local BlurFrame = Instance.new("Frame")
     BlurFrame.Name = "BlurFrame"
     BlurFrame.Size = UDim2.new(1, 0, 1, 0)
     BlurFrame.Position = UDim2.new(0, 0, 0, 0)
     BlurFrame.BackgroundColor3 = Config.Colors.Background
-    BlurFrame.BackgroundTransparency = 0.3
+    BlurFrame.BackgroundTransparency = 0.7
     BlurFrame.BorderSizePixel = 0
-    BlurFrame.ZIndex = 0
+    BlurFrame.ZIndex = 1
     BlurFrame.Parent = Notification
     Utils:CreateCorner(BlurFrame, 14)
+    Utils:CreateStroke(BlurFrame, Config.Colors.Border, 1.5)
     
     local Shadow = Instance.new("ImageLabel")
     Shadow.Name = "Shadow"
@@ -1075,7 +1073,7 @@ function ScawsHub:CreateNotification(settings)
     Shadow.Image = "rbxassetid://5554236805"
     Shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
     Shadow.ImageTransparency = 0.4
-    Shadow.ZIndex = -1
+    Shadow.ZIndex = 0
     Shadow.Parent = Notification
     Utils:CreateCorner(Shadow, 25)
     
