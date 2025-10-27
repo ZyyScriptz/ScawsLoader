@@ -13,6 +13,39 @@ local Config = {
     EasingStyle = Enum.EasingStyle.Quart,
     EasingDirection = Enum.EasingDirection.Out,
     
+    Themes = {
+        Blue = {
+            Accent = Color3.fromRGB(88, 101, 242),
+            GradientStart = Color3.fromRGB(88, 101, 242),
+            GradientEnd = Color3.fromRGB(142, 84, 233),
+        },
+        Purple = {
+            Accent = Color3.fromRGB(142, 84, 233),
+            GradientStart = Color3.fromRGB(142, 84, 233),
+            GradientEnd = Color3.fromRGB(187, 107, 217),
+        },
+        Red = {
+            Accent = Color3.fromRGB(240, 71, 71),
+            GradientStart = Color3.fromRGB(240, 71, 71),
+            GradientEnd = Color3.fromRGB(255, 107, 107),
+        },
+        Green = {
+            Accent = Color3.fromRGB(67, 181, 129),
+            GradientStart = Color3.fromRGB(67, 181, 129),
+            GradientEnd = Color3.fromRGB(87, 201, 149),
+        },
+        Orange = {
+            Accent = Color3.fromRGB(250, 166, 26),
+            GradientStart = Color3.fromRGB(250, 166, 26),
+            GradientEnd = Color3.fromRGB(255, 186, 46),
+        },
+        Pink = {
+            Accent = Color3.fromRGB(255, 105, 180),
+            GradientStart = Color3.fromRGB(255, 105, 180),
+            GradientEnd = Color3.fromRGB(255, 140, 200),
+        },
+    },
+    
     Colors = {
         Background = Color3.fromRGB(28, 28, 35),
         Topbar = Color3.fromRGB(32, 32, 40),
@@ -53,7 +86,7 @@ function Utils:Tween(obj, properties, duration, callback)
 end
 
 function Utils:Spring(obj, properties, duration)
-    duration = duration or 0.35
+    duration = duration or 0.3
     local tween = TweenService:Create(
         obj,
         TweenInfo.new(duration, Enum.EasingStyle.Sine, Enum.EasingDirection.Out),
@@ -64,7 +97,7 @@ function Utils:Spring(obj, properties, duration)
 end
 
 function Utils:Bounce(obj, properties, duration)
-    duration = duration or 0.5
+    duration = duration or 0.4
     local tween = TweenService:Create(
         obj,
         TweenInfo.new(duration, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
@@ -75,7 +108,7 @@ function Utils:Bounce(obj, properties, duration)
 end
 
 function Utils:SmoothFade(obj, targetTransparency, duration)
-    duration = duration or 0.3
+    duration = duration or 0.25
     local tween = TweenService:Create(
         obj,
         TweenInfo.new(duration, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut),
@@ -116,7 +149,7 @@ function Utils:MakeDraggable(frame, handle)
             local delta = input.Position - mousePos
             local tween = TweenService:Create(
                 frame,
-                TweenInfo.new(0.06, Enum.EasingStyle.Sine, Enum.EasingDirection.Out),
+                TweenInfo.new(0.05, Enum.EasingStyle.Sine, Enum.EasingDirection.Out),
                 {
                     Position = UDim2.new(
                         framePos.X.Scale,
@@ -161,6 +194,18 @@ function Utils:CreateGradient(parent, rotation, colors)
     end
     gradient.Parent = parent
     return gradient
+end
+
+function ScawsHub:SetTheme(themeName)
+    local theme = Config.Themes[themeName]
+    if theme then
+        Config.Colors.Accent = theme.Accent
+        Config.Colors.GradientStart = theme.GradientStart
+        Config.Colors.GradientEnd = theme.GradientEnd
+        print("[ScawsHUB] Theme changed to: " .. themeName)
+    else
+        warn("[ScawsHUB] Theme not found: " .. themeName)
+    end
 end
 
 function ScawsHub:CreateLoadingScreen(settings)
@@ -223,6 +268,9 @@ function ScawsHub:CreateWindow(settings)
     settings = settings or {}
     local windowTitle = settings.Name or "ScawsHUB"
     local showLoading = settings.ShowLoading ~= false
+    local theme = settings.Theme or "Blue"
+    
+    self:SetTheme(theme)
     
     if showLoading then
         self:CreateLoadingScreen({
@@ -270,7 +318,7 @@ function ScawsHub:CreateWindow(settings)
     
     local openTween = TweenService:Create(
         Main,
-        TweenInfo.new(0.8, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+        TweenInfo.new(0.75, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
         {Size = Config.WindowSize}
     )
     openTween:Play()
@@ -301,7 +349,7 @@ function ScawsHub:CreateWindow(settings)
     TopbarGradient.Name = "Gradient"
     TopbarGradient.Size = UDim2.new(1, 0, 1, 0)
     TopbarGradient.BackgroundColor3 = Config.Colors.Accent
-    TopbarGradient.BackgroundTransparency = 0.92
+    TopbarGradient.BackgroundTransparency = 0.88
     TopbarGradient.BorderSizePixel = 0
     TopbarGradient.ZIndex = 0
     TopbarGradient.Parent = Topbar
@@ -318,7 +366,7 @@ function ScawsHub:CreateWindow(settings)
     local TopbarFixGradient = Instance.new("Frame")
     TopbarFixGradient.Size = UDim2.new(1, 0, 1, 0)
     TopbarFixGradient.BackgroundColor3 = Config.Colors.Accent
-    TopbarFixGradient.BackgroundTransparency = 0.92
+    TopbarFixGradient.BackgroundTransparency = 0.88
     TopbarFixGradient.BorderSizePixel = 0
     TopbarFixGradient.ZIndex = 0
     TopbarFixGradient.Parent = TopbarFix
@@ -397,7 +445,7 @@ function ScawsHub:CreateWindow(settings)
     SidebarGradient.Name = "Gradient"
     SidebarGradient.Size = UDim2.new(1, 0, 1, 0)
     SidebarGradient.BackgroundColor3 = Config.Colors.Accent
-    SidebarGradient.BackgroundTransparency = 0.94
+    SidebarGradient.BackgroundTransparency = 0.9
     SidebarGradient.BorderSizePixel = 0
     SidebarGradient.ZIndex = 0
     SidebarGradient.Parent = Sidebar
@@ -405,8 +453,8 @@ function ScawsHub:CreateWindow(settings)
     
     local SidebarBottomFix = Instance.new("Frame")
     SidebarBottomFix.Name = "BottomFix"
-    SidebarBottomFix.Size = UDim2.new(1, 2, 0, 20)
-    SidebarBottomFix.Position = UDim2.new(0, -1, 1, -20)
+    SidebarBottomFix.Size = UDim2.new(1, 0, 0, 16)
+    SidebarBottomFix.Position = UDim2.new(0, 0, 1, -16)
     SidebarBottomFix.BackgroundColor3 = Config.Colors.Sidebar
     SidebarBottomFix.BackgroundTransparency = 0.15
     SidebarBottomFix.BorderSizePixel = 0
@@ -415,7 +463,7 @@ function ScawsHub:CreateWindow(settings)
     local SidebarFixGradient = Instance.new("Frame")
     SidebarFixGradient.Size = UDim2.new(1, 0, 1, 0)
     SidebarFixGradient.BackgroundColor3 = Config.Colors.Accent
-    SidebarFixGradient.BackgroundTransparency = 0.94
+    SidebarFixGradient.BackgroundTransparency = 0.9
     SidebarFixGradient.BorderSizePixel = 0
     SidebarFixGradient.ZIndex = 0
     SidebarFixGradient.Parent = SidebarBottomFix
@@ -436,9 +484,9 @@ function ScawsHub:CreateWindow(settings)
     TabContainer.Position = UDim2.new(0, 5, 0, 5)
     TabContainer.BackgroundTransparency = 1
     TabContainer.BorderSizePixel = 0
-    TabContainer.ScrollBarThickness = 4
+    TabContainer.ScrollBarThickness = 3
     TabContainer.ScrollBarImageColor3 = Config.Colors.Accent
-    TabContainer.ScrollBarImageTransparency = 0.3
+    TabContainer.ScrollBarImageTransparency = 0.5
     TabContainer.CanvasSize = UDim2.new(0, 0, 0, 0)
     TabContainer.Parent = Sidebar
     
@@ -463,8 +511,8 @@ function ScawsHub:CreateWindow(settings)
     
     local ContentBottomFix = Instance.new("Frame")
     ContentBottomFix.Name = "BottomFix"
-    ContentBottomFix.Size = UDim2.new(1, 1, 0, 20)
-    ContentBottomFix.Position = UDim2.new(0, 0, 1, -20)
+    ContentBottomFix.Size = UDim2.new(1, 0, 0, 16)
+    ContentBottomFix.Position = UDim2.new(0, 0, 1, -16)
     ContentBottomFix.BackgroundColor3 = Config.Colors.Main
     ContentBottomFix.BackgroundTransparency = 0.15
     ContentBottomFix.BorderSizePixel = 0
@@ -487,13 +535,13 @@ function ScawsHub:CreateWindow(settings)
     }
     
     CloseButton.MouseButton1Click:Connect(function()
-        Utils:Spring(CloseButton, {Size = UDim2.new(0, 26, 0, 26), BackgroundTransparency = 0.3}, 0.15)
-        task.wait(0.08)
-        Utils:Spring(CloseButton, {Size = UDim2.new(0, 30, 0, 30), BackgroundTransparency = 0.6}, 0.2)
+        Utils:Spring(CloseButton, {Size = UDim2.new(0, 26, 0, 26), BackgroundTransparency = 0.3}, 0.12)
+        task.wait(0.06)
+        Utils:Spring(CloseButton, {Size = UDim2.new(0, 30, 0, 30), BackgroundTransparency = 0.6}, 0.15)
         
         local closeTween = TweenService:Create(
             Main,
-            TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.In),
+            TweenInfo.new(0.55, Enum.EasingStyle.Back, Enum.EasingDirection.In),
             {Size = UDim2.new(0, 0, 0, 0)}
         )
         closeTween:Play()
@@ -503,16 +551,16 @@ function ScawsHub:CreateWindow(settings)
     end)
     
     MinimizeButton.MouseButton1Click:Connect(function()
-        Utils:Spring(MinimizeButton, {Size = UDim2.new(0, 26, 0, 26), BackgroundTransparency = 0.3}, 0.15)
-        task.wait(0.08)
-        Utils:Spring(MinimizeButton, {Size = UDim2.new(0, 30, 0, 30), BackgroundTransparency = 0.6}, 0.2)
+        Utils:Spring(MinimizeButton, {Size = UDim2.new(0, 26, 0, 26), BackgroundTransparency = 0.3}, 0.12)
+        task.wait(0.06)
+        Utils:Spring(MinimizeButton, {Size = UDim2.new(0, 30, 0, 30), BackgroundTransparency = 0.6}, 0.15)
         
         Window.Minimized = not Window.Minimized
         if Window.Minimized then
             MinimizeButton.Text = "+"
             local minTween = TweenService:Create(
                 Main,
-                TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
+                TweenInfo.new(0.45, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
                 {Size = UDim2.new(0, Config.WindowSize.X.Offset, 0, 45)}
             )
             minTween:Play()
@@ -520,7 +568,7 @@ function ScawsHub:CreateWindow(settings)
             MinimizeButton.Text = "−"
             local maxTween = TweenService:Create(
                 Main,
-                TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+                TweenInfo.new(0.45, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
                 {Size = Config.WindowSize}
             )
             maxTween:Play()
@@ -528,17 +576,17 @@ function ScawsHub:CreateWindow(settings)
     end)
     
     CloseButton.MouseEnter:Connect(function()
-        Utils:Spring(CloseButton, {BackgroundTransparency = 0.3}, 0.25)
+        Utils:Spring(CloseButton, {BackgroundTransparency = 0.3}, 0.2)
     end)
     CloseButton.MouseLeave:Connect(function()
-        Utils:Spring(CloseButton, {BackgroundTransparency = 0.6}, 0.25)
+        Utils:Spring(CloseButton, {BackgroundTransparency = 0.6}, 0.2)
     end)
     
     MinimizeButton.MouseEnter:Connect(function()
-        Utils:Spring(MinimizeButton, {BackgroundTransparency = 0.3}, 0.25)
+        Utils:Spring(MinimizeButton, {BackgroundTransparency = 0.3}, 0.2)
     end)
     MinimizeButton.MouseLeave:Connect(function()
-        Utils:Spring(MinimizeButton, {BackgroundTransparency = 0.6}, 0.25)
+        Utils:Spring(MinimizeButton, {BackgroundTransparency = 0.6}, 0.2)
     end)
     
     function Window:CreateTab(name, icon)
@@ -567,13 +615,13 @@ function ScawsHub:CreateWindow(settings)
         
         local TabContent = Instance.new("ScrollingFrame")
         TabContent.Name = name .. "_Content"
-        TabContent.Size = UDim2.new(1, -20, 1, -20)
+        TabContent.Size = UDim2.new(1, -30, 1, -20)
         TabContent.Position = UDim2.new(0, 10, 0, 10)
         TabContent.BackgroundTransparency = 1
         TabContent.BorderSizePixel = 0
-        TabContent.ScrollBarThickness = 4
+        TabContent.ScrollBarThickness = 3
         TabContent.ScrollBarImageColor3 = Config.Colors.Accent
-        TabContent.ScrollBarImageTransparency = 0.3
+        TabContent.ScrollBarImageTransparency = 0.5
         TabContent.CanvasSize = UDim2.new(0, 0, 0, 0)
         TabContent.Visible = false
         TabContent.Parent = ContentArea
@@ -590,21 +638,21 @@ function ScawsHub:CreateWindow(settings)
         Tab.Content = TabContent
         
         TabButton.MouseButton1Click:Connect(function()
-            Utils:Spring(TabButton, {Size = UDim2.new(1, -12, 0, 34)}, 0.1)
-            task.wait(0.05)
-            Utils:Bounce(TabButton, {Size = UDim2.new(1, -10, 0, 36)}, 0.3)
+            Utils:Spring(TabButton, {Size = UDim2.new(1, -12, 0, 34)}, 0.08)
+            task.wait(0.04)
+            Utils:Bounce(TabButton, {Size = UDim2.new(1, -10, 0, 36)}, 0.25)
             Window:SelectTab(Tab)
         end)
         
         TabButton.MouseEnter:Connect(function()
             if Window.CurrentTab ~= Tab then
-                Utils:Spring(TabButton, {BackgroundTransparency = 0.85}, 0.25)
+                Utils:Spring(TabButton, {BackgroundTransparency = 0.85}, 0.2)
             end
         end)
         
         TabButton.MouseLeave:Connect(function()
             if Window.CurrentTab ~= Tab then
-                Utils:Spring(TabButton, {BackgroundTransparency = 1}, 0.25)
+                Utils:Spring(TabButton, {BackgroundTransparency = 1}, 0.2)
             end
         end)
         
@@ -621,7 +669,7 @@ function ScawsHub:CreateWindow(settings)
             
             local ButtonFrame = Instance.new("Frame")
             ButtonFrame.Name = buttonName
-            ButtonFrame.Size = UDim2.new(1, 0, 0, 40)
+            ButtonFrame.Size = UDim2.new(1, -8, 0, 40)
             ButtonFrame.BackgroundColor3 = Config.Colors.Background
             ButtonFrame.BackgroundTransparency = 0.2
             ButtonFrame.BorderSizePixel = 0
@@ -632,7 +680,7 @@ function ScawsHub:CreateWindow(settings)
             local ButtonGradient = Instance.new("Frame")
             ButtonGradient.Size = UDim2.new(1, 0, 1, 0)
             ButtonGradient.BackgroundColor3 = Config.Colors.Accent
-            ButtonGradient.BackgroundTransparency = 0.96
+            ButtonGradient.BackgroundTransparency = 0.93
             ButtonGradient.BorderSizePixel = 0
             ButtonGradient.ZIndex = 0
             ButtonGradient.Parent = ButtonFrame
@@ -652,24 +700,22 @@ function ScawsHub:CreateWindow(settings)
             Button.Parent = ButtonFrame
             
             Button.MouseButton1Click:Connect(function()
-                Utils:Spring(ButtonFrame, {Size = UDim2.new(1, -4, 0, 38)}, 0.1)
-                Utils:Spring(ButtonFrame, {BackgroundColor3 = Config.Colors.Accent, BackgroundTransparency = 0}, 0.15)
-                Utils:Spring(ButtonGradient, {BackgroundTransparency = 0.85}, 0.15)
-                task.wait(0.1)
-                Utils:Bounce(ButtonFrame, {Size = UDim2.new(1, 0, 0, 40)}, 0.25)
-                Utils:Spring(ButtonFrame, {BackgroundColor3 = Config.Colors.Background, BackgroundTransparency = 0.2}, 0.2)
-                Utils:Spring(ButtonGradient, {BackgroundTransparency = 0.96}, 0.2)
+                Utils:Spring(ButtonFrame, {Size = UDim2.new(1, -10, 0, 38)}, 0.08)
+                Utils:Spring(ButtonFrame, {BackgroundColor3 = Config.Colors.Accent, BackgroundTransparency = 0}, 0.12)
+                task.wait(0.08)
+                Utils:Bounce(ButtonFrame, {Size = UDim2.new(1, -8, 0, 40)}, 0.2)
+                Utils:Spring(ButtonFrame, {BackgroundColor3 = Config.Colors.Background, BackgroundTransparency = 0.2}, 0.18)
                 callback()
             end)
             
             Button.MouseEnter:Connect(function()
-                Utils:Spring(ButtonFrame, {BackgroundColor3 = Config.Colors.Border, BackgroundTransparency = 0.1}, 0.25)
-                Utils:Spring(ButtonGradient, {BackgroundTransparency = 0.9}, 0.25)
+                Utils:Spring(ButtonFrame, {BackgroundColor3 = Config.Colors.Border, BackgroundTransparency = 0.1}, 0.2)
+                Utils:Spring(ButtonGradient, {BackgroundTransparency = 0.88}, 0.2)
             end)
             
             Button.MouseLeave:Connect(function()
-                Utils:Spring(ButtonFrame, {BackgroundColor3 = Config.Colors.Background, BackgroundTransparency = 0.2}, 0.25)
-                Utils:Spring(ButtonGradient, {BackgroundTransparency = 0.96}, 0.25)
+                Utils:Spring(ButtonFrame, {BackgroundColor3 = Config.Colors.Background, BackgroundTransparency = 0.2}, 0.2)
+                Utils:Spring(ButtonGradient, {BackgroundTransparency = 0.93}, 0.2)
             end)
             
             return ButtonFrame
@@ -683,7 +729,7 @@ function ScawsHub:CreateWindow(settings)
             
             local ToggleFrame = Instance.new("Frame")
             ToggleFrame.Name = toggleName
-            ToggleFrame.Size = UDim2.new(1, 0, 0, 40)
+            ToggleFrame.Size = UDim2.new(1, -8, 0, 40)
             ToggleFrame.BackgroundColor3 = Config.Colors.Background
             ToggleFrame.BackgroundTransparency = 0.2
             ToggleFrame.BorderSizePixel = 0
@@ -735,13 +781,13 @@ function ScawsHub:CreateWindow(settings)
             
             local function UpdateToggle()
                 if toggled then
-                    Utils:Spring(ToggleButton, {BackgroundColor3 = Config.Colors.Accent, BackgroundTransparency = 0}, 0.3)
-                    Utils:Spring(ToggleGradient, {BackgroundTransparency = 0.85}, 0.3)
-                    Utils:Spring(ToggleIndicator, {Position = UDim2.new(1, -21, 0.5, -9), BackgroundColor3 = Config.Colors.Text}, 0.3)
+                    Utils:Spring(ToggleButton, {BackgroundColor3 = Config.Colors.Accent, BackgroundTransparency = 0}, 0.25)
+                    Utils:Spring(ToggleGradient, {BackgroundTransparency = 0.82}, 0.25)
+                    Utils:Spring(ToggleIndicator, {Position = UDim2.new(1, -21, 0.5, -9), BackgroundColor3 = Config.Colors.Text}, 0.25)
                 else
-                    Utils:Spring(ToggleButton, {BackgroundColor3 = Config.Colors.Border, BackgroundTransparency = 0.2}, 0.3)
-                    Utils:Spring(ToggleGradient, {BackgroundTransparency = 1}, 0.3)
-                    Utils:Spring(ToggleIndicator, {Position = UDim2.new(0, 3, 0.5, -9), BackgroundColor3 = Config.Colors.TextDark}, 0.3)
+                    Utils:Spring(ToggleButton, {BackgroundColor3 = Config.Colors.Border, BackgroundTransparency = 0.2}, 0.25)
+                    Utils:Spring(ToggleGradient, {BackgroundTransparency = 1}, 0.25)
+                    Utils:Spring(ToggleIndicator, {Position = UDim2.new(0, 3, 0.5, -9), BackgroundColor3 = Config.Colors.TextDark}, 0.25)
                 end
                 callback(toggled)
             end
@@ -767,7 +813,7 @@ function ScawsHub:CreateWindow(settings)
             
             local SliderFrame = Instance.new("Frame")
             SliderFrame.Name = sliderName
-            SliderFrame.Size = UDim2.new(1, 0, 0, 58)
+            SliderFrame.Size = UDim2.new(1, -8, 0, 58)
             SliderFrame.BackgroundColor3 = Config.Colors.Background
             SliderFrame.BackgroundTransparency = 0.2
             SliderFrame.BorderSizePixel = 0
@@ -830,7 +876,7 @@ function ScawsHub:CreateWindow(settings)
                 value = math.clamp(value, min, max)
                 
                 ValueLabel.Text = tostring(value)
-                Utils:Spring(SliderFill, {Size = UDim2.new((value - min) / (max - min), 0, 1, 0)}, 0.15)
+                Utils:Spring(SliderFill, {Size = UDim2.new((value - min) / (max - min), 0, 1, 0)}, 0.12)
                 callback(value)
             end
             
@@ -865,7 +911,7 @@ function ScawsHub:CreateWindow(settings)
             
             local DropdownFrame = Instance.new("Frame")
             DropdownFrame.Name = dropdownName
-            DropdownFrame.Size = UDim2.new(1, 0, 0, 40)
+            DropdownFrame.Size = UDim2.new(1, -8, 0, 40)
             DropdownFrame.BackgroundColor3 = Config.Colors.Background
             DropdownFrame.BackgroundTransparency = 0.2
             DropdownFrame.BorderSizePixel = 0
@@ -915,11 +961,11 @@ function ScawsHub:CreateWindow(settings)
             local function ToggleDropdown()
                 isOpen = not isOpen
                 if isOpen then
-                    Utils:Bounce(DropdownFrame, {Size = UDim2.new(1, 0, 0, 40 + #options * 34 + 6)}, 0.4)
-                    Utils:Spring(Arrow, {Rotation = 270}, 0.35)
+                    Utils:Bounce(DropdownFrame, {Size = UDim2.new(1, -8, 0, 40 + #options * 34 + 6)}, 0.35)
+                    Utils:Spring(Arrow, {Rotation = 270}, 0.3)
                 else
-                    Utils:Spring(DropdownFrame, {Size = UDim2.new(1, 0, 0, 40)}, 0.35)
-                    Utils:Spring(Arrow, {Rotation = 90}, 0.35)
+                    Utils:Spring(DropdownFrame, {Size = UDim2.new(1, -8, 0, 40)}, 0.3)
+                    Utils:Spring(Arrow, {Rotation = 90}, 0.3)
                 end
             end
             
@@ -954,11 +1000,11 @@ function ScawsHub:CreateWindow(settings)
                 end)
                 
                 OptionButton.MouseEnter:Connect(function()
-                    Utils:Spring(OptionButton, {BackgroundColor3 = Config.Colors.Accent, BackgroundTransparency = 0.15}, 0.25)
+                    Utils:Spring(OptionButton, {BackgroundColor3 = Config.Colors.Accent, BackgroundTransparency = 0.15}, 0.2)
                 end)
                 
                 OptionButton.MouseLeave:Connect(function()
-                    Utils:Spring(OptionButton, {BackgroundColor3 = Config.Colors.Background, BackgroundTransparency = 0.3}, 0.25)
+                    Utils:Spring(OptionButton, {BackgroundColor3 = Config.Colors.Background, BackgroundTransparency = 0.3}, 0.2)
                 end)
             end
             
@@ -967,7 +1013,7 @@ function ScawsHub:CreateWindow(settings)
         
         function Tab:CreateLabel(text)
             local LabelFrame = Instance.new("Frame")
-            LabelFrame.Size = UDim2.new(1, 0, 0, 28)
+            LabelFrame.Size = UDim2.new(1, -8, 0, 28)
             LabelFrame.BackgroundTransparency = 1
             LabelFrame.Parent = TabContent
             
@@ -1002,37 +1048,37 @@ function ScawsHub:CreateWindow(settings)
         
         for _, t in ipairs(self.Tabs) do
             if t == tab then
-                Utils:Spring(t.Button, {BackgroundTransparency = 0.8, TextColor3 = Config.Colors.Text}, 0.4)
+                Utils:Spring(t.Button, {BackgroundTransparency = 0.8, TextColor3 = Config.Colors.Text}, 0.35)
                 
                 if self.CurrentTab and self.CurrentTab.Content.Visible then
                     for _, element in ipairs(self.CurrentTab.Content:GetChildren()) do
                         if element:IsA("GuiObject") and not element:IsA("UIListLayout") then
                             local fadeOutTween = TweenService:Create(
                                 element,
-                                TweenInfo.new(0.18, Enum.EasingStyle.Sine, Enum.EasingDirection.In),
+                                TweenInfo.new(0.15, Enum.EasingStyle.Sine, Enum.EasingDirection.In),
                                 {
-                                    Position = UDim2.new(element.Position.X.Scale, element.Position.X.Offset - 15, element.Position.Y.Scale, element.Position.Y.Offset),
+                                    Position = UDim2.new(element.Position.X.Scale, element.Position.X.Offset - 12, element.Position.Y.Scale, element.Position.Y.Offset),
                                     BackgroundTransparency = 1
                                 }
                             )
                             fadeOutTween:Play()
                             
                             if element:IsA("TextLabel") or element:IsA("TextButton") then
-                                Utils:Tween(element, {TextTransparency = 1}, 0.18)
+                                Utils:Tween(element, {TextTransparency = 1}, 0.15)
                             end
                             
                             for _, child in ipairs(element:GetChildren()) do
                                 if child:IsA("TextLabel") or child:IsA("TextButton") then
-                                    Utils:Tween(child, {TextTransparency = 1}, 0.18)
+                                    Utils:Tween(child, {TextTransparency = 1}, 0.15)
                                 elseif child:IsA("Frame") and child.Name ~= "UICorner" and child.Name ~= "UIStroke" then
-                                    Utils:Tween(child, {BackgroundTransparency = 1}, 0.18)
+                                    Utils:Tween(child, {BackgroundTransparency = 1}, 0.15)
                                 end
                             end
                         end
                     end
                 end
                 
-                task.wait(0.2)
+                task.wait(0.18)
                 
                 if self.CurrentTab then
                     self.CurrentTab.Content.Visible = false
@@ -1045,7 +1091,7 @@ function ScawsHub:CreateWindow(settings)
                         local originalBgTrans = element.BackgroundTransparency
                         local originalPos = element.Position
                         
-                        element.Position = UDim2.new(originalPos.X.Scale, originalPos.X.Offset + 20, originalPos.Y.Scale, originalPos.Y.Offset)
+                        element.Position = UDim2.new(originalPos.X.Scale, originalPos.X.Offset + 18, originalPos.Y.Scale, originalPos.Y.Offset)
                         element.BackgroundTransparency = 1
                         
                         if element:IsA("TextLabel") or element:IsA("TextButton") then
@@ -1061,38 +1107,38 @@ function ScawsHub:CreateWindow(settings)
                         end
                         
                         task.spawn(function()
-                            task.wait(i * 0.025)
+                            task.wait(i * 0.02)
                             
                             local fadeInTween = TweenService:Create(
                                 element,
-                                TweenInfo.new(0.45, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
+                                TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
                                 {Position = originalPos, BackgroundTransparency = originalBgTrans}
                             )
                             fadeInTween:Play()
                             
                             if element:IsA("TextLabel") or element:IsA("TextButton") then
-                                Utils:Tween(element, {TextTransparency = 0}, 0.45)
+                                Utils:Tween(element, {TextTransparency = 0}, 0.4)
                             end
                             
                             for _, child in ipairs(element:GetChildren()) do
                                 if child:IsA("TextLabel") or child:IsA("TextButton") then
-                                    Utils:Tween(child, {TextTransparency = 0}, 0.45)
+                                    Utils:Tween(child, {TextTransparency = 0}, 0.4)
                                 elseif child:IsA("Frame") and child.Name ~= "UICorner" and child.Name ~= "UIStroke" then
                                     local origTrans = child:GetAttribute("OriginalTransparency") or 0.2
-                                    Utils:Tween(child, {BackgroundTransparency = origTrans}, 0.45)
+                                    Utils:Tween(child, {BackgroundTransparency = origTrans}, 0.4)
                                 end
                             end
                         end)
                     end
                 end
             else
-                Utils:Spring(t.Button, {BackgroundTransparency = 1, TextColor3 = Config.Colors.TextDark}, 0.4)
+                Utils:Spring(t.Button, {BackgroundTransparency = 1, TextColor3 = Config.Colors.TextDark}, 0.35)
             end
         end
         
         self.CurrentTab = tab
         
-        task.delay(0.55, function()
+        task.delay(0.5, function()
             self.IsTransitioning = false
         end)
     end
@@ -1151,36 +1197,12 @@ function ScawsHub:CreateNotification(settings)
     local NotifGradient = Instance.new("Frame")
     NotifGradient.Size = UDim2.new(1, 0, 1, 0)
     NotifGradient.BackgroundColor3 = Config.Colors.Accent
-    NotifGradient.BackgroundTransparency = 0.94
+    NotifGradient.BackgroundTransparency = 0.88
     NotifGradient.BorderSizePixel = 0
     NotifGradient.ZIndex = 0
     NotifGradient.Parent = Notification
     Utils:CreateCorner(NotifGradient, 14)
     Utils:CreateGradient(NotifGradient, 135)
-    
-    local BlurFrame = Instance.new("Frame")
-    BlurFrame.Name = "BlurFrame"
-    BlurFrame.Size = UDim2.new(1, 0, 1, 0)
-    BlurFrame.Position = UDim2.new(0, 0, 0, 0)
-    BlurFrame.BackgroundColor3 = Config.Colors.Background
-    BlurFrame.BackgroundTransparency = 0.3
-    BlurFrame.BorderSizePixel = 0
-    BlurFrame.ZIndex = 0
-    BlurFrame.Parent = Notification
-    Utils:CreateCorner(BlurFrame, 14)
-    
-    local Shadow = Instance.new("ImageLabel")
-    Shadow.Name = "Shadow"
-    Shadow.AnchorPoint = Vector2.new(0.5, 0.5)
-    Shadow.Position = UDim2.new(0.5, 0, 0.5, 0)
-    Shadow.Size = UDim2.new(1, 60, 1, 40)
-    Shadow.BackgroundTransparency = 1
-    Shadow.Image = "rbxassetid://5554236805"
-    Shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-    Shadow.ImageTransparency = 0.4
-    Shadow.ZIndex = -1
-    Shadow.Parent = Notification
-    Utils:CreateCorner(Shadow, 25)
     
     local colorMap = {
         Info = Config.Colors.Accent,
@@ -1241,34 +1263,31 @@ function ScawsHub:CreateNotification(settings)
     
     local expandTween = TweenService:Create(
         Notification,
-        TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+        TweenInfo.new(0.45, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
         {Size = UDim2.new(0, 340, 0, 90)}
     )
     expandTween:Play()
     
-    task.wait(0.2)
-    Utils:Tween(Title, {TextTransparency = 0}, 0.35)
-    Utils:Tween(Content, {TextTransparency = 0}, 0.35)
-    Utils:Tween(Credits, {TextTransparency = 0.5}, 0.35)
+    task.wait(0.15)
+    Utils:Tween(Title, {TextTransparency = 0}, 0.3)
+    Utils:Tween(Content, {TextTransparency = 0}, 0.3)
+    Utils:Tween(Credits, {TextTransparency = 0.5}, 0.3)
     
     task.delay(duration, function()
-        Utils:Tween(Title, {TextTransparency = 1}, 0.25)
-        Utils:Tween(Content, {TextTransparency = 1}, 0.25)
-        Utils:Tween(Credits, {TextTransparency = 1}, 0.25)
-        Utils:Tween(Indicator, {BackgroundTransparency = 1}, 0.25)
+        Utils:Tween(Title, {TextTransparency = 1}, 0.2)
+        Utils:Tween(Content, {TextTransparency = 1}, 0.2)
+        Utils:Tween(Credits, {TextTransparency = 1}, 0.2)
+        Utils:Tween(Indicator, {BackgroundTransparency = 1}, 0.2)
+        Utils:Tween(NotifGradient, {BackgroundTransparency = 1}, 0.2)
         
         local closeTween = TweenService:Create(
             Notification,
-            TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.In),
+            TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.In),
             {Size = UDim2.new(0, 0, 0, 90)}
         )
         closeTween:Play()
         
-        Utils:Spring(BlurFrame, {BackgroundTransparency = 1}, 0.3)
-        Utils:Spring(Shadow, {ImageTransparency = 1}, 0.3)
-        Utils:Spring(NotifGradient, {BackgroundTransparency = 1}, 0.3)
-        
-        task.wait(0.45)
+        task.wait(0.4)
         Notification:Destroy()
     end)
 end
