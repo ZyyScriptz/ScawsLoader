@@ -391,15 +391,18 @@ function ScawsHub:CreateWindow(settings)
     -- Player Info Hover Frame (Enhanced)
     local PlayerInfoFrame = Instance.new("Frame")
     PlayerInfoFrame.Name = "PlayerInfo"
-    PlayerInfoFrame.Size = UDim2.new(0, 220, 0, 160)
+    PlayerInfoFrame.Size = UDim2.new(0, 0, 0, 0)
     PlayerInfoFrame.BackgroundColor3 = Config.Colors.Background
-    PlayerInfoFrame.BackgroundTransparency = 0.1
+    PlayerInfoFrame.BackgroundTransparency = 1
     PlayerInfoFrame.BorderSizePixel = 0
     PlayerInfoFrame.Visible = false
     PlayerInfoFrame.ZIndex = 1000
+    PlayerInfoFrame.ClipsDescendants = true
     PlayerInfoFrame.Parent = MainGui
     Utils:CreateCorner(PlayerInfoFrame, 12)
-    Utils:CreateStroke(PlayerInfoFrame, Config.Colors.Accent, 2)
+    
+    local InfoStroke = Utils:CreateStroke(PlayerInfoFrame, Config.Colors.Accent, 2)
+    InfoStroke.Transparency = 1
 
     local PlayerInfoLayout = Instance.new("UIPadding")
     PlayerInfoLayout.PaddingLeft = UDim.new(0, 14)
@@ -414,17 +417,18 @@ function ScawsHub:CreateWindow(settings)
     InfoHeader.Position = UDim2.new(0, 0, 0, 0)
     InfoHeader.BackgroundTransparency = 1
     InfoHeader.Font = Enum.Font.GothamBold
-    InfoHeader.Text = "🎮 PLAYER INFO"
+    InfoHeader.Text = "PLAYER INFO"
     InfoHeader.TextColor3 = Config.Colors.Accent
     InfoHeader.TextSize = 13
     InfoHeader.TextXAlignment = Enum.TextXAlignment.Left
+    InfoHeader.TextTransparency = 1
     InfoHeader.Parent = PlayerInfoFrame
 
     local Divider = Instance.new("Frame")
     Divider.Size = UDim2.new(1, 0, 0, 1)
     Divider.Position = UDim2.new(0, 0, 0, 24)
     Divider.BackgroundColor3 = Config.Colors.Border
-    Divider.BackgroundTransparency = 0.5
+    Divider.BackgroundTransparency = 1
     Divider.BorderSizePixel = 0
     Divider.Parent = PlayerInfoFrame
 
@@ -433,91 +437,146 @@ function ScawsHub:CreateWindow(settings)
     UsernameLabel.Position = UDim2.new(0, 0, 0, 30)
     UsernameLabel.BackgroundTransparency = 1
     UsernameLabel.Font = Enum.Font.GothamBold
-    UsernameLabel.Text = "👤 " .. player.Name
+    UsernameLabel.Text = "Username: " .. player.Name
     UsernameLabel.TextColor3 = Config.Colors.Text
     UsernameLabel.TextSize = 12
     UsernameLabel.TextXAlignment = Enum.TextXAlignment.Left
+    UsernameLabel.TextTransparency = 1
     UsernameLabel.Parent = PlayerInfoFrame
+
+    local OwnerLabel = Instance.new("TextLabel")
+    OwnerLabel.Size = UDim2.new(1, 0, 0, 14)
+    OwnerLabel.Position = UDim2.new(0, 0, 0, 48)
+    OwnerLabel.BackgroundTransparency = 1
+    OwnerLabel.Font = Enum.Font.GothamMedium
+    OwnerLabel.Text = "Owner of ScawsHub"
+    OwnerLabel.TextColor3 = Config.Colors.Accent
+    OwnerLabel.TextSize = 10
+    OwnerLabel.TextXAlignment = Enum.TextXAlignment.Left
+    OwnerLabel.TextTransparency = 1
+    OwnerLabel.Parent = PlayerInfoFrame
 
     local UserIdLabel = Instance.new("TextLabel")
     UserIdLabel.Size = UDim2.new(1, 0, 0, 16)
-    UserIdLabel.Position = UDim2.new(0, 0, 0, 48)
+    UserIdLabel.Position = UDim2.new(0, 0, 0, 68)
     UserIdLabel.BackgroundTransparency = 1
     UserIdLabel.Font = Enum.Font.Gotham
-    UserIdLabel.Text = "🆔 ID: " .. player.UserId
+    UserIdLabel.Text = "User ID: " .. player.UserId
     UserIdLabel.TextColor3 = Config.Colors.TextDark
     UserIdLabel.TextSize = 11
     UserIdLabel.TextXAlignment = Enum.TextXAlignment.Left
+    UserIdLabel.TextTransparency = 1
     UserIdLabel.Parent = PlayerInfoFrame
 
     local AccountAgeLabel = Instance.new("TextLabel")
     AccountAgeLabel.Size = UDim2.new(1, 0, 0, 16)
-    AccountAgeLabel.Position = UDim2.new(0, 0, 0, 66)
+    AccountAgeLabel.Position = UDim2.new(0, 0, 0, 86)
     AccountAgeLabel.BackgroundTransparency = 1
     AccountAgeLabel.Font = Enum.Font.Gotham
-    AccountAgeLabel.Text = "📅 Age: " .. player.AccountAge .. " days"
+    AccountAgeLabel.Text = "Account Age: " .. player.AccountAge .. " days"
     AccountAgeLabel.TextColor3 = Config.Colors.TextDark
     AccountAgeLabel.TextSize = 11
     AccountAgeLabel.TextXAlignment = Enum.TextXAlignment.Left
+    AccountAgeLabel.TextTransparency = 1
     AccountAgeLabel.Parent = PlayerInfoFrame
 
     local JobIdLabel = Instance.new("TextLabel")
     JobIdLabel.Size = UDim2.new(1, 0, 0, 16)
-    JobIdLabel.Position = UDim2.new(0, 0, 0, 84)
+    JobIdLabel.Position = UDim2.new(0, 0, 0, 104)
     JobIdLabel.BackgroundTransparency = 1
     JobIdLabel.Font = Enum.Font.Gotham
-    JobIdLabel.Text = "💼 Job: " .. game.JobId:sub(1, 8) .. "..."
+    JobIdLabel.Text = "Job ID: " .. game.JobId:sub(1, 8) .. "..."
     JobIdLabel.TextColor3 = Config.Colors.TextDark
     JobIdLabel.TextSize = 11
     JobIdLabel.TextXAlignment = Enum.TextXAlignment.Left
+    JobIdLabel.TextTransparency = 1
     JobIdLabel.Parent = PlayerInfoFrame
 
     local SessionLabel = Instance.new("TextLabel")
     SessionLabel.Size = UDim2.new(1, 0, 0, 16)
-    SessionLabel.Position = UDim2.new(0, 0, 0, 102)
+    SessionLabel.Position = UDim2.new(0, 0, 0, 122)
     SessionLabel.BackgroundTransparency = 1
     SessionLabel.Font = Enum.Font.Gotham
-    SessionLabel.Text = "⏱️ Session: 00:00:00"
+    SessionLabel.Text = "Session Time: 00:00:00"
     SessionLabel.TextColor3 = Config.Colors.TextDark
     SessionLabel.TextSize = 11
     SessionLabel.TextXAlignment = Enum.TextXAlignment.Left
+    SessionLabel.TextTransparency = 1
     SessionLabel.Parent = PlayerInfoFrame
 
     local PingLabel = Instance.new("TextLabel")
     PingLabel.Size = UDim2.new(0.5, -5, 0, 16)
-    PingLabel.Position = UDim2.new(0, 0, 0, 120)
+    PingLabel.Position = UDim2.new(0, 0, 0, 140)
     PingLabel.BackgroundTransparency = 1
     PingLabel.Font = Enum.Font.Gotham
-    PingLabel.Text = "📡 " .. PingTracker.currentPing .. "ms"
+    PingLabel.Text = "Ping: " .. PingTracker.currentPing .. "ms"
     PingLabel.TextColor3 = Config.Colors.Warning
     PingLabel.TextSize = 11
     PingLabel.TextXAlignment = Enum.TextXAlignment.Left
+    PingLabel.TextTransparency = 1
     PingLabel.Parent = PlayerInfoFrame
 
     local FPSLabel = Instance.new("TextLabel")
     FPSLabel.Size = UDim2.new(0.5, -5, 0, 16)
-    FPSLabel.Position = UDim2.new(0.5, 5, 0, 120)
+    FPSLabel.Position = UDim2.new(0.5, 5, 0, 140)
     FPSLabel.BackgroundTransparency = 1
     FPSLabel.Font = Enum.Font.Gotham
-    FPSLabel.Text = "🖥️ " .. FPSTracker.currentFPS .. " FPS"
+    FPSLabel.Text = "FPS: " .. FPSTracker.currentFPS
     FPSLabel.TextColor3 = Config.Colors.Success
     FPSLabel.TextSize = 11
     FPSLabel.TextXAlignment = Enum.TextXAlignment.Left
+    FPSLabel.TextTransparency = 1
     FPSLabel.Parent = PlayerInfoFrame
 
     -- Update stats in real-time when visible
     local statsConnection
+    local allInfoLabels = {
+        InfoHeader, UsernameLabel, OwnerLabel, UserIdLabel, 
+        AccountAgeLabel, JobIdLabel, SessionLabel, PingLabel, FPSLabel
+    }
+
+    local function FadeInInfo()
+        PlayerInfoFrame.Visible = true
+        Utils:Spring(PlayerInfoFrame, {
+            BackgroundTransparency = 0.05, 
+            Size = UDim2.new(0, 230, 0, 170)
+        }, 0.35)
+        Utils:Tween(InfoStroke, {Transparency = 0.1}, 0.35)
+        Utils:Tween(Divider, {BackgroundTransparency = 0.5}, 0.35)
+        
+        for i, label in ipairs(allInfoLabels) do
+            task.spawn(function()
+                task.wait(i * 0.03)
+                Utils:Tween(label, {TextTransparency = 0}, 0.25)
+            end)
+        end
+    end
+
+    local function FadeOutInfo()
+        for _, label in ipairs(allInfoLabels) do
+            Utils:Tween(label, {TextTransparency = 1}, 0.2)
+        end
+        
+        Utils:Tween(InfoStroke, {Transparency = 1}, 0.2)
+        Utils:Tween(Divider, {BackgroundTransparency = 1}, 0.2)
+        Utils:Spring(PlayerInfoFrame, {
+            BackgroundTransparency = 1, 
+            Size = UDim2.new(0, 230, 0, 0)
+        }, 0.3)
+        
+        task.wait(0.35)
+        PlayerInfoFrame.Visible = false
+    end
 
     AvatarButton.MouseEnter:Connect(function()
-        PlayerInfoFrame.Visible = true
-        Utils:Spring(PlayerInfoFrame, {BackgroundTransparency = 0.05, Size = UDim2.new(0, 220, 0, 160)}, 0.3)
+        FadeInInfo()
         Utils:SmoothFade(AvatarButton, 0.3, 0.2)
         
         statsConnection = RunService.RenderStepped:Connect(function()
             local sessionTime = tick() - SessionStartTime
-            SessionLabel.Text = "⏱️ Session: " .. Utils:FormatTime(sessionTime)
-            FPSLabel.Text = "🖥️ " .. FPSTracker.currentFPS .. " FPS"
-            PingLabel.Text = "📡 " .. PingTracker.currentPing .. "ms"
+            SessionLabel.Text = "Session Time: " .. Utils:FormatTime(sessionTime)
+            FPSLabel.Text = "FPS: " .. FPSTracker.currentFPS
+            PingLabel.Text = "Ping: " .. PingTracker.currentPing .. "ms"
             
             -- Color code FPS
             if FPSTracker.currentFPS >= 60 then
@@ -540,9 +599,7 @@ function ScawsHub:CreateWindow(settings)
     end)
 
     AvatarButton.MouseLeave:Connect(function()
-        Utils:Spring(PlayerInfoFrame, {BackgroundTransparency = 1, Size = UDim2.new(0, 220, 0, 0)}, 0.25)
-        task.wait(0.25)
-        PlayerInfoFrame.Visible = false
+        FadeOutInfo()
         Utils:SmoothFade(AvatarButton, 0.6, 0.2)
         
         if statsConnection then
@@ -554,7 +611,7 @@ function ScawsHub:CreateWindow(settings)
     AvatarButton.MouseMoved:Connect(function(x, y)
         if PlayerInfoFrame.Visible then
             -- Position frame to the left of the avatar button
-            PlayerInfoFrame.Position = UDim2.new(0, x - PlayerInfoFrame.AbsoluteSize.X - 15, 0, y - 80)
+            PlayerInfoFrame.Position = UDim2.new(0, x - PlayerInfoFrame.AbsoluteSize.X - 15, 0, y - 85)
         end
     end)
 
@@ -1006,6 +1063,7 @@ function ScawsHub:CreateWindow(settings)
             local default = settings.Default or (options[1] or "None")
             local callback = settings.Callback or function() end
             
+            -- Main container with NO background
             local DropdownFrame = Instance.new("Frame")
             DropdownFrame.Name = dropdownName
             DropdownFrame.Size = UDim2.new(1, -6, 0, 40)
@@ -1015,7 +1073,7 @@ function ScawsHub:CreateWindow(settings)
             DropdownFrame.ClipsDescendants = true
             DropdownFrame.ZIndex = 10
             
-            -- Header background (the clickable part)
+            -- Header background (the clickable part with actual background)
             local DropdownHeader = Instance.new("Frame")
             DropdownHeader.Name = "Header"
             DropdownHeader.Size = UDim2.new(1, 0, 0, 40)
@@ -1052,7 +1110,7 @@ function ScawsHub:CreateWindow(settings)
             
             local OptionsContainer = Instance.new("Frame")
             OptionsContainer.Size = UDim2.new(1, -12, 0, #options * 34)
-            OptionsContainer.Position = UDim2.new(0, 6, 0, 40)
+            OptionsContainer.Position = UDim2.new(0, 6, 0, 46)
             OptionsContainer.BackgroundTransparency = 1
             OptionsContainer.BorderSizePixel = 0
             OptionsContainer.Parent = DropdownFrame
@@ -1068,7 +1126,7 @@ function ScawsHub:CreateWindow(settings)
             local function ToggleDropdown()
                 isOpen = not isOpen
                 if isOpen then
-                    Utils:IOSBounce(DropdownFrame, {Size = UDim2.new(1, -6, 0, 40 + #options * 34 + 6)}, 0.3)
+                    Utils:IOSBounce(DropdownFrame, {Size = UDim2.new(1, -6, 0, 46 + #options * 34 + 6)}, 0.3)
                     Utils:IOSBounce(Arrow, {Rotation = 270}, 0.3)
                 else
                     Utils:IOSBounce(DropdownFrame, {Size = UDim2.new(1, -6, 0, 40)}, 0.3)
@@ -1178,7 +1236,7 @@ function ScawsHub:CreateWindow(settings)
                             for _, child in ipairs(element:GetChildren()) do
                                 if child:IsA("TextLabel") or child:IsA("TextButton") then
                                     Utils:Tween(child, {TextTransparency = 1}, 0.15)
-                                elseif child:IsA("Frame") and child.Name ~= "UICorner" and child.Name ~= "UIStroke" then
+                                elseif child:IsA("Frame") and child.Name ~= "UICorner" and child.Name ~= "UIStroke" and child.Name ~= "Header" then
                                     Utils:Tween(child, {BackgroundTransparency = 1}, 0.15)
                                 end
                             end
@@ -1209,7 +1267,7 @@ function ScawsHub:CreateWindow(settings)
                         for _, child in ipairs(element:GetChildren()) do
                             if child:IsA("TextLabel") or child:IsA("TextButton") then
                                 child.TextTransparency = 1
-                            elseif child:IsA("Frame") and child.Name ~= "UICorner" and child.Name ~= "UIStroke" then
+                            elseif child:IsA("Frame") and child.Name ~= "UICorner" and child.Name ~= "UIStroke" and child.Name ~= "Header" then
                                 child.BackgroundTransparency = 1
                             end
                         end
@@ -1231,7 +1289,7 @@ function ScawsHub:CreateWindow(settings)
                             for _, child in ipairs(element:GetChildren()) do
                                 if child:IsA("TextLabel") or child:IsA("TextButton") then
                                     Utils:Tween(child, {TextTransparency = 0}, 0.4)
-                                elseif child:IsA("Frame") and child.Name ~= "UICorner" and child.Name ~= "UIStroke" then
+                                elseif child:IsA("Frame") and child.Name ~= "UICorner" and child.Name ~= "UIStroke" and child.Name ~= "Header" then
                                     local origTrans = child:GetAttribute("OriginalTransparency") or 0.2
                                     Utils:Tween(child, {BackgroundTransparency = origTrans}, 0.4)
                                 end
@@ -1296,7 +1354,7 @@ function ScawsHub:CreateNotification(settings)
 
     local Notification = Instance.new("Frame")
     Notification.Size = UDim2.new(0, 320, 0, 80)
-    Notification.Position = UDim2.new(1, 340, 0, 0) -- Start off-screen to the right
+    Notification.Position = UDim2.new(1, 340, 0, 0)
     Notification.BackgroundColor3 = Config.Colors.Background
     Notification.BackgroundTransparency = 0.05
     Notification.BorderSizePixel = 0
@@ -1322,7 +1380,6 @@ function ScawsHub:CreateNotification(settings)
     Indicator.Parent = Notification
     Utils:CreateCorner(Indicator, 2)
 
-    -- Icon based on type
     local IconLabel = Instance.new("TextLabel")
     IconLabel.Size = UDim2.new(0, 24, 0, 24)
     IconLabel.Position = UDim2.new(0, 20, 0, 12)
@@ -1333,12 +1390,12 @@ function ScawsHub:CreateNotification(settings)
     IconLabel.ZIndex = 2
     
     local iconMap = {
-        Info = "ℹ️",
+        Info = "i",
         Success = "✓",
-        Warning = "⚠️",
+        Warning = "!",
         Error = "✕"
     }
-    IconLabel.Text = iconMap[type] or "ℹ️"
+    IconLabel.Text = iconMap[type] or "i"
     IconLabel.Parent = Notification
 
     local Title = Instance.new("TextLabel")
@@ -1367,7 +1424,6 @@ function ScawsHub:CreateNotification(settings)
     Content.ZIndex = 2
     Content.Parent = Notification
 
-    -- Progress bar
     local ProgressBar = Instance.new("Frame")
     ProgressBar.Size = UDim2.new(1, -20, 0, 2)
     ProgressBar.Position = UDim2.new(0, 10, 1, -6)
@@ -1377,7 +1433,6 @@ function ScawsHub:CreateNotification(settings)
     ProgressBar.Parent = Notification
     Utils:CreateCorner(ProgressBar, 1)
 
-    -- Slide in from right with iOS-style bounce
     local slideInTween = TweenService:Create(
         Notification,
         TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
@@ -1385,18 +1440,16 @@ function ScawsHub:CreateNotification(settings)
     )
     slideInTween:Play()
 
-    -- Progress bar animation
     local progressTween = TweenService:Create(
         ProgressBar,
         TweenInfo.new(duration, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut),
         {Size = UDim2.new(0, 0, 0, 2)}
     )
     
-    task.wait(0.6) -- Wait for slide in to complete
+    task.wait(0.6)
     progressTween:Play()
 
     task.delay(duration, function()
-        -- Slide out to the right with spring effect
         local slideOutTween = TweenService:Create(
             Notification,
             TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.In),
@@ -1404,7 +1457,6 @@ function ScawsHub:CreateNotification(settings)
         )
         slideOutTween:Play()
         
-        -- Fade out
         Utils:Tween(Notification, {BackgroundTransparency = 1}, 0.4)
         Utils:Tween(NotifStroke, {Transparency = 1}, 0.4)
         Utils:Tween(Indicator, {BackgroundTransparency = 1}, 0.4)
