@@ -356,8 +356,8 @@ function ScawsHub:CreateWindow(settings)
     Utils:CreateGradient(TopbarGradient, 45)
     
     local TopbarFix = Instance.new("Frame")
-    TopbarFix.Size = UDim2.new(1, 0, 0, 20)
-    TopbarFix.Position = UDim2.new(0, 0, 1, -20)
+    TopbarFix.Size = UDim2.new(1, 0, 0, 16)
+    TopbarFix.Position = UDim2.new(0, 0, 1, -16)
     TopbarFix.BackgroundColor3 = Config.Colors.Topbar
     TopbarFix.BackgroundTransparency = 0.15
     TopbarFix.BorderSizePixel = 0
@@ -398,6 +398,107 @@ function ScawsHub:CreateWindow(settings)
     CreditsLabel.TextTransparency = 0.5
     CreditsLabel.ZIndex = 2
     CreditsLabel.Parent = Topbar
+    
+    local Player = Players.LocalPlayer
+    
+    local AvatarButton = Instance.new("ImageButton")
+    AvatarButton.Name = "AvatarButton"
+    AvatarButton.AnchorPoint = Vector2.new(1, 0.5)
+    AvatarButton.Position = UDim2.new(1, -82, 0.5, 0)
+    AvatarButton.Size = UDim2.new(0, 30, 0, 30)
+    AvatarButton.BackgroundColor3 = Config.Colors.Border
+    AvatarButton.BackgroundTransparency = 0.3
+    AvatarButton.BorderSizePixel = 0
+    AvatarButton.Image = Players:GetUserThumbnailAsync(Player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size150x150)
+    AvatarButton.ZIndex = 3
+    AvatarButton.Parent = Topbar
+    Utils:CreateCorner(AvatarButton, 15)
+    Utils:CreateStroke(AvatarButton, Config.Colors.Accent, 1.5)
+    
+    local InfoFrame = Instance.new("Frame")
+    InfoFrame.Name = "InfoFrame"
+    InfoFrame.AnchorPoint = Vector2.new(1, 0)
+    InfoFrame.Position = UDim2.new(1, -12, 1, 8)
+    InfoFrame.Size = UDim2.new(0, 180, 0, 0)
+    InfoFrame.BackgroundColor3 = Config.Colors.Background
+    InfoFrame.BackgroundTransparency = 0.1
+    InfoFrame.BorderSizePixel = 0
+    InfoFrame.Visible = false
+    InfoFrame.ZIndex = 100
+    InfoFrame.Parent = AvatarButton
+    Utils:CreateCorner(InfoFrame, 10)
+    Utils:CreateStroke(InfoFrame, Config.Colors.Border, 1)
+    
+    local InfoGradient = Instance.new("Frame")
+    InfoGradient.Size = UDim2.new(1, 0, 1, 0)
+    InfoGradient.BackgroundColor3 = Config.Colors.Accent
+    InfoGradient.BackgroundTransparency = 0.9
+    InfoGradient.BorderSizePixel = 0
+    InfoGradient.ZIndex = 0
+    InfoGradient.Parent = InfoFrame
+    Utils:CreateCorner(InfoGradient, 10)
+    Utils:CreateGradient(InfoGradient, 90)
+    
+    local InfoLayout = Instance.new("UIListLayout")
+    InfoLayout.Padding = UDim.new(0, 6)
+    InfoLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    InfoLayout.Parent = InfoFrame
+    
+    local InfoPadding = Instance.new("UIPadding")
+    InfoPadding.PaddingTop = UDim.new(0, 8)
+    InfoPadding.PaddingBottom = UDim.new(0, 8)
+    InfoPadding.PaddingLeft = UDim.new(0, 10)
+    InfoPadding.PaddingRight = UDim.new(0, 10)
+    InfoPadding.Parent = InfoFrame
+    
+    local function CreateInfoLabel(text, value)
+        local Label = Instance.new("TextLabel")
+        Label.Size = UDim2.new(1, 0, 0, 16)
+        Label.BackgroundTransparency = 1
+        Label.Font = Enum.Font.Gotham
+        Label.Text = text .. ": " .. value
+        Label.TextColor3 = Config.Colors.Text
+        Label.TextSize = 11
+        Label.TextXAlignment = Enum.TextXAlignment.Left
+        Label.ZIndex = 101
+        Label.Parent = InfoFrame
+        return Label
+    end
+    
+    local UsernameLabel = CreateInfoLabel("User", Player.Name)
+    local UserIdLabel = CreateInfoLabel("ID", tostring(Player.UserId))
+    local FpsLabel = CreateInfoLabel("FPS", "60")
+    
+    local lastUpdate = tick()
+    local frameCount = 0
+    
+    RunService.RenderStepped:Connect(function()
+        frameCount = frameCount + 1
+        if tick() - lastUpdate >= 1 then
+            local fps = frameCount
+            FpsLabel.Text = "FPS: " .. tostring(fps)
+            frameCount = 0
+            lastUpdate = tick()
+        end
+    end)
+    
+    InfoLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        InfoFrame.Size = UDim2.new(0, 180, 0, InfoLayout.AbsoluteContentSize.Y + 16)
+    end)
+    
+    AvatarButton.MouseEnter:Connect(function()
+        InfoFrame.Visible = true
+        InfoFrame.Size = UDim2.new(0, 180, 0, 0)
+        Utils:Bounce(InfoFrame, {Size = UDim2.new(0, 180, 0, InfoLayout.AbsoluteContentSize.Y + 16)}, 0.3)
+        Utils:Spring(AvatarButton, {BackgroundTransparency = 0.1}, 0.2)
+    end)
+    
+    AvatarButton.MouseLeave:Connect(function()
+        Utils:Spring(InfoFrame, {Size = UDim2.new(0, 180, 0, 0)}, 0.25)
+        task.wait(0.25)
+        InfoFrame.Visible = false
+        Utils:Spring(AvatarButton, {BackgroundTransparency = 0.3}, 0.2)
+    end)
     
     local CloseButton = Instance.new("TextButton")
     CloseButton.Name = "CloseButton"
@@ -599,7 +700,7 @@ function ScawsHub:CreateWindow(settings)
         local TabButton = Instance.new("TextButton")
         TabButton.Name = name
         TabButton.Size = UDim2.new(1, -10, 0, 36)
-        TabButton.BackgroundColor3 = Config.Colors.Accent
+        TabButton.BackgroundColor3 = Config.Colors.Background
         TabButton.BackgroundTransparency = 1
         TabButton.BorderSizePixel = 0
         TabButton.Font = Enum.Font.GothamSemibold
@@ -615,7 +716,7 @@ function ScawsHub:CreateWindow(settings)
         
         local TabContent = Instance.new("ScrollingFrame")
         TabContent.Name = name .. "_Content"
-        TabContent.Size = UDim2.new(1, -30, 1, -20)
+        TabContent.Size = UDim2.new(1, -35, 1, -20)
         TabContent.Position = UDim2.new(0, 10, 0, 10)
         TabContent.BackgroundTransparency = 1
         TabContent.BorderSizePixel = 0
@@ -1070,7 +1171,7 @@ function ScawsHub:CreateWindow(settings)
                             for _, child in ipairs(element:GetChildren()) do
                                 if child:IsA("TextLabel") or child:IsA("TextButton") then
                                     Utils:Tween(child, {TextTransparency = 1}, 0.15)
-                                elseif child:IsA("Frame") and child.Name ~= "UICorner" and child.Name ~= "UIStroke" then
+                                elseif child:IsA("Frame") and child.Name ~= "UICorner" and child.Name ~= "UIStroke" and child.Name ~= "Gradient" then
                                     Utils:Tween(child, {BackgroundTransparency = 1}, 0.15)
                                 end
                             end
@@ -1101,7 +1202,7 @@ function ScawsHub:CreateWindow(settings)
                         for _, child in ipairs(element:GetChildren()) do
                             if child:IsA("TextLabel") or child:IsA("TextButton") then
                                 child.TextTransparency = 1
-                            elseif child:IsA("Frame") and child.Name ~= "UICorner" and child.Name ~= "UIStroke" then
+                            elseif child:IsA("Frame") and child.Name ~= "UICorner" and child.Name ~= "UIStroke" and child.Name ~= "Gradient" then
                                 child.BackgroundTransparency = 1
                             end
                         end
@@ -1123,7 +1224,7 @@ function ScawsHub:CreateWindow(settings)
                             for _, child in ipairs(element:GetChildren()) do
                                 if child:IsA("TextLabel") or child:IsA("TextButton") then
                                     Utils:Tween(child, {TextTransparency = 0}, 0.4)
-                                elseif child:IsA("Frame") and child.Name ~= "UICorner" and child.Name ~= "UIStroke" then
+                                elseif child:IsA("Frame") and child.Name ~= "UICorner" and child.Name ~= "UIStroke" and child.Name ~= "Gradient" then
                                     local origTrans = child:GetAttribute("OriginalTransparency") or 0.2
                                     Utils:Tween(child, {BackgroundTransparency = origTrans}, 0.4)
                                 end
@@ -1188,11 +1289,11 @@ function ScawsHub:CreateNotification(settings)
     local Notification = Instance.new("Frame")
     Notification.Size = UDim2.new(0, 0, 0, 90)
     Notification.BackgroundColor3 = Config.Colors.Background
-    Notification.BackgroundTransparency = 0.05
+    Notification.BackgroundTransparency = 0.25
     Notification.BorderSizePixel = 0
     Notification.Parent = NotifContainer
     Utils:CreateCorner(Notification, 14)
-    Utils:CreateStroke(Notification, Config.Colors.Border, 1)
+    Utils:CreateStroke(Notification, Config.Colors.Accent, 1.5)
     
     local NotifGradient = Instance.new("Frame")
     NotifGradient.Size = UDim2.new(1, 0, 1, 0)
