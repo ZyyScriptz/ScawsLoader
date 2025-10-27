@@ -361,6 +361,7 @@ function ScawsHub:CreateWindow(settings)
     TopbarFix.BackgroundColor3 = Config.Colors.Topbar
     TopbarFix.BackgroundTransparency = 0.15
     TopbarFix.BorderSizePixel = 0
+    TopbarFix.ZIndex = 1
     TopbarFix.Parent = Topbar
     
     local TopbarFixGradient = Instance.new("Frame")
@@ -382,7 +383,7 @@ function ScawsHub:CreateWindow(settings)
     TitleLabel.TextColor3 = Config.Colors.Text
     TitleLabel.TextSize = 16
     TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
-    TitleLabel.ZIndex = 2
+    TitleLabel.ZIndex = 3
     TitleLabel.Parent = Topbar
     
     local CreditsLabel = Instance.new("TextLabel")
@@ -396,7 +397,7 @@ function ScawsHub:CreateWindow(settings)
     CreditsLabel.TextSize = 9
     CreditsLabel.TextXAlignment = Enum.TextXAlignment.Left
     CreditsLabel.TextTransparency = 0.5
-    CreditsLabel.ZIndex = 2
+    CreditsLabel.ZIndex = 3
     CreditsLabel.Parent = Topbar
     
     local Player = Players.LocalPlayer
@@ -410,7 +411,7 @@ function ScawsHub:CreateWindow(settings)
     AvatarButton.BackgroundTransparency = 0.3
     AvatarButton.BorderSizePixel = 0
     AvatarButton.Image = Players:GetUserThumbnailAsync(Player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size150x150)
-    AvatarButton.ZIndex = 3
+    AvatarButton.ZIndex = 4
     AvatarButton.Parent = Topbar
     Utils:CreateCorner(AvatarButton, 15)
     Utils:CreateStroke(AvatarButton, Config.Colors.Accent, 1.5)
@@ -425,7 +426,7 @@ function ScawsHub:CreateWindow(settings)
     InfoFrame.BorderSizePixel = 0
     InfoFrame.Visible = false
     InfoFrame.ZIndex = 100
-    InfoFrame.Parent = AvatarButton
+    InfoFrame.Parent = Topbar
     Utils:CreateCorner(InfoFrame, 10)
     Utils:CreateStroke(InfoFrame, Config.Colors.Border, 1)
     
@@ -434,7 +435,7 @@ function ScawsHub:CreateWindow(settings)
     InfoGradient.BackgroundColor3 = Config.Colors.Accent
     InfoGradient.BackgroundTransparency = 0.9
     InfoGradient.BorderSizePixel = 0
-    InfoGradient.ZIndex = 0
+    InfoGradient.ZIndex = 99
     InfoGradient.Parent = InfoFrame
     Utils:CreateCorner(InfoGradient, 10)
     Utils:CreateGradient(InfoGradient, 90)
@@ -482,22 +483,46 @@ function ScawsHub:CreateWindow(settings)
         end
     end)
     
-    InfoLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-        InfoFrame.Size = UDim2.new(0, 180, 0, InfoLayout.AbsoluteContentSize.Y + 16)
-    end)
+    local isHovering = false
     
     AvatarButton.MouseEnter:Connect(function()
+        isHovering = true
         InfoFrame.Visible = true
         InfoFrame.Size = UDim2.new(0, 180, 0, 0)
-        Utils:Bounce(InfoFrame, {Size = UDim2.new(0, 180, 0, InfoLayout.AbsoluteContentSize.Y + 16)}, 0.3)
+        task.wait()
+        local targetHeight = InfoLayout.AbsoluteContentSize.Y + 16
+        Utils:Bounce(InfoFrame, {Size = UDim2.new(0, 180, 0, targetHeight)}, 0.3)
         Utils:Spring(AvatarButton, {BackgroundTransparency = 0.1}, 0.2)
     end)
     
     AvatarButton.MouseLeave:Connect(function()
-        Utils:Spring(InfoFrame, {Size = UDim2.new(0, 180, 0, 0)}, 0.25)
-        task.wait(0.25)
-        InfoFrame.Visible = false
-        Utils:Spring(AvatarButton, {BackgroundTransparency = 0.3}, 0.2)
+        isHovering = false
+        task.wait(0.1)
+        if not isHovering then
+            Utils:Spring(InfoFrame, {Size = UDim2.new(0, 180, 0, 0)}, 0.25)
+            task.wait(0.25)
+            if not isHovering then
+                InfoFrame.Visible = false
+            end
+            Utils:Spring(AvatarButton, {BackgroundTransparency = 0.3}, 0.2)
+        end
+    end)
+    
+    InfoFrame.MouseEnter:Connect(function()
+        isHovering = true
+    end)
+    
+    InfoFrame.MouseLeave:Connect(function()
+        isHovering = false
+        task.wait(0.1)
+        if not isHovering then
+            Utils:Spring(InfoFrame, {Size = UDim2.new(0, 180, 0, 0)}, 0.25)
+            task.wait(0.25)
+            if not isHovering then
+                InfoFrame.Visible = false
+            end
+            Utils:Spring(AvatarButton, {BackgroundTransparency = 0.3}, 0.2)
+        end
     end)
     
     local CloseButton = Instance.new("TextButton")
@@ -512,7 +537,7 @@ function ScawsHub:CreateWindow(settings)
     CloseButton.Text = "×"
     CloseButton.TextColor3 = Config.Colors.Text
     CloseButton.TextSize = 18
-    CloseButton.ZIndex = 3
+    CloseButton.ZIndex = 4
     CloseButton.Parent = Topbar
     Utils:CreateCorner(CloseButton, 15)
     
@@ -528,7 +553,7 @@ function ScawsHub:CreateWindow(settings)
     MinimizeButton.Text = "−"
     MinimizeButton.TextColor3 = Config.Colors.Text
     MinimizeButton.TextSize = 16
-    MinimizeButton.ZIndex = 3
+    MinimizeButton.ZIndex = 4
     MinimizeButton.Parent = Topbar
     Utils:CreateCorner(MinimizeButton, 15)
     
@@ -559,6 +584,7 @@ function ScawsHub:CreateWindow(settings)
     SidebarBottomFix.BackgroundColor3 = Config.Colors.Sidebar
     SidebarBottomFix.BackgroundTransparency = 0.15
     SidebarBottomFix.BorderSizePixel = 0
+    SidebarBottomFix.ZIndex = 1
     SidebarBottomFix.Parent = Sidebar
     
     local SidebarFixGradient = Instance.new("Frame")
@@ -617,6 +643,7 @@ function ScawsHub:CreateWindow(settings)
     ContentBottomFix.BackgroundColor3 = Config.Colors.Main
     ContentBottomFix.BackgroundTransparency = 0.15
     ContentBottomFix.BorderSizePixel = 0
+    ContentBottomFix.ZIndex = 1
     ContentBottomFix.Parent = ContentArea
     
     Utils:MakeDraggable(Main, Topbar)
@@ -700,7 +727,7 @@ function ScawsHub:CreateWindow(settings)
         local TabButton = Instance.new("TextButton")
         TabButton.Name = name
         TabButton.Size = UDim2.new(1, -10, 0, 36)
-        TabButton.BackgroundColor3 = Config.Colors.Background
+        TabButton.BackgroundColor3 = Config.Colors.Sidebar
         TabButton.BackgroundTransparency = 1
         TabButton.BorderSizePixel = 0
         TabButton.Font = Enum.Font.GothamSemibold
