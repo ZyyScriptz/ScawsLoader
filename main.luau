@@ -17,8 +17,8 @@ local Config = {
         Topbar = Color3.fromRGB(10, 10, 10),
         Sidebar = Color3.fromRGB(15, 15, 15),
         Main = Color3.fromRGB(20, 20, 20),
-        Accent = Color3.fromRGB(255, 255, 255),
-        AccentHover = Color3.fromRGB(230, 230, 230),
+        Accent = Color3.fromRGB(200, 200, 200),
+        AccentHover = Color3.fromRGB(180, 180, 180),
         Text = Color3.fromRGB(255, 255, 255),
         TextDark = Color3.fromRGB(150, 150, 150),
         Border = Color3.fromRGB(40, 40, 40),
@@ -209,7 +209,7 @@ function ScawsHub:CreateLoadingScreen(settings)
     local Container = Instance.new("Frame")
     Container.Name = "Container"
     Container.Size = UDim2.new(1, 0, 1, 0)
-    Container.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    Container.BackgroundTransparency = 1
     Container.BorderSizePixel = 0
     Container.Parent = LoadingGui
 
@@ -228,7 +228,6 @@ function ScawsHub:CreateLoadingScreen(settings)
 
     task.wait(duration)
 
-    Utils:Tween(Container, {BackgroundTransparency = 1}, 0.5)
     Utils:Tween(ImageLabel, {ImageTransparency = 1, Size = UDim2.new(0, 400, 0, 400)}, 0.5, function()
         task.wait(0.1)
         LoadingGui:Destroy()
@@ -324,8 +323,8 @@ function ScawsHub:CreateWindow(settings)
 
     local TitleLabel = Instance.new("TextLabel")
     TitleLabel.Name = "Title"
-    TitleLabel.Size = UDim2.new(0, 200, 1, -10)
-    TitleLabel.Position = UDim2.new(0, 20, 0, -10)
+    TitleLabel.Size = UDim2.new(0, 200, 1, -5)
+    TitleLabel.Position = UDim2.new(0, 20, 0, -5)
     TitleLabel.BackgroundTransparency = 1
     TitleLabel.Font = Enum.Font.GothamBold
     TitleLabel.Text = windowTitle
@@ -338,7 +337,7 @@ function ScawsHub:CreateWindow(settings)
     local CreditsLabel = Instance.new("TextLabel")
     CreditsLabel.Name = "Credits"
     CreditsLabel.Size = UDim2.new(0, 100, 1, 0)
-    CreditsLabel.Position = UDim2.new(0, 20, 0, 12)
+    CreditsLabel.Position = UDim2.new(0, 20, 0, 15)
     CreditsLabel.BackgroundTransparency = 1
     CreditsLabel.Font = Enum.Font.Gotham
     CreditsLabel.Text = "by ScawsHub"
@@ -451,17 +450,22 @@ function ScawsHub:CreateWindow(settings)
     UsernameLabel.TextTransparency = 1
     UsernameLabel.Parent = PlayerInfoFrame
 
+    -- Only show "Owner of ScawsHub" for user "6r5lo"
     local OwnerLabel = Instance.new("TextLabel")
     OwnerLabel.Size = UDim2.new(1, 0, 0, 14)
     OwnerLabel.Position = UDim2.new(0, 0, 0, 50)
     OwnerLabel.BackgroundTransparency = 1
     OwnerLabel.Font = Enum.Font.GothamMedium
-    OwnerLabel.Text = "Owner of ScawsHub"
+    OwnerLabel.Text = ""
     OwnerLabel.TextColor3 = Config.Colors.Accent
     OwnerLabel.TextSize = 10
     OwnerLabel.TextXAlignment = Enum.TextXAlignment.Left
     OwnerLabel.TextTransparency = 1
     OwnerLabel.Parent = PlayerInfoFrame
+    
+    if player.Name == "6r5lo" then
+        OwnerLabel.Text = "Owner of ScawsHub"
+    end
 
     local UserIdLabel = Instance.new("TextLabel")
     UserIdLabel.Size = UDim2.new(1, 0, 0, 16)
@@ -791,7 +795,6 @@ function ScawsHub:CreateWindow(settings)
         TabButton.TextXAlignment = Enum.TextXAlignment.Left
         TabButton.ZIndex = 2
         TabButton.Parent = TabContainer
-        Utils:CreateCorner(TabButton, 10)
         
         Tab.Button = TabButton
         
@@ -935,7 +938,7 @@ function ScawsHub:CreateWindow(settings)
             
             local function UpdateToggle()
                 if toggled then
-                    Utils:Spring(ToggleButton, {BackgroundColor3 = Config.Colors.Accent, BackgroundTransparency = 0}, 0.25)
+                    Utils:Spring(ToggleButton, {BackgroundColor3 = Color3.fromRGB(120, 120, 120), BackgroundTransparency = 0}, 0.25)
                     Utils:Spring(ToggleIndicator, {Position = UDim2.new(1, -21, 0.5, -9), BackgroundColor3 = Config.Colors.Text}, 0.25)
                 else
                     Utils:Spring(ToggleButton, {BackgroundColor3 = Config.Colors.Border, BackgroundTransparency = 0.2}, 0.25)
@@ -1208,7 +1211,8 @@ function ScawsHub:CreateWindow(settings)
         
         for _, t in ipairs(self.Tabs) do
             if t == tab then
-                Utils:SmoothFade(t.Button, 0.7, 0.3)
+                Utils:SmoothFade(t.Button, 0.6, 0.3)
+                Utils:Tween(t.Button, {BackgroundColor3 = Color3.fromRGB(25, 25, 25)}, 0.3)
                 Utils:Tween(t.Button, {TextColor3 = Config.Colors.Text}, 0.3)
                 
                 if self.CurrentTab and self.CurrentTab.Content.Visible then
@@ -1294,6 +1298,7 @@ function ScawsHub:CreateWindow(settings)
                 end
             else
                 Utils:SmoothFade(t.Button, 1, 0.3)
+                Utils:Tween(t.Button, {BackgroundColor3 = Config.Colors.Accent}, 0.3)
                 Utils:Tween(t.Button, {TextColor3 = Config.Colors.TextDark}, 0.3)
             end
         end
@@ -1351,7 +1356,7 @@ function ScawsHub:CreateNotification(settings)
     Notification.Size = UDim2.new(0, 320, 0, 85)
     Notification.Position = UDim2.new(1, 340, 0, 0)
     Notification.BackgroundColor3 = Config.Colors.Background
-    Notification.BackgroundTransparency = 0
+    Notification.BackgroundTransparency = 1
     Notification.BorderSizePixel = 0
     Notification.Parent = NotifContainer
     Utils:CreateCorner(Notification, 12)
@@ -1364,12 +1369,13 @@ function ScawsHub:CreateNotification(settings)
     }
 
     local NotifStroke = Utils:CreateStroke(Notification, colorMap[type] or Config.Colors.Accent, 1)
-    NotifStroke.Transparency = 0.5
+    NotifStroke.Transparency = 1
 
     local Indicator = Instance.new("Frame")
     Indicator.Size = UDim2.new(0, 4, 1, -20)
     Indicator.Position = UDim2.new(0, 10, 0, 10)
     Indicator.BackgroundColor3 = colorMap[type] or Config.Colors.Accent
+    Indicator.BackgroundTransparency = 1
     Indicator.BorderSizePixel = 0
     Indicator.ZIndex = 2
     Indicator.Parent = Notification
@@ -1382,6 +1388,7 @@ function ScawsHub:CreateNotification(settings)
     IconLabel.Font = Enum.Font.GothamBold
     IconLabel.TextSize = 18
     IconLabel.TextColor3 = colorMap[type] or Config.Colors.Accent
+    IconLabel.TextTransparency = 1
     IconLabel.ZIndex = 2
     
     local iconMap = {
@@ -1402,6 +1409,7 @@ function ScawsHub:CreateNotification(settings)
     Title.TextColor3 = Config.Colors.Text
     Title.TextSize = 14
     Title.TextXAlignment = Enum.TextXAlignment.Left
+    Title.TextTransparency = 1
     Title.ZIndex = 2
     Title.Parent = Notification
 
@@ -1416,6 +1424,7 @@ function ScawsHub:CreateNotification(settings)
     Content.TextXAlignment = Enum.TextXAlignment.Left
     Content.TextYAlignment = Enum.TextYAlignment.Top
     Content.TextWrapped = true
+    Content.TextTransparency = 1
     Content.ZIndex = 2
     Content.Parent = Notification
 
@@ -1423,14 +1432,24 @@ function ScawsHub:CreateNotification(settings)
     ProgressBar.Size = UDim2.new(1, -20, 0, 2)
     ProgressBar.Position = UDim2.new(0, 10, 1, -7)
     ProgressBar.BackgroundColor3 = colorMap[type] or Config.Colors.Accent
+    ProgressBar.BackgroundTransparency = 1
     ProgressBar.BorderSizePixel = 0
     ProgressBar.ZIndex = 2
     ProgressBar.Parent = Notification
     Utils:CreateCorner(ProgressBar, 1)
 
+    -- Fade in animation
+    Utils:Tween(Notification, {BackgroundTransparency = 0}, 0.3)
+    Utils:Tween(NotifStroke, {Transparency = 0.5}, 0.3)
+    Utils:Tween(Indicator, {BackgroundTransparency = 0}, 0.3)
+    Utils:Tween(IconLabel, {TextTransparency = 0}, 0.3)
+    Utils:Tween(Title, {TextTransparency = 0}, 0.3)
+    Utils:Tween(Content, {TextTransparency = 0}, 0.3)
+    Utils:Tween(ProgressBar, {BackgroundTransparency = 0}, 0.3)
+
     local slideInTween = TweenService:Create(
         Notification,
-        TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+        TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
         {Position = UDim2.new(0, 0, 0, 0)}
     )
     slideInTween:Play()
@@ -1441,17 +1460,11 @@ function ScawsHub:CreateNotification(settings)
         {Size = UDim2.new(0, 0, 0, 2)}
     )
     
-    task.wait(0.6)
+    task.wait(0.5)
     progressTween:Play()
 
     task.delay(duration, function()
-        local slideOutTween = TweenService:Create(
-            Notification,
-            TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.In),
-            {Position = UDim2.new(1, 340, 0, 0)}
-        )
-        slideOutTween:Play()
-        
+        -- Fade out animation
         Utils:Tween(Notification, {BackgroundTransparency = 1}, 0.4)
         Utils:Tween(NotifStroke, {Transparency = 1}, 0.4)
         Utils:Tween(Indicator, {BackgroundTransparency = 1}, 0.4)
@@ -1460,7 +1473,14 @@ function ScawsHub:CreateNotification(settings)
         Utils:Tween(Content, {TextTransparency = 1}, 0.4)
         Utils:Tween(ProgressBar, {BackgroundTransparency = 1}, 0.4)
         
-        task.wait(0.55)
+        local slideOutTween = TweenService:Create(
+            Notification,
+            TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.In),
+            {Position = UDim2.new(1, 340, 0, 0)}
+        )
+        slideOutTween:Play()
+        
+        task.wait(0.5)
         Notification:Destroy()
     end)
 end
