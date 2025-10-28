@@ -27,8 +27,8 @@ local Config = {
         Error = Color3.fromRGB(239, 68, 68),
     },
 
-    WindowSize = UDim2.new(0, 600, 0, 450),
-    SidebarWidth = 160,
+    WindowSize = UDim2.new(0, 520, 0, 380),
+    SidebarWidth = 140,
 }
 
 local SessionStartTime = tick()
@@ -266,11 +266,11 @@ function ScawsHub:CreateWindow(settings)
     Main.Position = UDim2.new(0.5, 0, 0.5, 0)
     Main.Size = UDim2.new(0, 0, 0, 0)
     Main.BackgroundColor3 = Config.Colors.Background
-    Main.BackgroundTransparency = 0
+    Main.BackgroundTransparency = 0.15
     Main.BorderSizePixel = 0
     Main.ClipsDescendants = true
     Main.Parent = MainGui
-    Utils:CreateCorner(Main, 16)
+    Utils:CreateCorner(Main, 14)
     Utils:CreateStroke(Main, Config.Colors.Border, 1)
 
     Utils:IOSBounce(Main, {Size = Config.WindowSize}, 0.7)
@@ -291,13 +291,14 @@ function ScawsHub:CreateWindow(settings)
     -- Topbar with gradient glow
     local Topbar = Instance.new("Frame")
     Topbar.Name = "Topbar"
-    Topbar.Size = UDim2.new(1, 0, 0, 50)
+    Topbar.Size = UDim2.new(1, 0, 0, 45)
     Topbar.BackgroundColor3 = Config.Colors.Topbar
+    Topbar.BackgroundTransparency = 0.15
     Topbar.BorderSizePixel = 0
     Topbar.Parent = Main
     
     local TopbarCorner = Instance.new("UICorner")
-    TopbarCorner.CornerRadius = UDim.new(0, 16)
+    TopbarCorner.CornerRadius = UDim.new(0, 14)
     TopbarCorner.Parent = Topbar
 
     -- Topbar gradient overlay
@@ -309,7 +310,7 @@ function ScawsHub:CreateWindow(settings)
     TopbarGradient.Parent = Topbar
     
     local TopbarGradientCorner = Instance.new("UICorner")
-    TopbarGradientCorner.CornerRadius = UDim.new(0, 16)
+    TopbarGradientCorner.CornerRadius = UDim.new(0, 14)
     TopbarGradientCorner.Parent = TopbarGradient
     
     local TopbarGradientEffect = Instance.new("UIGradient")
@@ -323,13 +324,13 @@ function ScawsHub:CreateWindow(settings)
 
     local TitleLabel = Instance.new("TextLabel")
     TitleLabel.Name = "Title"
-    TitleLabel.Size = UDim2.new(0, 200, 1, -5)
-    TitleLabel.Position = UDim2.new(0, 20, 0, -5)
+    TitleLabel.Size = UDim2.new(0, 180, 1, -5)
+    TitleLabel.Position = UDim2.new(0, 16, 0, -5)
     TitleLabel.BackgroundTransparency = 1
     TitleLabel.Font = Enum.Font.GothamBold
     TitleLabel.Text = windowTitle
     TitleLabel.TextColor3 = Config.Colors.Text
-    TitleLabel.TextSize = 18
+    TitleLabel.TextSize = 16
     TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
     TitleLabel.ZIndex = 2
     TitleLabel.Parent = Topbar
@@ -337,12 +338,12 @@ function ScawsHub:CreateWindow(settings)
     local CreditsLabel = Instance.new("TextLabel")
     CreditsLabel.Name = "Credits"
     CreditsLabel.Size = UDim2.new(0, 100, 1, 0)
-    CreditsLabel.Position = UDim2.new(0, 20, 0, 15)
+    CreditsLabel.Position = UDim2.new(0, 16, 0, 13)
     CreditsLabel.BackgroundTransparency = 1
     CreditsLabel.Font = Enum.Font.Gotham
     CreditsLabel.Text = "by ScawsHub"
     CreditsLabel.TextColor3 = Config.Colors.TextDark
-    CreditsLabel.TextSize = 10
+    CreditsLabel.TextSize = 9
     CreditsLabel.TextXAlignment = Enum.TextXAlignment.Left
     CreditsLabel.TextTransparency = 0.3
     CreditsLabel.ZIndex = 2
@@ -351,49 +352,49 @@ function ScawsHub:CreateWindow(settings)
     local CloseButton = Instance.new("TextButton")
     CloseButton.Name = "CloseButton"
     CloseButton.AnchorPoint = Vector2.new(1, 0.5)
-    CloseButton.Position = UDim2.new(1, -10, 0.5, 0)
-    CloseButton.Size = UDim2.new(0, 32, 0, 32)
+    CloseButton.Position = UDim2.new(1, -8, 0.5, 0)
+    CloseButton.Size = UDim2.new(0, 28, 0, 28)
     CloseButton.BackgroundColor3 = Config.Colors.Border
     CloseButton.BackgroundTransparency = 0.3
     CloseButton.BorderSizePixel = 0
     CloseButton.Font = Enum.Font.GothamBold
     CloseButton.Text = "×"
     CloseButton.TextColor3 = Config.Colors.Text
-    CloseButton.TextSize = 20
+    CloseButton.TextSize = 18
     CloseButton.ZIndex = 2
     CloseButton.Parent = Topbar
-    Utils:CreateCorner(CloseButton, 16)
+    Utils:CreateCorner(CloseButton, 14)
 
     local MinimizeButton = Instance.new("TextButton")
     MinimizeButton.Name = "MinimizeButton"
     MinimizeButton.AnchorPoint = Vector2.new(1, 0.5)
-    MinimizeButton.Position = UDim2.new(1, -47, 0.5, 0)
-    MinimizeButton.Size = UDim2.new(0, 32, 0, 32)
+    MinimizeButton.Position = UDim2.new(1, -40, 0.5, 0)
+    MinimizeButton.Size = UDim2.new(0, 28, 0, 28)
     MinimizeButton.BackgroundColor3 = Config.Colors.Border
     MinimizeButton.BackgroundTransparency = 0.3
     MinimizeButton.BorderSizePixel = 0
     MinimizeButton.Font = Enum.Font.GothamBold
     MinimizeButton.Text = "−"
     MinimizeButton.TextColor3 = Config.Colors.Text
-    MinimizeButton.TextSize = 18
+    MinimizeButton.TextSize = 16
     MinimizeButton.ZIndex = 2
     MinimizeButton.Parent = Topbar
-    Utils:CreateCorner(MinimizeButton, 16)
+    Utils:CreateCorner(MinimizeButton, 14)
 
     -- Player Avatar Button
     local player = Players.LocalPlayer
     local AvatarButton = Instance.new("ImageButton")
     AvatarButton.Name = "AvatarButton"
     AvatarButton.AnchorPoint = Vector2.new(1, 0.5)
-    AvatarButton.Position = UDim2.new(1, -84, 0.5, 0)
-    AvatarButton.Size = UDim2.new(0, 32, 0, 32)
+    AvatarButton.Position = UDim2.new(1, -72, 0.5, 0)
+    AvatarButton.Size = UDim2.new(0, 28, 0, 28)
     AvatarButton.BackgroundColor3 = Config.Colors.Border
     AvatarButton.BackgroundTransparency = 0.3
     AvatarButton.BorderSizePixel = 0
     AvatarButton.Image = "rbxthumb://type=AvatarHeadShot&id=" .. player.UserId .. "&w=150&h=150"
     AvatarButton.ZIndex = 2
     AvatarButton.Parent = Topbar
-    Utils:CreateCorner(AvatarButton, 16)
+    Utils:CreateCorner(AvatarButton, 14)
 
     -- Player Info Hover Frame
     local PlayerInfoFrame = Instance.new("Frame")
@@ -412,53 +413,53 @@ function ScawsHub:CreateWindow(settings)
     InfoStroke.Transparency = 1
 
     local PlayerInfoLayout = Instance.new("UIPadding")
-    PlayerInfoLayout.PaddingLeft = UDim.new(0, 16)
-    PlayerInfoLayout.PaddingRight = UDim.new(0, 16)
-    PlayerInfoLayout.PaddingTop = UDim.new(0, 14)
-    PlayerInfoLayout.PaddingBottom = UDim.new(0, 14)
+    PlayerInfoLayout.PaddingLeft = UDim.new(0, 14)
+    PlayerInfoLayout.PaddingRight = UDim.new(0, 14)
+    PlayerInfoLayout.PaddingTop = UDim.new(0, 12)
+    PlayerInfoLayout.PaddingBottom = UDim.new(0, 12)
     PlayerInfoLayout.Parent = PlayerInfoFrame
 
     local InfoHeader = Instance.new("TextLabel")
-    InfoHeader.Size = UDim2.new(1, 0, 0, 20)
+    InfoHeader.Size = UDim2.new(1, 0, 0, 18)
     InfoHeader.Position = UDim2.new(0, 0, 0, 0)
     InfoHeader.BackgroundTransparency = 1
     InfoHeader.Font = Enum.Font.GothamBold
     InfoHeader.Text = "PLAYER INFO"
     InfoHeader.TextColor3 = Config.Colors.Accent
-    InfoHeader.TextSize = 12
+    InfoHeader.TextSize = 11
     InfoHeader.TextXAlignment = Enum.TextXAlignment.Left
     InfoHeader.TextTransparency = 1
     InfoHeader.Parent = PlayerInfoFrame
 
     local Divider = Instance.new("Frame")
     Divider.Size = UDim2.new(1, 0, 0, 1)
-    Divider.Position = UDim2.new(0, 0, 0, 24)
+    Divider.Position = UDim2.new(0, 0, 0, 22)
     Divider.BackgroundColor3 = Config.Colors.Border
     Divider.BackgroundTransparency = 1
     Divider.BorderSizePixel = 0
     Divider.Parent = PlayerInfoFrame
 
     local UsernameLabel = Instance.new("TextLabel")
-    UsernameLabel.Size = UDim2.new(1, 0, 0, 16)
-    UsernameLabel.Position = UDim2.new(0, 0, 0, 32)
+    UsernameLabel.Size = UDim2.new(1, 0, 0, 14)
+    UsernameLabel.Position = UDim2.new(0, 0, 0, 28)
     UsernameLabel.BackgroundTransparency = 1
     UsernameLabel.Font = Enum.Font.GothamBold
     UsernameLabel.Text = "Username: " .. player.Name
     UsernameLabel.TextColor3 = Config.Colors.Text
-    UsernameLabel.TextSize = 12
+    UsernameLabel.TextSize = 11
     UsernameLabel.TextXAlignment = Enum.TextXAlignment.Left
     UsernameLabel.TextTransparency = 1
     UsernameLabel.Parent = PlayerInfoFrame
 
     -- Only show "Owner of ScawsHub" for user "6r5lo"
     local OwnerLabel = Instance.new("TextLabel")
-    OwnerLabel.Size = UDim2.new(1, 0, 0, 14)
-    OwnerLabel.Position = UDim2.new(0, 0, 0, 50)
+    OwnerLabel.Size = UDim2.new(1, 0, 0, 12)
+    OwnerLabel.Position = UDim2.new(0, 0, 0, 44)
     OwnerLabel.BackgroundTransparency = 1
     OwnerLabel.Font = Enum.Font.GothamMedium
     OwnerLabel.Text = ""
     OwnerLabel.TextColor3 = Config.Colors.Accent
-    OwnerLabel.TextSize = 10
+    OwnerLabel.TextSize = 9
     OwnerLabel.TextXAlignment = Enum.TextXAlignment.Left
     OwnerLabel.TextTransparency = 1
     OwnerLabel.Parent = PlayerInfoFrame
@@ -468,73 +469,73 @@ function ScawsHub:CreateWindow(settings)
     end
 
     local UserIdLabel = Instance.new("TextLabel")
-    UserIdLabel.Size = UDim2.new(1, 0, 0, 16)
-    UserIdLabel.Position = UDim2.new(0, 0, 0, 72)
+    UserIdLabel.Size = UDim2.new(1, 0, 0, 14)
+    UserIdLabel.Position = UDim2.new(0, 0, 0, 62)
     UserIdLabel.BackgroundTransparency = 1
     UserIdLabel.Font = Enum.Font.Gotham
     UserIdLabel.Text = "User ID: " .. player.UserId
     UserIdLabel.TextColor3 = Config.Colors.TextDark
-    UserIdLabel.TextSize = 11
+    UserIdLabel.TextSize = 10
     UserIdLabel.TextXAlignment = Enum.TextXAlignment.Left
     UserIdLabel.TextTransparency = 1
     UserIdLabel.Parent = PlayerInfoFrame
 
     local AccountAgeLabel = Instance.new("TextLabel")
-    AccountAgeLabel.Size = UDim2.new(1, 0, 0, 16)
-    AccountAgeLabel.Position = UDim2.new(0, 0, 0, 90)
+    AccountAgeLabel.Size = UDim2.new(1, 0, 0, 14)
+    AccountAgeLabel.Position = UDim2.new(0, 0, 0, 78)
     AccountAgeLabel.BackgroundTransparency = 1
     AccountAgeLabel.Font = Enum.Font.Gotham
     AccountAgeLabel.Text = "Account Age: " .. player.AccountAge .. " days"
     AccountAgeLabel.TextColor3 = Config.Colors.TextDark
-    AccountAgeLabel.TextSize = 11
+    AccountAgeLabel.TextSize = 10
     AccountAgeLabel.TextXAlignment = Enum.TextXAlignment.Left
     AccountAgeLabel.TextTransparency = 1
     AccountAgeLabel.Parent = PlayerInfoFrame
 
     local JobIdLabel = Instance.new("TextLabel")
-    JobIdLabel.Size = UDim2.new(1, 0, 0, 16)
-    JobIdLabel.Position = UDim2.new(0, 0, 0, 108)
+    JobIdLabel.Size = UDim2.new(1, 0, 0, 14)
+    JobIdLabel.Position = UDim2.new(0, 0, 0, 94)
     JobIdLabel.BackgroundTransparency = 1
     JobIdLabel.Font = Enum.Font.Gotham
     JobIdLabel.Text = "Job ID: " .. game.JobId:sub(1, 8) .. "..."
     JobIdLabel.TextColor3 = Config.Colors.TextDark
-    JobIdLabel.TextSize = 11
+    JobIdLabel.TextSize = 10
     JobIdLabel.TextXAlignment = Enum.TextXAlignment.Left
     JobIdLabel.TextTransparency = 1
     JobIdLabel.Parent = PlayerInfoFrame
 
     local SessionLabel = Instance.new("TextLabel")
-    SessionLabel.Size = UDim2.new(1, 0, 0, 16)
-    SessionLabel.Position = UDim2.new(0, 0, 0, 126)
+    SessionLabel.Size = UDim2.new(1, 0, 0, 14)
+    SessionLabel.Position = UDim2.new(0, 0, 0, 110)
     SessionLabel.BackgroundTransparency = 1
     SessionLabel.Font = Enum.Font.Gotham
     SessionLabel.Text = "Session Time: 00:00:00"
     SessionLabel.TextColor3 = Config.Colors.TextDark
-    SessionLabel.TextSize = 11
+    SessionLabel.TextSize = 10
     SessionLabel.TextXAlignment = Enum.TextXAlignment.Left
     SessionLabel.TextTransparency = 1
     SessionLabel.Parent = PlayerInfoFrame
 
     local PingLabel = Instance.new("TextLabel")
-    PingLabel.Size = UDim2.new(0.5, -5, 0, 16)
-    PingLabel.Position = UDim2.new(0, 0, 0, 144)
+    PingLabel.Size = UDim2.new(0.5, -5, 0, 14)
+    PingLabel.Position = UDim2.new(0, 0, 0, 126)
     PingLabel.BackgroundTransparency = 1
     PingLabel.Font = Enum.Font.Gotham
     PingLabel.Text = "Ping: " .. PingTracker.currentPing .. "ms"
     PingLabel.TextColor3 = Config.Colors.Warning
-    PingLabel.TextSize = 11
+    PingLabel.TextSize = 10
     PingLabel.TextXAlignment = Enum.TextXAlignment.Left
     PingLabel.TextTransparency = 1
     PingLabel.Parent = PlayerInfoFrame
 
     local FPSLabel = Instance.new("TextLabel")
-    FPSLabel.Size = UDim2.new(0.5, -5, 0, 16)
-    FPSLabel.Position = UDim2.new(0.5, 5, 0, 144)
+    FPSLabel.Size = UDim2.new(0.5, -5, 0, 14)
+    FPSLabel.Position = UDim2.new(0.5, 5, 0, 126)
     FPSLabel.BackgroundTransparency = 1
     FPSLabel.Font = Enum.Font.Gotham
     FPSLabel.Text = "FPS: " .. FPSTracker.currentFPS
     FPSLabel.TextColor3 = Config.Colors.Success
-    FPSLabel.TextSize = 11
+    FPSLabel.TextSize = 10
     FPSLabel.TextXAlignment = Enum.TextXAlignment.Left
     FPSLabel.TextTransparency = 1
     FPSLabel.Parent = PlayerInfoFrame
@@ -548,8 +549,8 @@ function ScawsHub:CreateWindow(settings)
     local function FadeInInfo()
         PlayerInfoFrame.Visible = true
         Utils:Spring(PlayerInfoFrame, {
-            BackgroundTransparency = 0, 
-            Size = UDim2.new(0, 240, 0, 175)
+            BackgroundTransparency = 0.1, 
+            Size = UDim2.new(0, 220, 0, 155)
         }, 0.35)
         Utils:Tween(InfoStroke, {Transparency = 0.3}, 0.35)
         Utils:Tween(Divider, {BackgroundTransparency = 0.7}, 0.35)
@@ -571,7 +572,7 @@ function ScawsHub:CreateWindow(settings)
         Utils:Tween(Divider, {BackgroundTransparency = 1}, 0.2)
         Utils:Spring(PlayerInfoFrame, {
             BackgroundTransparency = 1, 
-            Size = UDim2.new(0, 240, 0, 0)
+            Size = UDim2.new(0, 220, 0, 0)
         }, 0.3)
         
         task.wait(0.35)
@@ -618,29 +619,31 @@ function ScawsHub:CreateWindow(settings)
 
     AvatarButton.MouseMoved:Connect(function(x, y)
         if PlayerInfoFrame.Visible then
-            PlayerInfoFrame.Position = UDim2.new(0, x - PlayerInfoFrame.AbsoluteSize.X - 15, 0, y - 90)
+            PlayerInfoFrame.Position = UDim2.new(0, x - PlayerInfoFrame.AbsoluteSize.X - 15, 0, y - 80)
         end
     end)
 
     -- Sidebar (fixed bottom rounding)
     local Sidebar = Instance.new("Frame")
     Sidebar.Name = "Sidebar"
-    Sidebar.Position = UDim2.new(0, 0, 0, 50)
-    Sidebar.Size = UDim2.new(0, Config.SidebarWidth, 1, -50)
+    Sidebar.Position = UDim2.new(0, 0, 0, 45)
+    Sidebar.Size = UDim2.new(0, Config.SidebarWidth, 1, -45)
     Sidebar.BackgroundColor3 = Config.Colors.Sidebar
+    Sidebar.BackgroundTransparency = 0.15
     Sidebar.BorderSizePixel = 0
     Sidebar.ClipsDescendants = true
     Sidebar.Parent = Main
     
     local SidebarCorner = Instance.new("UICorner")
-    SidebarCorner.CornerRadius = UDim.new(0, 16)
+    SidebarCorner.CornerRadius = UDim.new(0, 14)
     SidebarCorner.Parent = Sidebar
     
     -- Cover top corners of sidebar
     local SidebarTopCover = Instance.new("Frame")
-    SidebarTopCover.Size = UDim2.new(1, 0, 0, 16)
+    SidebarTopCover.Size = UDim2.new(1, 0, 0, 14)
     SidebarTopCover.Position = UDim2.new(0, 0, 0, 0)
     SidebarTopCover.BackgroundColor3 = Config.Colors.Sidebar
+    SidebarTopCover.BackgroundTransparency = 0.15
     SidebarTopCover.BorderSizePixel = 0
     SidebarTopCover.Parent = Sidebar
 
@@ -655,8 +658,8 @@ function ScawsHub:CreateWindow(settings)
 
     local TabContainer = Instance.new("ScrollingFrame")
     TabContainer.Name = "TabContainer"
-    TabContainer.Size = UDim2.new(1, -12, 1, -16)
-    TabContainer.Position = UDim2.new(0, 6, 0, 8)
+    TabContainer.Size = UDim2.new(1, -10, 1, -14)
+    TabContainer.Position = UDim2.new(0, 5, 0, 7)
     TabContainer.BackgroundTransparency = 1
     TabContainer.BorderSizePixel = 0
     TabContainer.ScrollBarThickness = 3
@@ -667,7 +670,7 @@ function ScawsHub:CreateWindow(settings)
 
     local TabLayout = Instance.new("UIListLayout")
     TabLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    TabLayout.Padding = UDim.new(0, 8)
+    TabLayout.Padding = UDim.new(0, 6)
     TabLayout.Parent = TabContainer
 
     TabLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
@@ -677,30 +680,33 @@ function ScawsHub:CreateWindow(settings)
     -- Content Area (fixed bottom rounding)
     local ContentArea = Instance.new("Frame")
     ContentArea.Name = "ContentArea"
-    ContentArea.Position = UDim2.new(0, Config.SidebarWidth, 0, 50)
-    ContentArea.Size = UDim2.new(1, -Config.SidebarWidth, 1, -50)
+    ContentArea.Position = UDim2.new(0, Config.SidebarWidth, 0, 45)
+    ContentArea.Size = UDim2.new(1, -Config.SidebarWidth, 1, -45)
     ContentArea.BackgroundColor3 = Config.Colors.Main
+    ContentArea.BackgroundTransparency = 0.15
     ContentArea.BorderSizePixel = 0
     ContentArea.ClipsDescendants = true
     ContentArea.Parent = Main
     
     local ContentCorner = Instance.new("UICorner")
-    ContentCorner.CornerRadius = UDim.new(0, 16)
+    ContentCorner.CornerRadius = UDim.new(0, 14)
     ContentCorner.Parent = ContentArea
     
     -- Cover top-left corner of content area
     local ContentTopCover = Instance.new("Frame")
-    ContentTopCover.Size = UDim2.new(0, 16, 0, 16)
+    ContentTopCover.Size = UDim2.new(0, 14, 0, 14)
     ContentTopCover.Position = UDim2.new(0, 0, 0, 0)
     ContentTopCover.BackgroundColor3 = Config.Colors.Main
+    ContentTopCover.BackgroundTransparency = 0.15
     ContentTopCover.BorderSizePixel = 0
     ContentTopCover.Parent = ContentArea
     
     -- Cover top-right corner of content area
     local ContentTopRightCover = Instance.new("Frame")
-    ContentTopRightCover.Size = UDim2.new(0, 16, 0, 16)
-    ContentTopRightCover.Position = UDim2.new(1, -16, 0, 0)
+    ContentTopRightCover.Size = UDim2.new(0, 14, 0, 14)
+    ContentTopRightCover.Position = UDim2.new(1, -14, 0, 0)
     ContentTopRightCover.BackgroundColor3 = Config.Colors.Main
+    ContentTopRightCover.BackgroundTransparency = 0.15
     ContentTopRightCover.BorderSizePixel = 0
     ContentTopRightCover.Parent = ContentArea
 
@@ -721,9 +727,9 @@ function ScawsHub:CreateWindow(settings)
     }
 
     CloseButton.MouseButton1Click:Connect(function()
-        Utils:Spring(CloseButton, {Size = UDim2.new(0, 28, 0, 28)}, 0.1)
+        Utils:Spring(CloseButton, {Size = UDim2.new(0, 24, 0, 24)}, 0.1)
         task.wait(0.06)
-        Utils:Spring(CloseButton, {Size = UDim2.new(0, 32, 0, 32)}, 0.15)
+        Utils:Spring(CloseButton, {Size = UDim2.new(0, 28, 0, 28)}, 0.15)
         
         local closeTween = TweenService:Create(
             Main,
@@ -737,9 +743,9 @@ function ScawsHub:CreateWindow(settings)
     end)
 
     MinimizeButton.MouseButton1Click:Connect(function()
-        Utils:Spring(MinimizeButton, {Size = UDim2.new(0, 28, 0, 28)}, 0.1)
+        Utils:Spring(MinimizeButton, {Size = UDim2.new(0, 24, 0, 24)}, 0.1)
         task.wait(0.06)
-        Utils:Spring(MinimizeButton, {Size = UDim2.new(0, 32, 0, 32)}, 0.15)
+        Utils:Spring(MinimizeButton, {Size = UDim2.new(0, 28, 0, 28)}, 0.15)
         
         Window.Minimized = not Window.Minimized
         if Window.Minimized then
@@ -747,7 +753,7 @@ function ScawsHub:CreateWindow(settings)
             local minTween = TweenService:Create(
                 Main,
                 TweenInfo.new(0.4, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out),
-                {Size = UDim2.new(0, Config.WindowSize.X.Offset, 0, 50)}
+                {Size = UDim2.new(0, Config.WindowSize.X.Offset, 0, 45)}
             )
             minTween:Play()
         else
@@ -784,14 +790,14 @@ function ScawsHub:CreateWindow(settings)
         
         local TabButton = Instance.new("TextButton")
         TabButton.Name = name
-        TabButton.Size = UDim2.new(1, -12, 0, 38)
+        TabButton.Size = UDim2.new(1, -10, 0, 34)
         TabButton.BackgroundColor3 = Config.Colors.Accent
         TabButton.BackgroundTransparency = 1
         TabButton.BorderSizePixel = 0
         TabButton.Font = Enum.Font.GothamSemibold
         TabButton.Text = "  " .. name
         TabButton.TextColor3 = Config.Colors.TextDark
-        TabButton.TextSize = 14
+        TabButton.TextSize = 13
         TabButton.TextXAlignment = Enum.TextXAlignment.Left
         TabButton.ZIndex = 2
         TabButton.Parent = TabContainer
@@ -800,8 +806,8 @@ function ScawsHub:CreateWindow(settings)
         
         local TabContent = Instance.new("ScrollingFrame")
         TabContent.Name = name .. "_Content"
-        TabContent.Size = UDim2.new(1, -24, 1, -24)
-        TabContent.Position = UDim2.new(0, 12, 0, 12)
+        TabContent.Size = UDim2.new(1, -20, 1, -20)
+        TabContent.Position = UDim2.new(0, 10, 0, 10)
         TabContent.BackgroundTransparency = 1
         TabContent.BorderSizePixel = 0
         TabContent.ScrollBarThickness = 3
@@ -813,11 +819,11 @@ function ScawsHub:CreateWindow(settings)
         
         local ContentLayout = Instance.new("UIListLayout")
         ContentLayout.SortOrder = Enum.SortOrder.LayoutOrder
-        ContentLayout.Padding = UDim.new(0, 10)
+        ContentLayout.Padding = UDim.new(0, 8)
         ContentLayout.Parent = TabContent
         
         ContentLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-            TabContent.CanvasSize = UDim2.new(0, 0, 0, ContentLayout.AbsoluteContentSize.Y + 20)
+            TabContent.CanvasSize = UDim2.new(0, 0, 0, ContentLayout.AbsoluteContentSize.Y + 16)
         end)
         
         Tab.Content = TabContent
@@ -851,38 +857,38 @@ function ScawsHub:CreateWindow(settings)
             
             local ButtonFrame = Instance.new("Frame")
             ButtonFrame.Name = buttonName
-            ButtonFrame.Size = UDim2.new(1, -6, 0, 42)
+            ButtonFrame.Size = UDim2.new(1, -6, 0, 38)
             ButtonFrame.BackgroundColor3 = Config.Colors.Background
-            ButtonFrame.BackgroundTransparency = 0.5
+            ButtonFrame.BackgroundTransparency = 0.6
             ButtonFrame.BorderSizePixel = 0
             ButtonFrame.Parent = TabContent
-            Utils:CreateCorner(ButtonFrame, 10)
+            Utils:CreateCorner(ButtonFrame, 8)
             Utils:CreateStroke(ButtonFrame, Config.Colors.Border, 1)
             
             local Button = Instance.new("TextButton")
-            Button.Size = UDim2.new(1, -20, 1, -8)
-            Button.Position = UDim2.new(0, 10, 0, 4)
+            Button.Size = UDim2.new(1, -16, 1, -6)
+            Button.Position = UDim2.new(0, 8, 0, 3)
             Button.BackgroundTransparency = 1
             Button.Font = Enum.Font.GothamSemibold
             Button.Text = buttonName
             Button.TextColor3 = Config.Colors.Text
-            Button.TextSize = 14
+            Button.TextSize = 13
             Button.TextXAlignment = Enum.TextXAlignment.Left
             Button.Parent = ButtonFrame
             
             Button.MouseButton1Click:Connect(function()
                 Utils:Spring(ButtonFrame, {BackgroundColor3 = Config.Colors.Accent, BackgroundTransparency = 0.2}, 0.1)
                 task.wait(0.08)
-                Utils:Spring(ButtonFrame, {BackgroundColor3 = Config.Colors.Background, BackgroundTransparency = 0.5}, 0.15)
+                Utils:Spring(ButtonFrame, {BackgroundColor3 = Config.Colors.Background, BackgroundTransparency = 0.6}, 0.15)
                 callback()
             end)
             
             Button.MouseEnter:Connect(function()
-                Utils:SmoothFade(ButtonFrame, 0.3, 0.2)
+                Utils:SmoothFade(ButtonFrame, 0.4, 0.2)
             end)
             
             Button.MouseLeave:Connect(function()
-                Utils:SmoothFade(ButtonFrame, 0.5, 0.2)
+                Utils:SmoothFade(ButtonFrame, 0.6, 0.2)
             end)
             
             return ButtonFrame
@@ -896,53 +902,53 @@ function ScawsHub:CreateWindow(settings)
             
             local ToggleFrame = Instance.new("Frame")
             ToggleFrame.Name = toggleName
-            ToggleFrame.Size = UDim2.new(1, -6, 0, 42)
+            ToggleFrame.Size = UDim2.new(1, -6, 0, 38)
             ToggleFrame.BackgroundColor3 = Config.Colors.Background
-            ToggleFrame.BackgroundTransparency = 0.5
+            ToggleFrame.BackgroundTransparency = 0.6
             ToggleFrame.BorderSizePixel = 0
             ToggleFrame.Parent = TabContent
-            Utils:CreateCorner(ToggleFrame, 10)
+            Utils:CreateCorner(ToggleFrame, 8)
             Utils:CreateStroke(ToggleFrame, Config.Colors.Border, 1)
             
             local Label = Instance.new("TextLabel")
-            Label.Size = UDim2.new(1, -70, 1, 0)
-            Label.Position = UDim2.new(0, 14, 0, 0)
+            Label.Size = UDim2.new(1, -60, 1, 0)
+            Label.Position = UDim2.new(0, 12, 0, 0)
             Label.BackgroundTransparency = 1
             Label.Font = Enum.Font.GothamSemibold
             Label.Text = toggleName
             Label.TextColor3 = Config.Colors.Text
-            Label.TextSize = 14
+            Label.TextSize = 13
             Label.TextXAlignment = Enum.TextXAlignment.Left
             Label.Parent = ToggleFrame
             
             local ToggleButton = Instance.new("TextButton")
             ToggleButton.AnchorPoint = Vector2.new(1, 0.5)
-            ToggleButton.Position = UDim2.new(1, -14, 0.5, 0)
-            ToggleButton.Size = UDim2.new(0, 46, 0, 24)
+            ToggleButton.Position = UDim2.new(1, -12, 0.5, 0)
+            ToggleButton.Size = UDim2.new(0, 42, 0, 22)
             ToggleButton.BackgroundColor3 = Config.Colors.Border
             ToggleButton.BackgroundTransparency = 0.2
             ToggleButton.BorderSizePixel = 0
             ToggleButton.Text = ""
             ToggleButton.Parent = ToggleFrame
-            Utils:CreateCorner(ToggleButton, 12)
+            Utils:CreateCorner(ToggleButton, 11)
             
             local ToggleIndicator = Instance.new("Frame")
-            ToggleIndicator.Size = UDim2.new(0, 18, 0, 18)
-            ToggleIndicator.Position = UDim2.new(0, 3, 0.5, -9)
+            ToggleIndicator.Size = UDim2.new(0, 16, 0, 16)
+            ToggleIndicator.Position = UDim2.new(0, 3, 0.5, -8)
             ToggleIndicator.BackgroundColor3 = Config.Colors.TextDark
             ToggleIndicator.BorderSizePixel = 0
             ToggleIndicator.Parent = ToggleButton
-            Utils:CreateCorner(ToggleIndicator, 9)
+            Utils:CreateCorner(ToggleIndicator, 8)
             
             local toggled = default
             
             local function UpdateToggle()
                 if toggled then
                     Utils:Spring(ToggleButton, {BackgroundColor3 = Color3.fromRGB(120, 120, 120), BackgroundTransparency = 0}, 0.25)
-                    Utils:Spring(ToggleIndicator, {Position = UDim2.new(1, -21, 0.5, -9), BackgroundColor3 = Config.Colors.Text}, 0.25)
+                    Utils:Spring(ToggleIndicator, {Position = UDim2.new(1, -19, 0.5, -8), BackgroundColor3 = Config.Colors.Text}, 0.25)
                 else
                     Utils:Spring(ToggleButton, {BackgroundColor3 = Config.Colors.Border, BackgroundTransparency = 0.2}, 0.25)
-                    Utils:Spring(ToggleIndicator, {Position = UDim2.new(0, 3, 0.5, -9), BackgroundColor3 = Config.Colors.TextDark}, 0.25)
+                    Utils:Spring(ToggleIndicator, {Position = UDim2.new(0, 3, 0.5, -8), BackgroundColor3 = Config.Colors.TextDark}, 0.25)
                 end
                 callback(toggled)
             end
@@ -968,56 +974,56 @@ function ScawsHub:CreateWindow(settings)
             
             local SliderFrame = Instance.new("Frame")
             SliderFrame.Name = sliderName
-            SliderFrame.Size = UDim2.new(1, -6, 0, 62)
+            SliderFrame.Size = UDim2.new(1, -6, 0, 56)
             SliderFrame.BackgroundColor3 = Config.Colors.Background
-            SliderFrame.BackgroundTransparency = 0.5
+            SliderFrame.BackgroundTransparency = 0.6
             SliderFrame.BorderSizePixel = 0
             SliderFrame.Parent = TabContent
-            Utils:CreateCorner(SliderFrame, 10)
+            Utils:CreateCorner(SliderFrame, 8)
             Utils:CreateStroke(SliderFrame, Config.Colors.Border, 1)
             
             local Label = Instance.new("TextLabel")
-            Label.Size = UDim2.new(1, -24, 0, 22)
-            Label.Position = UDim2.new(0, 14, 0, 8)
+            Label.Size = UDim2.new(1, -20, 0, 20)
+            Label.Position = UDim2.new(0, 12, 0, 6)
             Label.BackgroundTransparency = 1
             Label.Font = Enum.Font.GothamSemibold
             Label.Text = sliderName
             Label.TextColor3 = Config.Colors.Text
-            Label.TextSize = 14
+            Label.TextSize = 13
             Label.TextXAlignment = Enum.TextXAlignment.Left
             Label.Parent = SliderFrame
             
             local ValueLabel = Instance.new("TextLabel")
             ValueLabel.AnchorPoint = Vector2.new(1, 0)
-            ValueLabel.Size = UDim2.new(0, 60, 0, 22)
-            ValueLabel.Position = UDim2.new(1, -14, 0, 8)
+            ValueLabel.Size = UDim2.new(0, 50, 0, 20)
+            ValueLabel.Position = UDim2.new(1, -12, 0, 6)
             ValueLabel.BackgroundTransparency = 1
             ValueLabel.Font = Enum.Font.GothamBold
             ValueLabel.Text = tostring(default)
             ValueLabel.TextColor3 = Config.Colors.Accent
-            ValueLabel.TextSize = 14
+            ValueLabel.TextSize = 13
             ValueLabel.TextXAlignment = Enum.TextXAlignment.Right
             ValueLabel.Parent = SliderFrame
             
             local SliderBG = Instance.new("Frame")
-            SliderBG.Size = UDim2.new(1, -28, 0, 6)
-            SliderBG.Position = UDim2.new(0, 14, 0, 42)
+            SliderBG.Size = UDim2.new(1, -24, 0, 5)
+            SliderBG.Position = UDim2.new(0, 12, 0, 38)
             SliderBG.BackgroundColor3 = Config.Colors.Border
             SliderBG.BackgroundTransparency = 0.3
             SliderBG.BorderSizePixel = 0
             SliderBG.Parent = SliderFrame
-            Utils:CreateCorner(SliderBG, 3)
+            Utils:CreateCorner(SliderBG, 2)
             
             local SliderFill = Instance.new("Frame")
             SliderFill.Size = UDim2.new((default - min) / (max - min), 0, 1, 0)
             SliderFill.BackgroundColor3 = Config.Colors.Accent
             SliderFill.BorderSizePixel = 0
             SliderFill.Parent = SliderBG
-            Utils:CreateCorner(SliderFill, 3)
+            Utils:CreateCorner(SliderFill, 2)
             
             local SliderButton = Instance.new("TextButton")
-            SliderButton.Size = UDim2.new(1, 0, 1, 20)
-            SliderButton.Position = UDim2.new(0, 0, 0, -10)
+            SliderButton.Size = UDim2.new(1, 0, 1, 16)
+            SliderButton.Position = UDim2.new(0, 0, 0, -8)
             SliderButton.BackgroundTransparency = 1
             SliderButton.Text = ""
             SliderButton.Parent = SliderBG
@@ -1065,7 +1071,7 @@ function ScawsHub:CreateWindow(settings)
             
             local DropdownFrame = Instance.new("Frame")
             DropdownFrame.Name = dropdownName
-            DropdownFrame.Size = UDim2.new(1, -6, 0, 42)
+            DropdownFrame.Size = UDim2.new(1, -6, 0, 38)
             DropdownFrame.BackgroundTransparency = 1
             DropdownFrame.BorderSizePixel = 0
             DropdownFrame.Parent = TabContent
@@ -1074,48 +1080,48 @@ function ScawsHub:CreateWindow(settings)
             
             local DropdownHeader = Instance.new("Frame")
             DropdownHeader.Name = "Header"
-            DropdownHeader.Size = UDim2.new(1, 0, 0, 42)
+            DropdownHeader.Size = UDim2.new(1, 0, 0, 38)
             DropdownHeader.Position = UDim2.new(0, 0, 0, 0)
             DropdownHeader.BackgroundColor3 = Config.Colors.Background
-            DropdownHeader.BackgroundTransparency = 0.5
+            DropdownHeader.BackgroundTransparency = 0.6
             DropdownHeader.BorderSizePixel = 0
             DropdownHeader.Parent = DropdownFrame
-            Utils:CreateCorner(DropdownHeader, 10)
+            Utils:CreateCorner(DropdownHeader, 8)
             Utils:CreateStroke(DropdownHeader, Config.Colors.Border, 1)
             
             local Label = Instance.new("TextLabel")
-            Label.Size = UDim2.new(1, -44, 0, 42)
-            Label.Position = UDim2.new(0, 14, 0, 0)
+            Label.Size = UDim2.new(1, -38, 0, 38)
+            Label.Position = UDim2.new(0, 12, 0, 0)
             Label.BackgroundTransparency = 1
             Label.Font = Enum.Font.GothamSemibold
             Label.Text = dropdownName .. ": " .. default
             Label.TextColor3 = Config.Colors.Text
-            Label.TextSize = 14
+            Label.TextSize = 13
             Label.TextXAlignment = Enum.TextXAlignment.Left
             Label.Parent = DropdownHeader
             
             local Arrow = Instance.new("TextLabel")
             Arrow.AnchorPoint = Vector2.new(1, 0.5)
-            Arrow.Size = UDim2.new(0, 20, 0, 20)
-            Arrow.Position = UDim2.new(1, -14, 0, 21)
+            Arrow.Size = UDim2.new(0, 16, 0, 16)
+            Arrow.Position = UDim2.new(1, -12, 0, 19)
             Arrow.BackgroundTransparency = 1
             Arrow.Font = Enum.Font.GothamBold
             Arrow.Text = "›"
             Arrow.TextColor3 = Config.Colors.TextDark
-            Arrow.TextSize = 16
+            Arrow.TextSize = 14
             Arrow.Rotation = 90
             Arrow.Parent = DropdownHeader
             
             local OptionsContainer = Instance.new("Frame")
-            OptionsContainer.Size = UDim2.new(1, -12, 0, #options * 36)
-            OptionsContainer.Position = UDim2.new(0, 6, 0, 48)
+            OptionsContainer.Size = UDim2.new(1, -10, 0, #options * 32)
+            OptionsContainer.Position = UDim2.new(0, 5, 0, 43)
             OptionsContainer.BackgroundTransparency = 1
             OptionsContainer.BorderSizePixel = 0
             OptionsContainer.Parent = DropdownFrame
             
             local OptionsLayout = Instance.new("UIListLayout")
             OptionsLayout.SortOrder = Enum.SortOrder.LayoutOrder
-            OptionsLayout.Padding = UDim.new(0, 4)
+            OptionsLayout.Padding = UDim.new(0, 3)
             OptionsLayout.Parent = OptionsContainer
             
             local isOpen = false
@@ -1124,16 +1130,16 @@ function ScawsHub:CreateWindow(settings)
             local function ToggleDropdown()
                 isOpen = not isOpen
                 if isOpen then
-                    Utils:IOSBounce(DropdownFrame, {Size = UDim2.new(1, -6, 0, 48 + #options * 36 + 8)}, 0.3)
+                    Utils:IOSBounce(DropdownFrame, {Size = UDim2.new(1, -6, 0, 43 + #options * 32 + 6)}, 0.3)
                     Utils:IOSBounce(Arrow, {Rotation = 270}, 0.3)
                 else
-                    Utils:IOSBounce(DropdownFrame, {Size = UDim2.new(1, -6, 0, 42)}, 0.3)
+                    Utils:IOSBounce(DropdownFrame, {Size = UDim2.new(1, -6, 0, 38)}, 0.3)
                     Utils:IOSBounce(Arrow, {Rotation = 90}, 0.3)
                 end
             end
             
             local DropdownButton = Instance.new("TextButton")
-            DropdownButton.Size = UDim2.new(1, 0, 0, 42)
+            DropdownButton.Size = UDim2.new(1, 0, 0, 38)
             DropdownButton.BackgroundTransparency = 1
             DropdownButton.Text = ""
             DropdownButton.ZIndex = 2
@@ -1143,17 +1149,17 @@ function ScawsHub:CreateWindow(settings)
             
             for _, option in ipairs(options) do
                 local OptionButton = Instance.new("TextButton")
-                OptionButton.Size = UDim2.new(1, 0, 0, 32)
+                OptionButton.Size = UDim2.new(1, 0, 0, 28)
                 OptionButton.BackgroundColor3 = Config.Colors.Background
-                OptionButton.BackgroundTransparency = 0.3
+                OptionButton.BackgroundTransparency = 0.4
                 OptionButton.BorderSizePixel = 0
                 OptionButton.Font = Enum.Font.Gotham
                 OptionButton.Text = "  " .. option
                 OptionButton.TextColor3 = Config.Colors.Text
-                OptionButton.TextSize = 13
+                OptionButton.TextSize = 12
                 OptionButton.TextXAlignment = Enum.TextXAlignment.Left
                 OptionButton.Parent = OptionsContainer
-                Utils:CreateCorner(OptionButton, 8)
+                Utils:CreateCorner(OptionButton, 6)
                 
                 OptionButton.MouseButton1Click:Connect(function()
                     currentValue = option
@@ -1163,11 +1169,11 @@ function ScawsHub:CreateWindow(settings)
                 end)
                 
                 OptionButton.MouseEnter:Connect(function()
-                    Utils:SmoothFade(OptionButton, 0.1, 0.2)
+                    Utils:SmoothFade(OptionButton, 0.2, 0.2)
                 end)
                 
                 OptionButton.MouseLeave:Connect(function()
-                    Utils:SmoothFade(OptionButton, 0.3, 0.2)
+                    Utils:SmoothFade(OptionButton, 0.4, 0.2)
                 end)
             end
             
@@ -1176,18 +1182,18 @@ function ScawsHub:CreateWindow(settings)
         
         function Tab:CreateLabel(text)
             local LabelFrame = Instance.new("Frame")
-            LabelFrame.Size = UDim2.new(1, -6, 0, 30)
+            LabelFrame.Size = UDim2.new(1, -6, 0, 26)
             LabelFrame.BackgroundTransparency = 1
             LabelFrame.Parent = TabContent
             
             local Label = Instance.new("TextLabel")
-            Label.Size = UDim2.new(1, -28, 1, 0)
-            Label.Position = UDim2.new(0, 14, 0, 0)
+            Label.Size = UDim2.new(1, -24, 1, 0)
+            Label.Position = UDim2.new(0, 12, 0, 0)
             Label.BackgroundTransparency = 1
             Label.Font = Enum.Font.Gotham
             Label.Text = text
             Label.TextColor3 = Config.Colors.TextDark
-            Label.TextSize = 13
+            Label.TextSize = 12
             Label.TextXAlignment = Enum.TextXAlignment.Left
             Label.TextWrapped = true
             Label.Parent = LabelFrame
@@ -1289,7 +1295,7 @@ function ScawsHub:CreateWindow(settings)
                                 if child:IsA("TextLabel") or child:IsA("TextButton") then
                                     Utils:Tween(child, {TextTransparency = 0}, 0.4)
                                 elseif child:IsA("Frame") and child.Name ~= "UICorner" and child.Name ~= "UIStroke" and child.Name ~= "Header" then
-                                    local origTrans = child:GetAttribute("OriginalTransparency") or 0.5
+                                    local origTrans = child:GetAttribute("OriginalTransparency") or 0.6
                                     Utils:Tween(child, {BackgroundTransparency = origTrans}, 0.4)
                                 end
                             end
@@ -1338,13 +1344,13 @@ function ScawsHub:CreateNotification(settings)
         NotifContainer.Name = "NotifContainer"
         NotifContainer.AnchorPoint = Vector2.new(1, 1)
         NotifContainer.Position = UDim2.new(1, -20, 1, -20)
-        NotifContainer.Size = UDim2.new(0, 340, 1, -40)
+        NotifContainer.Size = UDim2.new(0, 300, 1, -40)
         NotifContainer.BackgroundTransparency = 1
         NotifContainer.Parent = notifGui
         
         local NotifLayout = Instance.new("UIListLayout")
         NotifLayout.SortOrder = Enum.SortOrder.LayoutOrder
-        NotifLayout.Padding = UDim.new(0, 10)
+        NotifLayout.Padding = UDim.new(0, 8)
         NotifLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom
         NotifLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
         NotifLayout.Parent = NotifContainer
@@ -1353,13 +1359,13 @@ function ScawsHub:CreateNotification(settings)
     local NotifContainer = notifGui:FindFirstChild("NotifContainer")
 
     local Notification = Instance.new("Frame")
-    Notification.Size = UDim2.new(0, 320, 0, 85)
-    Notification.Position = UDim2.new(1, 340, 0, 0)
+    Notification.Size = UDim2.new(0, 280, 0, 75)
+    Notification.Position = UDim2.new(1, 300, 0, 0)
     Notification.BackgroundColor3 = Config.Colors.Background
     Notification.BackgroundTransparency = 1
     Notification.BorderSizePixel = 0
     Notification.Parent = NotifContainer
-    Utils:CreateCorner(Notification, 12)
+    Utils:CreateCorner(Notification, 10)
 
     local colorMap = {
         Info = Config.Colors.Accent,
@@ -1372,21 +1378,21 @@ function ScawsHub:CreateNotification(settings)
     NotifStroke.Transparency = 1
 
     local Indicator = Instance.new("Frame")
-    Indicator.Size = UDim2.new(0, 4, 1, -20)
-    Indicator.Position = UDim2.new(0, 10, 0, 10)
+    Indicator.Size = UDim2.new(0, 3, 1, -16)
+    Indicator.Position = UDim2.new(0, 8, 0, 8)
     Indicator.BackgroundColor3 = colorMap[type] or Config.Colors.Accent
     Indicator.BackgroundTransparency = 1
     Indicator.BorderSizePixel = 0
     Indicator.ZIndex = 2
     Indicator.Parent = Notification
-    Utils:CreateCorner(Indicator, 2)
+    Utils:CreateCorner(Indicator, 1)
 
     local IconLabel = Instance.new("TextLabel")
-    IconLabel.Size = UDim2.new(0, 24, 0, 24)
-    IconLabel.Position = UDim2.new(0, 22, 0, 14)
+    IconLabel.Size = UDim2.new(0, 20, 0, 20)
+    IconLabel.Position = UDim2.new(0, 18, 0, 12)
     IconLabel.BackgroundTransparency = 1
     IconLabel.Font = Enum.Font.GothamBold
-    IconLabel.TextSize = 18
+    IconLabel.TextSize = 16
     IconLabel.TextColor3 = colorMap[type] or Config.Colors.Accent
     IconLabel.TextTransparency = 1
     IconLabel.ZIndex = 2
@@ -1401,26 +1407,26 @@ function ScawsHub:CreateNotification(settings)
     IconLabel.Parent = Notification
 
     local Title = Instance.new("TextLabel")
-    Title.Size = UDim2.new(1, -64, 0, 24)
-    Title.Position = UDim2.new(0, 52, 0, 14)
+    Title.Size = UDim2.new(1, -54, 0, 20)
+    Title.Position = UDim2.new(0, 44, 0, 12)
     Title.BackgroundTransparency = 1
     Title.Font = Enum.Font.GothamBold
     Title.Text = title
     Title.TextColor3 = Config.Colors.Text
-    Title.TextSize = 14
+    Title.TextSize = 13
     Title.TextXAlignment = Enum.TextXAlignment.Left
     Title.TextTransparency = 1
     Title.ZIndex = 2
     Title.Parent = Notification
 
     local Content = Instance.new("TextLabel")
-    Content.Size = UDim2.new(1, -64, 0, 38)
-    Content.Position = UDim2.new(0, 52, 0, 36)
+    Content.Size = UDim2.new(1, -54, 0, 32)
+    Content.Position = UDim2.new(0, 44, 0, 32)
     Content.BackgroundTransparency = 1
     Content.Font = Enum.Font.Gotham
     Content.Text = content
     Content.TextColor3 = Config.Colors.TextDark
-    Content.TextSize = 12
+    Content.TextSize = 11
     Content.TextXAlignment = Enum.TextXAlignment.Left
     Content.TextYAlignment = Enum.TextYAlignment.Top
     Content.TextWrapped = true
@@ -1429,8 +1435,8 @@ function ScawsHub:CreateNotification(settings)
     Content.Parent = Notification
 
     local ProgressBar = Instance.new("Frame")
-    ProgressBar.Size = UDim2.new(1, -20, 0, 2)
-    ProgressBar.Position = UDim2.new(0, 10, 1, -7)
+    ProgressBar.Size = UDim2.new(1, -16, 0, 2)
+    ProgressBar.Position = UDim2.new(0, 8, 1, -6)
     ProgressBar.BackgroundColor3 = colorMap[type] or Config.Colors.Accent
     ProgressBar.BackgroundTransparency = 1
     ProgressBar.BorderSizePixel = 0
@@ -1439,7 +1445,7 @@ function ScawsHub:CreateNotification(settings)
     Utils:CreateCorner(ProgressBar, 1)
 
     -- Fade in animation
-    Utils:Tween(Notification, {BackgroundTransparency = 0}, 0.3)
+    Utils:Tween(Notification, {BackgroundTransparency = 0.1}, 0.3)
     Utils:Tween(NotifStroke, {Transparency = 0.5}, 0.3)
     Utils:Tween(Indicator, {BackgroundTransparency = 0}, 0.3)
     Utils:Tween(IconLabel, {TextTransparency = 0}, 0.3)
@@ -1476,7 +1482,7 @@ function ScawsHub:CreateNotification(settings)
         local slideOutTween = TweenService:Create(
             Notification,
             TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.In),
-            {Position = UDim2.new(1, 340, 0, 0)}
+            {Position = UDim2.new(1, 300, 0, 0)}
         )
         slideOutTween:Play()
         
