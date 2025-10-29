@@ -30,10 +30,15 @@ local Config = {
 
     WindowSize = UDim2.new(0, 520, 0, 380),
     SidebarWidth = 140,
+    
+    ConfigFolder = "ScawsHub",
+    EnableSounds = false,
+    EnableTooltips = true,
 }
 
 local SessionStartTime = tick()
 
+-- Enhanced Utilities
 local Utils = {}
 
 function Utils:Tween(obj, properties, duration, callback)
@@ -153,6 +158,18 @@ function Utils:FormatTime(seconds)
     return string.format("%02d:%02d:%02d", hours, mins, secs)
 end
 
+function Utils:PlaySound(soundId)
+    if not Config.EnableSounds then return end
+    local sound = Instance.new("Sound")
+    sound.SoundId = soundId
+    sound.Volume = 0.5
+    sound.Parent = game:GetService("SoundService")
+    sound:Play()
+    sound.Ended:Connect(function()
+        sound:Destroy()
+    end)
+end
+
 function Utils:RGBToHex(color)
     return string.format("#%02X%02X%02X", 
         math.floor(color.R * 255),
@@ -203,6 +220,206 @@ task.spawn(function()
         task.wait(1)
     end
 end)
+
+-- Tooltip System
+local TooltipSystem = {}
+
+function TooltipSystem:Create(parent)
+    if not Config.EnableTooltips then return end
+    
+    local tooltip = parent:GetAttribute("Tooltip")
+    if not tooltip then return end
+    
+    local TooltipGui = Instance.new("ScreenGui")
+    TooltipGui.Name = "Tooltip"
+    TooltipGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    TooltipGui.IgnoreGuiInset = true
+    TooltipGui.DisplayOrder = 999
+    
+    if gethui then
+        TooltipGui.Parent = gethui()
+    else
+        TooltipGui.Parent = CoreGui
+    end
+    
+    local TooltipFrame = Instance.new("Frame")
+    TooltipFrame.Size = UDim2.new(0, 0, 0, 0)
+    TooltipFrame.BackgroundColor3 = Config.Colors.Background
+    TooltipFrame.BackgroundTransparency = 0.1
+    TooltipFrame.BorderSizePixel = 0
+    TooltipFrame.Parent = TooltipGui
+    Utils:CreateCorner(TooltipFrame, 6)
+    Utils:CreateStroke(TooltipFrame, Config.Colors.Accent, 1)
+    
+    local TooltipText = Instance.new("TextLabel")
+    TooltipText.Size = UDim2.new(1, -16, 1, -8)
+    TooltipText.Position = UDim2.new(0, 8, 0, 4)
+    TooltipText.BackgroundTransparency = 1
+    TooltipText.Font = Enum.Font.Gotham
+    TooltipText.Text = tooltip
+    TooltipText.TextColor3 = Config.Colors.Text
+    TooltipText.TextSize = 11
+    TooltipText.TextXAlignment = Enum.TextXAlignment.Left
+    TooltipText.Parent = TooltipFrame
+    
+    local textSize = game:GetService("TextService"):GetTextSize(
+        tooltip, 11, Enum.Font.Gotham, Vector2.new(200, 1000)
+    )
+    
+    local showing = false
+    
+    parent.MouseEnter:Connect(function()
+        showing = true
+        task.wait(0.5)
+        if not showing then return end
+        
+        TooltipFrame.Size = UDim2.new(0, textSize.X + 16, 0, textSize.Y + 8)
+        TooltipFrame.Position = UDim2.new(0, parent.AbsolutePosition.X, 0, parent.AbsolutePosition.Y + parent.AbsoluteSize.Y + 8)
+        Utils:Spring(TooltipFrame, {BackgroundTransparency = 0.1}, 0.2)
+    end)
+    
+    parent.MouseLeave:Connect(function()
+        showing = false
+        Utils:Tween(TooltipFrame, {BackgroundTransparency = 1, Size = UDim2.new(0, 0, 0, 0)}, 0.2)
+    end)
+    
+    parent.MouseMoved:Connect(function(x, y)
+        if showing then
+            TooltipFrame.Position = UDim2.new(0, x + 15, 0, y + 15)
+        end
+    end)
+end
+
+-- Config Manager
+local ConfigManager = {}
+
+function ConfigManager:Save(name, data)
+    local success, err = pcall(function()
+        if not isfolder(Config.ConfigFolder) then
+            makefolder(Config.ConfigFolder)
+        end
+        
+        local json = HttpService:JSONEncode(data)
+        writefile(Config.ConfigFolder .. "/" .. name .. ".json", json)
+    end)
+    
+    return success
+end
+
+function ConfigManager:Load(name)
+    local success, result = pcall(function()
+        local path = Config.ConfigFolder .. "/" .. name .. ".json"
+        if isfile(path) then
+            local json = readfile(path)
+            return HttpService:JSONDecode(json)
+        end
+        return nil
+    end)
+    
+    return success and result or nil
+end
+
+function ConfigManager:Delete(name)
+    local success = pcall(function()
+        local path = Config.ConfigFolder .. "/" .. name .. ".json"
+        if isfile(path) then
+            delfile(path)
+        end
+    end)
+    return success
+end
+
+function ConfigManager:List()
+    local success, files = pcall(function()
+        if not isfolder(Config.ConfigFolder) then
+            return {}
+        end
+        return listfiles(Config.ConfigFolder)
+    end)
+    
+    if success then
+        local configs = {}
+        for _, file in ipairs(files) do
+            local name = file:match("([^/]+)%.json$")
+            if name then
+                table.insert(configs, name)
+            end
+        end
+        return configs
+    end
+    
+    return {}
+end
+
+-- Watermark
+function ScawsHub:CreateWatermark(settings)
+    settings = settings or {}
+    local text = settings.Text or "ScawsHub | FPS: 60 | Ping: 0ms"
+    local position = settings.Position or UDim2.new(0, 10, 0, 10)
+    
+    local WatermarkGui = Instance.new("ScreenGui")
+    WatermarkGui.Name = "ScawsHub_Watermark"
+    WatermarkGui.ResetOnSpawn = false
+    WatermarkGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    WatermarkGui.IgnoreGuiInset = true
+    WatermarkGui.DisplayOrder = 100
+    
+    if gethui then
+        WatermarkGui.Parent = gethui()
+    else
+        WatermarkGui.Parent = CoreGui
+    end
+    
+    local WatermarkFrame = Instance.new("Frame")
+    WatermarkFrame.Size = UDim2.new(0, 200, 0, 32)
+    WatermarkFrame.Position = position
+    WatermarkFrame.BackgroundColor3 = Config.Colors.Background
+    WatermarkFrame.BackgroundTransparency = 0.2
+    WatermarkFrame.BorderSizePixel = 0
+    WatermarkFrame.Parent = WatermarkGui
+    Utils:CreateCorner(WatermarkFrame, 8)
+    Utils:CreateStroke(WatermarkFrame, Config.Colors.Border, 1)
+    
+    local WatermarkText = Instance.new("TextLabel")
+    WatermarkText.Size = UDim2.new(1, -16, 1, 0)
+    WatermarkText.Position = UDim2.new(0, 8, 0, 0)
+    WatermarkText.BackgroundTransparency = 1
+    WatermarkText.Font = Enum.Font.GothamMedium
+    WatermarkText.Text = text
+    WatermarkText.TextColor3 = Config.Colors.Text
+    WatermarkText.TextSize = 11
+    WatermarkText.TextXAlignment = Enum.TextXAlignment.Left
+    WatermarkText.Parent = WatermarkFrame
+    
+    Utils:MakeDraggable(WatermarkFrame)
+    
+    if settings.Dynamic then
+        RunService.RenderStepped:Connect(function()
+            local sessionTime = Utils:FormatTime(tick() - SessionStartTime)
+            WatermarkText.Text = string.format(
+                "ScawsHub | %s | FPS: %d | Ping: %dms",
+                sessionTime,
+                FPSTracker.currentFPS,
+                PingTracker.currentPing
+            )
+            
+            local textSize = game:GetService("TextService"):GetTextSize(
+                WatermarkText.Text, 11, Enum.Font.GothamMedium, Vector2.new(1000, 32)
+            )
+            WatermarkFrame.Size = UDim2.new(0, textSize.X + 16, 0, 32)
+        end)
+    end
+    
+    return {
+        Frame = WatermarkFrame,
+        UpdateText = function(newText)
+            WatermarkText.Text = newText
+        end,
+        Destroy = function()
+            WatermarkGui:Destroy()
+        end
+    }
+end
 
 function ScawsHub:CreateLoadingScreen(settings)
     settings = settings or {}
@@ -256,6 +473,7 @@ function ScawsHub:CreateWindow(settings)
     settings = settings or {}
     local windowTitle = settings.Name or "ScawsHUB"
     local showLoading = settings.ShowLoading ~= false
+    local configSupport = settings.ConfigSupport ~= false
 
     if showLoading then
         self:CreateLoadingScreen({
@@ -731,6 +949,7 @@ function ScawsHub:CreateWindow(settings)
         Visible = true,
         Minimized = false,
         IsTransitioning = false,
+        ConfigData = {},
     }
 
     CloseButton.MouseButton1Click:Connect(function()
@@ -777,7 +996,6 @@ function ScawsHub:CreateWindow(settings)
     CloseButton.MouseEnter:Connect(function()
         Utils:SmoothFade(CloseButton, 0.1, 0.2)
     end)
-    
     CloseButton.MouseLeave:Connect(function()
         Utils:SmoothFade(CloseButton, 0.3, 0.2)
     end)
@@ -785,7 +1003,6 @@ function ScawsHub:CreateWindow(settings)
     MinimizeButton.MouseEnter:Connect(function()
         Utils:SmoothFade(MinimizeButton, 0.1, 0.2)
     end)
-    
     MinimizeButton.MouseLeave:Connect(function()
         Utils:SmoothFade(MinimizeButton, 0.3, 0.2)
     end)
@@ -887,6 +1104,23 @@ function ScawsHub:CreateWindow(settings)
             return SectionFrame
         end
         
+        function Tab:CreateDivider()
+            local DividerFrame = Instance.new("Frame")
+            DividerFrame.Size = UDim2.new(1, -6, 0, 8)
+            DividerFrame.BackgroundTransparency = 1
+            DividerFrame.Parent = TabContent
+            
+            local Line = Instance.new("Frame")
+            Line.Size = UDim2.new(1, -20, 0, 1)
+            Line.Position = UDim2.new(0, 10, 0.5, 0)
+            Line.BackgroundColor3 = Config.Colors.Border
+            Line.BackgroundTransparency = 0.5
+            Line.BorderSizePixel = 0
+            Line.Parent = DividerFrame
+            
+            return DividerFrame
+        end
+        
         function Tab:CreateButton(settings)
             settings = settings or {}
             local buttonName = settings.Name or "Button"
@@ -901,6 +1135,11 @@ function ScawsHub:CreateWindow(settings)
             ButtonFrame.Parent = TabContent
             Utils:CreateCorner(ButtonFrame, 8)
             Utils:CreateStroke(ButtonFrame, Config.Colors.Border, 1)
+            
+            if settings.Tooltip then
+                ButtonFrame:SetAttribute("Tooltip", settings.Tooltip)
+                TooltipSystem:Create(ButtonFrame)
+            end
             
             local Button = Instance.new("TextButton")
             Button.Size = UDim2.new(1, -16, 1, -6)
@@ -947,6 +1186,11 @@ function ScawsHub:CreateWindow(settings)
             Utils:CreateCorner(ToggleFrame, 8)
             Utils:CreateStroke(ToggleFrame, Config.Colors.Border, 1)
             
+            if settings.Tooltip then
+                ToggleFrame:SetAttribute("Tooltip", settings.Tooltip)
+                TooltipSystem:Create(ToggleFrame)
+            end
+            
             local Label = Instance.new("TextLabel")
             Label.Size = UDim2.new(1, -60, 1, 0)
             Label.Position = UDim2.new(0, 12, 0, 0)
@@ -988,6 +1232,7 @@ function ScawsHub:CreateWindow(settings)
                     Utils:Spring(ToggleIndicator, {Position = UDim2.new(0, 3, 0.5, -8), BackgroundColor3 = Config.Colors.TextDark}, 0.25)
                 end
                 callback(toggled)
+                Window.ConfigData[toggleName] = toggled
             end
             
             ToggleButton.MouseButton1Click:Connect(function()
@@ -997,7 +1242,16 @@ function ScawsHub:CreateWindow(settings)
             
             UpdateToggle()
             
-            return ToggleFrame
+            return {
+                Frame = ToggleFrame,
+                SetValue = function(value)
+                    toggled = value
+                    UpdateToggle()
+                end,
+                GetValue = function()
+                    return toggled
+                end
+            }
         end
         
         function Tab:CreateSlider(settings)
@@ -1018,6 +1272,11 @@ function ScawsHub:CreateWindow(settings)
             SliderFrame.Parent = TabContent
             Utils:CreateCorner(SliderFrame, 8)
             Utils:CreateStroke(SliderFrame, Config.Colors.Border, 1)
+            
+            if settings.Tooltip then
+                SliderFrame:SetAttribute("Tooltip", settings.Tooltip)
+                TooltipSystem:Create(SliderFrame)
+            end
             
             local Label = Instance.new("TextLabel")
             Label.Size = UDim2.new(1, -20, 0, 20)
@@ -1066,15 +1325,18 @@ function ScawsHub:CreateWindow(settings)
             SliderButton.Parent = SliderBG
             
             local dragging = false
+            local currentValue = default
             
             local function UpdateSlider(input)
                 local pos = math.clamp((input.Position.X - SliderBG.AbsolutePosition.X) / SliderBG.AbsoluteSize.X, 0, 1)
                 local value = math.floor((min + (max - min) * pos) / increment + 0.5) * increment
                 value = math.clamp(value, min, max)
                 
+                currentValue = value
                 ValueLabel.Text = tostring(value)
                 Utils:Spring(SliderFill, {Size = UDim2.new((value - min) / (max - min), 0, 1, 0)}, 0.15)
                 callback(value)
+                Window.ConfigData[sliderName] = value
             end
             
             SliderButton.InputBegan:Connect(function(input)
@@ -1096,7 +1358,18 @@ function ScawsHub:CreateWindow(settings)
                 end
             end)
             
-            return SliderFrame
+            return {
+                Frame = SliderFrame,
+                SetValue = function(value)
+                    currentValue = math.clamp(value, min, max)
+                    ValueLabel.Text = tostring(currentValue)
+                    Utils:Spring(SliderFill, {Size = UDim2.new((currentValue - min) / (max - min), 0, 1, 0)}, 0.15)
+                    Window.ConfigData[sliderName] = currentValue
+                end,
+                GetValue = function()
+                    return currentValue
+                end
+            }
         end
         
         function Tab:CreateDropdown(settings)
@@ -1125,6 +1398,11 @@ function ScawsHub:CreateWindow(settings)
             DropdownHeader.Parent = DropdownFrame
             Utils:CreateCorner(DropdownHeader, 8)
             Utils:CreateStroke(DropdownHeader, Config.Colors.Border, 1)
+            
+            if settings.Tooltip then
+                DropdownHeader:SetAttribute("Tooltip", settings.Tooltip)
+                TooltipSystem:Create(DropdownHeader)
+            end
             
             local Label = Instance.new("TextLabel")
             Label.Size = UDim2.new(1, -38, 0, 38)
@@ -1203,6 +1481,7 @@ function ScawsHub:CreateWindow(settings)
                     Label.Text = dropdownName .. ": " .. option
                     ToggleDropdown()
                     callback(option)
+                    Window.ConfigData[dropdownName] = option
                 end)
                 
                 OptionButton.MouseEnter:Connect(function()
@@ -1214,7 +1493,290 @@ function ScawsHub:CreateWindow(settings)
                 end)
             end
             
-            return DropdownFrame
+            return {
+                Frame = DropdownFrame,
+                SetValue = function(value)
+                    currentValue = value
+                    Label.Text = dropdownName .. ": " .. value
+                    Window.ConfigData[dropdownName] = value
+                end,
+                GetValue = function()
+                    return currentValue
+                end
+            }
+        end
+        
+        function Tab:CreateInput(settings)
+            settings = settings or {}
+            local inputName = settings.Name or "Input"
+            local placeholder = settings.Placeholder or "Enter text..."
+            local default = settings.Default or ""
+            local callback = settings.Callback or function() end
+            
+            local InputFrame = Instance.new("Frame")
+            InputFrame.Name = inputName
+            InputFrame.Size = UDim2.new(1, -6, 0, 62)
+            InputFrame.BackgroundColor3 = Config.Colors.Background
+            InputFrame.BackgroundTransparency = 0.6
+            InputFrame.BorderSizePixel = 0
+            InputFrame.Parent = TabContent
+            Utils:CreateCorner(InputFrame, 8)
+            Utils:CreateStroke(InputFrame, Config.Colors.Border, 1)
+            
+            if settings.Tooltip then
+                InputFrame:SetAttribute("Tooltip", settings.Tooltip)
+                TooltipSystem:Create(InputFrame)
+            end
+            
+            local Label = Instance.new("TextLabel")
+            Label.Size = UDim2.new(1, -20, 0, 20)
+            Label.Position = UDim2.new(0, 12, 0, 6)
+            Label.BackgroundTransparency = 1
+            Label.Font = Enum.Font.GothamSemibold
+            Label.Text = inputName
+            Label.TextColor3 = Config.Colors.Text
+            Label.TextSize = 13
+            Label.TextXAlignment = Enum.TextXAlignment.Left
+            Label.Parent = InputFrame
+            
+            local InputBox = Instance.new("TextBox")
+            InputBox.Size = UDim2.new(1, -24, 0, 26)
+            InputBox.Position = UDim2.new(0, 12, 0, 28)
+            InputBox.BackgroundColor3 = Config.Colors.Border
+            InputBox.BackgroundTransparency = 0.3
+            InputBox.BorderSizePixel = 0
+            InputBox.Font = Enum.Font.Gotham
+            InputBox.PlaceholderText = placeholder
+            InputBox.PlaceholderColor3 = Config.Colors.TextDark
+            InputBox.Text = default
+            InputBox.TextColor3 = Config.Colors.Text
+            InputBox.TextSize = 12
+            InputBox.TextXAlignment = Enum.TextXAlignment.Left
+            InputBox.ClearTextOnFocus = false
+            InputBox.Parent = InputFrame
+            Utils:CreateCorner(InputBox, 6)
+            
+            local InputPadding = Instance.new("UIPadding")
+            InputPadding.PaddingLeft = UDim.new(0, 8)
+            InputPadding.PaddingRight = UDim.new(0, 8)
+            InputPadding.Parent = InputBox
+            
+            InputBox.Focused:Connect(function()
+                Utils:Tween(InputBox, {BackgroundColor3 = Config.Colors.Accent, BackgroundTransparency = 0.2}, 0.2)
+            end)
+            
+            InputBox.FocusLost:Connect(function(enterPressed)
+                Utils:Tween(InputBox, {BackgroundColor3 = Config.Colors.Border, BackgroundTransparency = 0.3}, 0.2)
+                if enterPressed or settings.OnChange then
+                    callback(InputBox.Text)
+                    Window.ConfigData[inputName] = InputBox.Text
+                end
+            end)
+            
+            if settings.OnChange then
+                InputBox:GetPropertyChangedSignal("Text"):Connect(function()
+                    callback(InputBox.Text)
+                    Window.ConfigData[inputName] = InputBox.Text
+                end)
+            end
+            
+            return {
+                Frame = InputFrame,
+                SetValue = function(value)
+                    InputBox.Text = value
+                    Window.ConfigData[inputName] = value
+                end,
+                GetValue = function()
+                    return InputBox.Text
+                end
+            }
+        end
+        
+        function Tab:CreateKeybind(settings)
+            settings = settings or {}
+            local keybindName = settings.Name or "Keybind"
+            local default = settings.Default or Enum.KeyCode.E
+            local callback = settings.Callback or function() end
+            
+            local KeybindFrame = Instance.new("Frame")
+            KeybindFrame.Name = keybindName
+            KeybindFrame.Size = UDim2.new(1, -6, 0, 38)
+            KeybindFrame.BackgroundColor3 = Config.Colors.Background
+            KeybindFrame.BackgroundTransparency = 0.6
+            KeybindFrame.BorderSizePixel = 0
+            KeybindFrame.Parent = TabContent
+            Utils:CreateCorner(KeybindFrame, 8)
+            Utils:CreateStroke(KeybindFrame, Config.Colors.Border, 1)
+            
+            if settings.Tooltip then
+                KeybindFrame:SetAttribute("Tooltip", settings.Tooltip)
+                TooltipSystem:Create(KeybindFrame)
+            end
+            
+            local Label = Instance.new("TextLabel")
+            Label.Size = UDim2.new(1, -100, 1, 0)
+            Label.Position = UDim2.new(0, 12, 0, 0)
+            Label.BackgroundTransparency = 1
+            Label.Font = Enum.Font.GothamSemibold
+            Label.Text = keybindName
+            Label.TextColor3 = Config.Colors.Text
+            Label.TextSize = 13
+            Label.TextXAlignment = Enum.TextXAlignment.Left
+            Label.Parent = KeybindFrame
+            
+            local KeybindButton = Instance.new("TextButton")
+            KeybindButton.AnchorPoint = Vector2.new(1, 0.5)
+            KeybindButton.Position = UDim2.new(1, -12, 0.5, 0)
+            KeybindButton.Size = UDim2.new(0, 70, 0, 26)
+            KeybindButton.BackgroundColor3 = Config.Colors.Border
+            KeybindButton.BackgroundTransparency = 0.2
+            KeybindButton.BorderSizePixel = 0
+            KeybindButton.Font = Enum.Font.GothamBold
+            KeybindButton.Text = default.Name
+            KeybindButton.TextColor3 = Config.Colors.Text
+            KeybindButton.TextSize = 11
+            KeybindButton.Parent = KeybindFrame
+            Utils:CreateCorner(KeybindButton, 6)
+            
+            local currentKey = default
+            local binding = false
+            
+            KeybindButton.MouseButton1Click:Connect(function()
+                binding = true
+                KeybindButton.Text = "..."
+                Utils:Tween(KeybindButton, {BackgroundColor3 = Config.Colors.Accent}, 0.2)
+            end)
+            
+            UserInputService.InputBegan:Connect(function(input, gameProcessed)
+                if binding then
+                    if input.UserInputType == Enum.UserInputType.Keyboard then
+                        currentKey = input.KeyCode
+                        KeybindButton.Text = input.KeyCode.Name
+                        binding = false
+                        Utils:Tween(KeybindButton, {BackgroundColor3 = Config.Colors.Border}, 0.2)
+                        Window.ConfigData[keybindName] = input.KeyCode.Name
+                    end
+                elseif input.KeyCode == currentKey and not gameProcessed then
+                    callback()
+                end
+            end)
+            
+            return {
+                Frame = KeybindFrame,
+                SetKey = function(key)
+                    currentKey = key
+                    KeybindButton.Text = key.Name
+                    Window.ConfigData[keybindName] = key.Name
+                end,
+                GetKey = function()
+                    return currentKey
+                end
+            }
+        end
+        
+        function Tab:CreateColorPicker(settings)
+            settings = settings or {}
+            local colorName = settings.Name or "Color Picker"
+            local default = settings.Default or Color3.fromRGB(255, 255, 255)
+            local callback = settings.Callback or function() end
+            
+            local ColorFrame = Instance.new("Frame")
+            ColorFrame.Name = colorName
+            ColorFrame.Size = UDim2.new(1, -6, 0, 38)
+            ColorFrame.BackgroundColor3 = Config.Colors.Background
+            ColorFrame.BackgroundTransparency = 0.6
+            ColorFrame.BorderSizePixel = 0
+            ColorFrame.Parent = TabContent
+            Utils:CreateCorner(ColorFrame, 8)
+            Utils:CreateStroke(ColorFrame, Config.Colors.Border, 1)
+            
+            if settings.Tooltip then
+                ColorFrame:SetAttribute("Tooltip", settings.Tooltip)
+                TooltipSystem:Create(ColorFrame)
+            end
+            
+            local Label = Instance.new("TextLabel")
+            Label.Size = UDim2.new(1, -60, 1, 0)
+            Label.Position = UDim2.new(0, 12, 0, 0)
+            Label.BackgroundTransparency = 1
+            Label.Font = Enum.Font.GothamSemibold
+            Label.Text = colorName
+            Label.TextColor3 = Config.Colors.Text
+            Label.TextSize = 13
+            Label.TextXAlignment = Enum.TextXAlignment.Left
+            Label.Parent = ColorFrame
+            
+            local ColorDisplay = Instance.new("TextButton")
+            ColorDisplay.AnchorPoint = Vector2.new(1, 0.5)
+            ColorDisplay.Position = UDim2.new(1, -12, 0.5, 0)
+            ColorDisplay.Size = UDim2.new(0, 36, 0, 22)
+            ColorDisplay.BackgroundColor3 = default
+            ColorDisplay.BorderSizePixel = 0
+            ColorDisplay.Text = ""
+            ColorDisplay.Parent = ColorFrame
+            Utils:CreateCorner(ColorDisplay, 6)
+            Utils:CreateStroke(ColorDisplay, Config.Colors.Border, 1)
+            
+            local currentColor = default
+            
+            ColorDisplay.MouseButton1Click:Connect(function()
+                -- Simple RGB input dialog
+                local r = math.floor(currentColor.R * 255)
+                local g = math.floor(currentColor.G * 255)
+                local b = math.floor(currentColor.B * 255)
+                
+                -- This is a basic implementation - you could expand this with a full color picker UI
+                ScawsHub:CreateNotification({
+                    Title = "Color Picker",
+                    Content = string.format("Current: RGB(%d, %d, %d)\nClick to randomize", r, g, b),
+                    Duration = 3,
+                    Type = "Info"
+                })
+                
+                -- For now, just cycle through some preset colors
+                local presets = {
+                    Color3.fromRGB(255, 0, 0),
+                    Color3.fromRGB(0, 255, 0),
+                    Color3.fromRGB(0, 0, 255),
+                    Color3.fromRGB(255, 255, 0),
+                    Color3.fromRGB(255, 0, 255),
+                    Color3.fromRGB(0, 255, 255),
+                    Color3.fromRGB(255, 255, 255),
+                }
+                
+                local currentIndex = 1
+                for i, color in ipairs(presets) do
+                    if color == currentColor then
+                        currentIndex = i
+                        break
+                    end
+                end
+                
+                currentColor = presets[(currentIndex % #presets) + 1]
+                Utils:Tween(ColorDisplay, {BackgroundColor3 = currentColor}, 0.3)
+                callback(currentColor)
+                Window.ConfigData[colorName] = Utils:RGBToHex(currentColor)
+            end)
+            
+            ColorDisplay.MouseEnter:Connect(function()
+                Utils:Tween(ColorDisplay, {Size = UDim2.new(0, 38, 0, 24)}, 0.2)
+            end)
+            
+            ColorDisplay.MouseLeave:Connect(function()
+                Utils:Tween(ColorDisplay, {Size = UDim2.new(0, 36, 0, 22)}, 0.2)
+            end)
+            
+            return {
+                Frame = ColorFrame,
+                SetColor = function(color)
+                    currentColor = color
+                    ColorDisplay.BackgroundColor3 = color
+                    Window.ConfigData[colorName] = Utils:RGBToHex(color)
+                end,
+                GetColor = function()
+                    return currentColor
+                end
+            }
         end
         
         function Tab:CreateLabel(text)
@@ -1239,6 +1801,57 @@ function ScawsHub:CreateWindow(settings)
                 Frame = LabelFrame,
                 UpdateText = function(newText)
                     Label.Text = newText
+                end
+            }
+        end
+        
+        function Tab:CreateParagraph(settings)
+            settings = settings or {}
+            local title = settings.Title or "Paragraph"
+            local content = settings.Content or ""
+            
+            local textSize = game:GetService("TextService"):GetTextSize(
+                content, 11, Enum.Font.Gotham, Vector2.new(330, 1000)
+            )
+            
+            local ParagraphFrame = Instance.new("Frame")
+            ParagraphFrame.Size = UDim2.new(1, -6, 0, textSize.Y + 36)
+            ParagraphFrame.BackgroundColor3 = Config.Colors.Background
+            ParagraphFrame.BackgroundTransparency = 0.6
+            ParagraphFrame.BorderSizePixel = 0
+            ParagraphFrame.Parent = TabContent
+            Utils:CreateCorner(ParagraphFrame, 8)
+            Utils:CreateStroke(ParagraphFrame, Config.Colors.Border, 1)
+            
+            local TitleLabel = Instance.new("TextLabel")
+            TitleLabel.Size = UDim2.new(1, -24, 0, 18)
+            TitleLabel.Position = UDim2.new(0, 12, 0, 8)
+            TitleLabel.BackgroundTransparency = 1
+            TitleLabel.Font = Enum.Font.GothamBold
+            TitleLabel.Text = title
+            TitleLabel.TextColor3 = Config.Colors.Text
+            TitleLabel.TextSize = 13
+            TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+            TitleLabel.Parent = ParagraphFrame
+            
+            local ContentLabel = Instance.new("TextLabel")
+            ContentLabel.Size = UDim2.new(1, -24, 0, textSize.Y)
+            ContentLabel.Position = UDim2.new(0, 12, 0, 28)
+            ContentLabel.BackgroundTransparency = 1
+            ContentLabel.Font = Enum.Font.Gotham
+            ContentLabel.Text = content
+            ContentLabel.TextColor3 = Config.Colors.TextDark
+            ContentLabel.TextSize = 11
+            ContentLabel.TextXAlignment = Enum.TextXAlignment.Left
+            ContentLabel.TextYAlignment = Enum.TextYAlignment.Top
+            ContentLabel.TextWrapped = true
+            ContentLabel.Parent = ParagraphFrame
+            
+            return {
+                Frame = ParagraphFrame,
+                UpdateContent = function(newTitle, newContent)
+                    TitleLabel.Text = newTitle
+                    ContentLabel.Text = newContent
                 end
             }
         end
@@ -1351,6 +1964,66 @@ function ScawsHub:CreateWindow(settings)
         task.delay(0.5, function()
             self.IsTransitioning = false
         end)
+    end
+    
+    function Window:SaveConfig(name)
+        if ConfigManager:Save(name, self.ConfigData) then
+            ScawsHub:CreateNotification({
+                Title = "Config Saved",
+                Content = "Configuration '" .. name .. "' has been saved successfully.",
+                Duration = 3,
+                Type = "Success"
+            })
+            return true
+        else
+            ScawsHub:CreateNotification({
+                Title = "Save Failed",
+                Content = "Failed to save configuration '" .. name .. "'.",
+                Duration = 3,
+                Type = "Error"
+            })
+            return false
+        end
+    end
+    
+    function Window:LoadConfig(name)
+        local config = ConfigManager:Load(name)
+        if config then
+            self.ConfigData = config
+            ScawsHub:CreateNotification({
+                Title = "Config Loaded",
+                Content = "Configuration '" .. name .. "' has been loaded successfully.",
+                Duration = 3,
+                Type = "Success"
+            })
+            return true
+        else
+            ScawsHub:CreateNotification({
+                Title = "Load Failed",
+                Content = "Failed to load configuration '" .. name .. "'.",
+                Duration = 3,
+                Type = "Error"
+            })
+            return false
+        end
+    end
+    
+    function Window:DeleteConfig(name)
+        if ConfigManager:Delete(name) then
+            ScawsHub:CreateNotification({
+                Title = "Config Deleted",
+                Content = "Configuration '" .. name .. "' has been deleted.",
+                Duration = 3,
+                Type = "Success"
+            })
+            return true
+        else
+            return false
+        end
+    end
+    
+    function Window:ListConfigs()
+        return ConfigManager:List()
     end
 
     return Window
