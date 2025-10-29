@@ -3,6 +3,7 @@ local UserInputService = game:GetService("UserInputService")
 local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
 local RunService = game:GetService("RunService")
+local HttpService = game:GetService("HttpService")
 
 local ScawsHub = {}
 ScawsHub.__index = ScawsHub
@@ -152,6 +153,23 @@ function Utils:FormatTime(seconds)
     return string.format("%02d:%02d:%02d", hours, mins, secs)
 end
 
+function Utils:RGBToHex(color)
+    return string.format("#%02X%02X%02X", 
+        math.floor(color.R * 255),
+        math.floor(color.G * 255),
+        math.floor(color.B * 255)
+    )
+end
+
+function Utils:HexToRGB(hex)
+    hex = hex:gsub("#", "")
+    return Color3.fromRGB(
+        tonumber("0x"..hex:sub(1,2)),
+        tonumber("0x"..hex:sub(3,4)),
+        tonumber("0x"..hex:sub(5,6))
+    )
+end
+
 -- FPS Counter
 local FPSTracker = {
     lastUpdate = tick(),
@@ -275,7 +293,6 @@ function ScawsHub:CreateWindow(settings)
 
     Utils:IOSBounce(Main, {Size = Config.WindowSize}, 0.7)
 
-    -- Enhanced Shadow
     local Shadow = Instance.new("ImageLabel")
     Shadow.Name = "Shadow"
     Shadow.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -288,7 +305,6 @@ function ScawsHub:CreateWindow(settings)
     Shadow.ZIndex = 0
     Shadow.Parent = Main
 
-    -- Topbar with gradient glow
     local Topbar = Instance.new("Frame")
     Topbar.Name = "Topbar"
     Topbar.Size = UDim2.new(1, 0, 0, 45)
@@ -301,7 +317,6 @@ function ScawsHub:CreateWindow(settings)
     TopbarCorner.CornerRadius = UDim.new(0, 14)
     TopbarCorner.Parent = Topbar
 
-    -- Topbar gradient overlay
     local TopbarGradient = Instance.new("Frame")
     TopbarGradient.Size = UDim2.new(1, 0, 1, 0)
     TopbarGradient.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -381,7 +396,6 @@ function ScawsHub:CreateWindow(settings)
     MinimizeButton.Parent = Topbar
     Utils:CreateCorner(MinimizeButton, 14)
 
-    -- Player Avatar Button
     local player = Players.LocalPlayer
     local AvatarButton = Instance.new("ImageButton")
     AvatarButton.Name = "AvatarButton"
@@ -396,7 +410,6 @@ function ScawsHub:CreateWindow(settings)
     AvatarButton.Parent = Topbar
     Utils:CreateCorner(AvatarButton, 14)
 
-    -- Player Info Hover Frame
     local PlayerInfoFrame = Instance.new("Frame")
     PlayerInfoFrame.Name = "PlayerInfo"
     PlayerInfoFrame.Size = UDim2.new(0, 0, 0, 0)
@@ -451,7 +464,6 @@ function ScawsHub:CreateWindow(settings)
     UsernameLabel.TextTransparency = 1
     UsernameLabel.Parent = PlayerInfoFrame
 
-    -- Only show "Owner of ScawsHub" for user "6r5lo"
     local OwnerLabel = Instance.new("TextLabel")
     OwnerLabel.Size = UDim2.new(1, 0, 0, 12)
     OwnerLabel.Position = UDim2.new(0, 0, 0, 44)
@@ -623,7 +635,6 @@ function ScawsHub:CreateWindow(settings)
         end
     end)
 
-    -- Sidebar (fixed bottom rounding)
     local Sidebar = Instance.new("Frame")
     Sidebar.Name = "Sidebar"
     Sidebar.Position = UDim2.new(0, 0, 0, 45)
@@ -638,7 +649,6 @@ function ScawsHub:CreateWindow(settings)
     SidebarCorner.CornerRadius = UDim.new(0, 14)
     SidebarCorner.Parent = Sidebar
     
-    -- Cover top corners of sidebar
     local SidebarTopCover = Instance.new("Frame")
     SidebarTopCover.Size = UDim2.new(1, 0, 0, 14)
     SidebarTopCover.Position = UDim2.new(0, 0, 0, 0)
@@ -677,7 +687,6 @@ function ScawsHub:CreateWindow(settings)
         TabContainer.CanvasSize = UDim2.new(0, 0, 0, TabLayout.AbsoluteContentSize.Y + 10)
     end)
 
-    -- Content Area (fixed bottom rounding)
     local ContentArea = Instance.new("Frame")
     ContentArea.Name = "ContentArea"
     ContentArea.Position = UDim2.new(0, Config.SidebarWidth, 0, 45)
@@ -692,7 +701,6 @@ function ScawsHub:CreateWindow(settings)
     ContentCorner.CornerRadius = UDim.new(0, 14)
     ContentCorner.Parent = ContentArea
     
-    -- Cover top-left corner of content area
     local ContentTopCover = Instance.new("Frame")
     ContentTopCover.Size = UDim2.new(0, 14, 0, 14)
     ContentTopCover.Position = UDim2.new(0, 0, 0, 0)
@@ -701,7 +709,6 @@ function ScawsHub:CreateWindow(settings)
     ContentTopCover.BorderSizePixel = 0
     ContentTopCover.Parent = ContentArea
     
-    -- Cover top-right corner of content area
     local ContentTopRightCover = Instance.new("Frame")
     ContentTopRightCover.Size = UDim2.new(0, 14, 0, 14)
     ContentTopRightCover.Position = UDim2.new(1, -14, 0, 0)
@@ -770,6 +777,7 @@ function ScawsHub:CreateWindow(settings)
     CloseButton.MouseEnter:Connect(function()
         Utils:SmoothFade(CloseButton, 0.1, 0.2)
     end)
+    
     CloseButton.MouseLeave:Connect(function()
         Utils:SmoothFade(CloseButton, 0.3, 0.2)
     end)
@@ -777,6 +785,7 @@ function ScawsHub:CreateWindow(settings)
     MinimizeButton.MouseEnter:Connect(function()
         Utils:SmoothFade(MinimizeButton, 0.1, 0.2)
     end)
+    
     MinimizeButton.MouseLeave:Connect(function()
         Utils:SmoothFade(MinimizeButton, 0.3, 0.2)
     end)
@@ -848,6 +857,34 @@ function ScawsHub:CreateWindow(settings)
         
         if #Window.Tabs == 1 then
             Window:SelectTab(Tab)
+        end
+        
+        function Tab:CreateSection(name)
+            local SectionFrame = Instance.new("Frame")
+            SectionFrame.Size = UDim2.new(1, -6, 0, 30)
+            SectionFrame.BackgroundTransparency = 1
+            SectionFrame.Parent = TabContent
+            
+            local SectionLine = Instance.new("Frame")
+            SectionLine.Size = UDim2.new(0, 3, 1, -8)
+            SectionLine.Position = UDim2.new(0, 0, 0, 4)
+            SectionLine.BackgroundColor3 = Config.Colors.Accent
+            SectionLine.BorderSizePixel = 0
+            SectionLine.Parent = SectionFrame
+            Utils:CreateCorner(SectionLine, 2)
+            
+            local SectionLabel = Instance.new("TextLabel")
+            SectionLabel.Size = UDim2.new(1, -12, 1, 0)
+            SectionLabel.Position = UDim2.new(0, 12, 0, 0)
+            SectionLabel.BackgroundTransparency = 1
+            SectionLabel.Font = Enum.Font.GothamBold
+            SectionLabel.Text = name
+            SectionLabel.TextColor3 = Config.Colors.Text
+            SectionLabel.TextSize = 14
+            SectionLabel.TextXAlignment = Enum.TextXAlignment.Left
+            SectionLabel.Parent = SectionFrame
+            
+            return SectionFrame
         end
         
         function Tab:CreateButton(settings)
@@ -1444,7 +1481,6 @@ function ScawsHub:CreateNotification(settings)
     ProgressBar.Parent = Notification
     Utils:CreateCorner(ProgressBar, 1)
 
-    -- Fade in animation
     Utils:Tween(Notification, {BackgroundTransparency = 0.1}, 0.3)
     Utils:Tween(NotifStroke, {Transparency = 0.5}, 0.3)
     Utils:Tween(Indicator, {BackgroundTransparency = 0}, 0.3)
@@ -1470,7 +1506,6 @@ function ScawsHub:CreateNotification(settings)
     progressTween:Play()
 
     task.delay(duration, function()
-        -- Fade out animation
         Utils:Tween(Notification, {BackgroundTransparency = 1}, 0.4)
         Utils:Tween(NotifStroke, {Transparency = 1}, 0.4)
         Utils:Tween(Indicator, {BackgroundTransparency = 1}, 0.4)
