@@ -38,6 +38,209 @@ local Config = {
 
 local SessionStartTime = tick()
 
+-- Key System (runs automatically before anything loads)
+local function RunKeySystem()
+    local correctKey = "SH25"
+    local discordLink = "https://discord.gg/7CA2QGEfzP"
+    
+    local KeyGui = Instance.new("ScreenGui")
+    KeyGui.Name = "ScawsHub_KeySystem"
+    KeyGui.ResetOnSpawn = false
+    KeyGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    KeyGui.IgnoreGuiInset = true
+    
+    if gethui then
+        KeyGui.Parent = gethui()
+    elseif syn and syn.protect_gui then
+        syn.protect_gui(KeyGui)
+        KeyGui.Parent = CoreGui
+    else
+        KeyGui.Parent = CoreGui
+    end
+    
+    local KeyMain = Instance.new("Frame")
+    KeyMain.Name = "KeyMain"
+    KeyMain.AnchorPoint = Vector2.new(0.5, 0.5)
+    KeyMain.Position = UDim2.new(0.5, 0, 0.5, 0)
+    KeyMain.Size = UDim2.new(0, 0, 0, 0)
+    KeyMain.BackgroundColor3 = Config.Colors.Background
+    KeyMain.BackgroundTransparency = 0.15
+    KeyMain.BorderSizePixel = 0
+    KeyMain.ClipsDescendants = true
+    KeyMain.Parent = KeyGui
+    Utils:CreateCorner(KeyMain, 14)
+    Utils:CreateStroke(KeyMain, Config.Colors.Border, 1)
+    
+    Utils:IOSBounce(KeyMain, {Size = UDim2.new(0, 320, 0, 220)}, 0.7)
+    
+    local KeyTopbar = Instance.new("Frame")
+    KeyTopbar.Name = "Topbar"
+    KeyTopbar.Size = UDim2.new(1, 0, 0, 40)
+    KeyTopbar.BackgroundColor3 = Config.Colors.Topbar
+    KeyTopbar.BackgroundTransparency = 0.15
+    KeyTopbar.BorderSizePixel = 0
+    KeyTopbar.Parent = KeyMain
+    
+    local TopbarCorner = Instance.new("UICorner")
+    TopbarCorner.CornerRadius = UDim.new(0, 14)
+    TopbarCorner.Parent = KeyTopbar
+    
+    local KeyTitle = Instance.new("TextLabel")
+    KeyTitle.Size = UDim2.new(1, -24, 1, 0)
+    KeyTitle.Position = UDim2.new(0, 12, 0, 0)
+    KeyTitle.BackgroundTransparency = 1
+    KeyTitle.Font = Enum.Font.GothamBold
+    KeyTitle.Text = "ScawsHUB - Key System"
+    KeyTitle.TextColor3 = Config.Colors.Text
+    KeyTitle.TextSize = 14
+    KeyTitle.TextXAlignment = Enum.TextXAlignment.Left
+    KeyTitle.Parent = KeyTopbar
+    
+    local ContentFrame = Instance.new("Frame")
+    ContentFrame.Size = UDim2.new(1, -24, 1, -52)
+    ContentFrame.Position = UDim2.new(0, 12, 0, 46)
+    ContentFrame.BackgroundTransparency = 1
+    ContentFrame.Parent = KeyMain
+    
+    local KeyLabel = Instance.new("TextLabel")
+    KeyLabel.Size = UDim2.new(1, 0, 0, 18)
+    KeyLabel.Position = UDim2.new(0, 0, 0, 0)
+    KeyLabel.BackgroundTransparency = 1
+    KeyLabel.Font = Enum.Font.GothamSemibold
+    KeyLabel.Text = "Enter your key to continue"
+    KeyLabel.TextColor3 = Config.Colors.TextDark
+    KeyLabel.TextSize = 12
+    KeyLabel.TextXAlignment = Enum.TextXAlignment.Left
+    KeyLabel.Parent = ContentFrame
+    
+    local KeyInput = Instance.new("TextBox")
+    KeyInput.Size = UDim2.new(1, 0, 0, 36)
+    KeyInput.Position = UDim2.new(0, 0, 0, 24)
+    KeyInput.BackgroundColor3 = Config.Colors.Border
+    KeyInput.BackgroundTransparency = 0.3
+    KeyInput.BorderSizePixel = 0
+    KeyInput.Font = Enum.Font.Gotham
+    KeyInput.PlaceholderText = "Enter key here..."
+    KeyInput.PlaceholderColor3 = Config.Colors.TextDark
+    KeyInput.Text = ""
+    KeyInput.TextColor3 = Config.Colors.Text
+    KeyInput.TextSize = 13
+    KeyInput.ClearTextOnFocus = false
+    KeyInput.Parent = ContentFrame
+    Utils:CreateCorner(KeyInput, 8)
+    
+    local InputPadding = Instance.new("UIPadding")
+    InputPadding.PaddingLeft = UDim.new(0, 10)
+    InputPadding.PaddingRight = UDim.new(0, 10)
+    InputPadding.Parent = KeyInput
+    
+    local StatusLabel = Instance.new("TextLabel")
+    StatusLabel.Size = UDim2.new(1, 0, 0, 16)
+    StatusLabel.Position = UDim2.new(0, 0, 0, 64)
+    StatusLabel.BackgroundTransparency = 1
+    StatusLabel.Font = Enum.Font.Gotham
+    StatusLabel.Text = ""
+    StatusLabel.TextColor3 = Config.Colors.Error
+    StatusLabel.TextSize = 11
+    StatusLabel.TextXAlignment = Enum.TextXAlignment.Left
+    StatusLabel.Parent = ContentFrame
+    
+    local SubmitButton = Instance.new("TextButton")
+    SubmitButton.Size = UDim2.new(1, 0, 0, 34)
+    SubmitButton.Position = UDim2.new(0, 0, 0, 86)
+    SubmitButton.BackgroundColor3 = Config.Colors.Accent
+    SubmitButton.BackgroundTransparency = 0.3
+    SubmitButton.BorderSizePixel = 0
+    SubmitButton.Font = Enum.Font.GothamBold
+    SubmitButton.Text = "Submit Key"
+    SubmitButton.TextColor3 = Config.Colors.Text
+    SubmitButton.TextSize = 13
+    SubmitButton.Parent = ContentFrame
+    Utils:CreateCorner(SubmitButton, 8)
+    
+    local DiscordButton = Instance.new("TextButton")
+    DiscordButton.Size = UDim2.new(1, 0, 0, 34)
+    DiscordButton.Position = UDim2.new(0, 0, 0, 126)
+    DiscordButton.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
+    DiscordButton.BackgroundTransparency = 0.3
+    DiscordButton.BorderSizePixel = 0
+    DiscordButton.Font = Enum.Font.GothamSemibold
+    DiscordButton.Text = "No key? Join our Discord"
+    DiscordButton.TextColor3 = Config.Colors.Text
+    DiscordButton.TextSize = 12
+    DiscordButton.Parent = ContentFrame
+    Utils:CreateCorner(DiscordButton, 8)
+    
+    SubmitButton.MouseEnter:Connect(function()
+        Utils:SmoothFade(SubmitButton, 0.1, 0.2)
+    end)
+    SubmitButton.MouseLeave:Connect(function()
+        Utils:SmoothFade(SubmitButton, 0.3, 0.2)
+    end)
+    
+    DiscordButton.MouseEnter:Connect(function()
+        Utils:SmoothFade(DiscordButton, 0.1, 0.2)
+    end)
+    DiscordButton.MouseLeave:Connect(function()
+        Utils:SmoothFade(DiscordButton, 0.3, 0.2)
+    end)
+    
+    KeyInput.Focused:Connect(function()
+        Utils:Tween(KeyInput, {BackgroundColor3 = Config.Colors.Accent, BackgroundTransparency = 0.2}, 0.2)
+    end)
+    
+    KeyInput.FocusLost:Connect(function()
+        Utils:Tween(KeyInput, {BackgroundColor3 = Config.Colors.Border, BackgroundTransparency = 0.3}, 0.2)
+    end)
+    
+    local keyValidated = false
+    
+    local function ValidateKey()
+        if KeyInput.Text == correctKey then
+            keyValidated = true
+            StatusLabel.TextColor3 = Config.Colors.Success
+            StatusLabel.Text = "Key accepted! Loading..."
+            Utils:Spring(SubmitButton, {BackgroundColor3 = Config.Colors.Success}, 0.3)
+            
+            task.wait(0.5)
+            Utils:Tween(KeyMain, {Size = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 1}, 0.4)
+            task.wait(0.5)
+            KeyGui:Destroy()
+        else
+            StatusLabel.TextColor3 = Config.Colors.Error
+            StatusLabel.Text = "Invalid key. Please try again."
+            Utils:Spring(KeyMain, {Position = UDim2.new(0.5, 10, 0.5, 0)}, 0.1)
+            task.wait(0.1)
+            Utils:Spring(KeyMain, {Position = UDim2.new(0.5, -10, 0.5, 0)}, 0.1)
+            task.wait(0.1)
+            Utils:Spring(KeyMain, {Position = UDim2.new(0.5, 0, 0.5, 0)}, 0.1)
+        end
+    end
+    
+    SubmitButton.MouseButton1Click:Connect(ValidateKey)
+    
+    KeyInput.FocusLost:Connect(function(enterPressed)
+        if enterPressed then
+            ValidateKey()
+        end
+    end)
+    
+    DiscordButton.MouseButton1Click:Connect(function()
+        if setclipboard then
+            setclipboard(discordLink)
+            StatusLabel.TextColor3 = Config.Colors.Success
+            StatusLabel.Text = "Discord link copied to clipboard!"
+        else
+            StatusLabel.TextColor3 = Config.Colors.Warning
+            StatusLabel.Text = discordLink
+        end
+    end)
+    
+    repeat task.wait() until keyValidated
+end
+
+RunKeySystem()
+
 -- Enhanced Utilities
 local Utils = {}
 
