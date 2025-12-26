@@ -2389,7 +2389,7 @@ local function RunKeySystem()
         if setclipboard then
             setclipboard(discordLink)
             StatusLabel.TextColor3 = Config.Colors.Success
-            StatusLabel.Text = "Discord link copied to clipboard!"
+            StatusLabel.Text = "Discord link has been copied to your clipboard!"
         else
             StatusLabel.TextColor3 = Config.Colors.Warning
             StatusLabel.Text = discordLink
