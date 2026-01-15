@@ -1777,12 +1777,27 @@ function Kovari:Init(config)
             
             CreateRowDivider(Row)
             
-            table.insert(Connections, SwitchButton.MouseButton1Click:Connect(function()
-                state = not state
-                Util.Tween(Switch, {BackgroundColor3 = state and Theme.Accent or Theme.Fill}, Theme.NormalSpeed)
-                Util.Spring(Knob, {Position = state and UDim2.new(1, -22, 0.5, 0) or UDim2.new(0, 4, 0.5, 0)}, Theme.NormalSpeed)
-                callback(state)
-            end))
+table.insert(Connections, SwitchButton.MouseButton1Click:Connect(function()
+    state = not state
+    
+    -- Smoother color transition
+    Util.Tween(Switch, {
+        BackgroundColor3 = state and Theme.Accent or Theme.Fill
+    }, Theme.QuickSpeed)
+    
+    -- Bounce animation for knob
+    local targetPos = state and UDim2.new(1, -22, 0.5, 0) or UDim2.new(0, 4, 0.5, 0)
+    Util.Spring(Knob, {Position = targetPos}, Theme.QuickSpeed * 1.5)
+    
+    -- Scale pulse effect
+    local originalSize = Knob.Size
+    Util.Tween(Knob, {Size = UDim2.new(0, 20, 0, 20)}, Theme.QuickSpeed / 2)
+    task.delay(Theme.QuickSpeed / 2, function()
+        Util.Spring(Knob, {Size = originalSize}, Theme.QuickSpeed)
+    end)
+    
+    callback(state)
+end))
             
             return {
                 SetState = function(_, newState)
@@ -2410,16 +2425,17 @@ end
             Util.Corner(ColorButton, Theme.CornerRadiusSmall)
             Util.Stroke(ColorButton, Theme.Border)
             
-            local ColorPanel = Util.Create("Frame", {
-                AnchorPoint = Vector2.new(1, 0),
-                Position = UDim2.new(1, 0, 0, 45),
-                Size = UDim2.new(0, 180, 0, 0),
-                BackgroundColor3 = Theme.Tertiary,
-                ClipsDescendants = true,
-                Visible = false,
-                ZIndex = 10,
-                Parent = Row
-            })
+            -- FIXED VERSION:
+local ColorPanel = Util.Create("Frame", {
+    AnchorPoint = Vector2.new(1, 0),
+    Position = UDim2.new(1, 0, 0, 45),
+    Size = UDim2.new(0, 180, 0, 0),
+    BackgroundColor3 = Theme.Tertiary,
+    ClipsDescendants = true,
+    Visible = false,
+    ZIndex = 9999,  -- CHANGED
+    Parent = ScreenGui  -- CHANGED - Now top level
+})
             Util.Corner(ColorPanel, Theme.CornerRadiusSmall)
             Util.Stroke(ColorPanel, Theme.Border)
             
@@ -2465,15 +2481,20 @@ end
                 end)
             end
             
-            local function ClosePanel()
-                isOpen = false
-                Util.Tween(ColorPanel, {Size = UDim2.new(0, 180, 0, 0)}, Theme.QuickSpeed)
-                task.delay(Theme.QuickSpeed, function()
-                    if not isOpen then
-                        ColorPanel.Visible = false
-                    end
-                end)
-            end
+local function ClosePanel()
+    isOpen = false
+    
+    Util.Tween(ColorPanel, {
+        Size = UDim2.new(0, 180, 0, 0),
+        BackgroundTransparency = 1
+    }, Theme.QuickSpeed * 1.5)
+    
+    task.delay(Theme.QuickSpeed * 1.5, function()
+        if not isOpen then
+            ColorPanel.Visible = false
+        end
+    end)
+end
             
             local function OpenPanel()
                 isOpen = true
