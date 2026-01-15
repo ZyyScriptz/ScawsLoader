@@ -775,7 +775,7 @@ function Kovari:KeySystem(config)
     local serviceId = config.ServiceId or 0
     local secret = config.Secret or ""
     local useNonce = config.UseNonce ~= false
-    local discordLink = config.Discord or "discord.gg/49JBP5JRSR"
+    local discordLink = config.Discord or "discord.gg/aRpVnFWyUt"
     local onSuccess = config.OnSuccess or function() end
     local onFailed = config.OnFailed or function() end
     
@@ -1273,7 +1273,7 @@ end
 function Kovari:Init(config)
     config = config or {}
     local toggleKey = config.ToggleKey or Enum.KeyCode.RightControl
-    local discordInvite = config.Discord or "discord.gg/49JBP5JRSR"
+    local discordInvite = config.Discord or "discord.gg/aRpVnFWyUt"
 
     -- Screen GUI
     local ScreenGui = Create("ScreenGui", {
