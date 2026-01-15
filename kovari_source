@@ -1734,6 +1734,8 @@ function Kovari:Init(config)
             local Row = Util.Create("Frame", {
                 Size = UDim2.new(1, 0, 0, 42),
                 BackgroundTransparency = 1,
+                ClipsDescendants = false,
+                ZIndex = 5,
                 Parent = SectionContent
             })
             
@@ -2142,11 +2144,11 @@ function Kovari:Init(config)
                 AnchorPoint = Vector2.new(1, 0),
                 Position = UDim2.new(1, 0, 0, 38),
                 Size = UDim2.new(0, 130, 0, 0),
-                BackgroundColor3 = Theme.Tertiary,
+                    BackgroundColor3 = Theme.Tertiary,
                 ClipsDescendants = true,
                 Visible = false,
-                ZIndex = 10,
-                Parent = Row
+                ZIndex = 9999,  -- CHANGED FROM 10
+                Parent = ScreenGui  -- CHANGED FROM Row - Now it's a child of ScreenGui directly
             })
             Util.Corner(DropdownList, Theme.CornerRadiusSmall)
             Util.Stroke(DropdownList, Theme.Border)
@@ -2168,23 +2170,44 @@ function Kovari:Init(config)
             CreateRowDivider(Row)
             
             local function CloseDropdown()
-                isOpen = false
-                Util.Tween(DropdownList, {Size = UDim2.new(0, 130, 0, 0)}, Theme.QuickSpeed)
-                Util.Tween(Arrow, {Rotation = 0}, Theme.QuickSpeed)
-                task.delay(Theme.QuickSpeed, function()
-                    if not isOpen then
-                        DropdownList.Visible = false
-                    end
-                end)
-            end
+    isOpen = false
+    
+    -- Fade out with scale animation
+    Util.Tween(DropdownList, {
+        Size = UDim2.new(0, 130, 0, 0),
+        BackgroundTransparency = 1
+    }, Theme.QuickSpeed * 1.5)
+    
+    Util.Spring(Arrow, {Rotation = 0}, Theme.QuickSpeed)
+    
+    task.delay(Theme.QuickSpeed * 1.5, function()
+        if not isOpen then
+            DropdownList.Visible = false
+        end
+    end)
+end
             
-            local function OpenDropdown()
-                isOpen = true
-                DropdownList.Visible = true
-                local targetHeight = math.min(#options * 26 + 10, 180)
-                Util.Spring(DropdownList, {Size = UDim2.new(0, 130, 0, targetHeight)}, Theme.NormalSpeed)
-                Util.Tween(Arrow, {Rotation = 180}, Theme.QuickSpeed)
-            end
+-- FIXED VERSION with better animation:
+local function OpenDropdown()
+    isOpen = true
+    
+    -- Set initial position
+    local buttonPos = DropButton.AbsolutePosition
+    local buttonSize = DropButton.AbsoluteSize
+    DropdownList.Position = UDim2.new(0, buttonPos.X + buttonSize.X, 0, buttonPos.Y + buttonSize.Y + 2)
+    DropdownList.Visible = true
+    
+    local targetHeight = math.min(#options * 26 + 10, 180)
+    
+    -- Better animation with opacity
+    DropdownList.BackgroundTransparency = 1
+    Util.Tween(DropdownList, {BackgroundTransparency = 0}, Theme.QuickSpeed)
+    Util.Spring(DropdownList, {
+        Size = UDim2.new(0, 130, 0, targetHeight)
+    }, Theme.NormalSpeed * 0.8)
+    
+    Util.Spring(Arrow, {Rotation = 180}, Theme.QuickSpeed)
+end
             
             local function PopulateOptions()
                 for _, child in ipairs(DropdownList:GetChildren()) do
