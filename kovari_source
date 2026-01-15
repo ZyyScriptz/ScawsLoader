@@ -76,10 +76,11 @@ local Theme = {
     
     -- Animation (Improved timings)
     SpringSpeed = 0.3,
-    SpringDamping = 0.8,
-    QuickSpeed = 0.12,
-    NormalSpeed = 0.2,
-    SlowSpeed = 0.35,
+SpringSpeed = 0.25,  -- Faster spring
+SpringDamping = 0.75,  -- Bouncier
+QuickSpeed = 0.1,  -- Snappier
+NormalSpeed = 0.18,  -- Faster normal
+SlowSpeed = 0.3,  -- Faster slow
 }
 
 -- Utility Functions
@@ -1891,14 +1892,18 @@ end))
             
             local sliderDragging = false
             
-            local function UpdateSlider(input)
-                local pct = math.clamp((input.Position.X - Track.AbsolutePosition.X) / Track.AbsoluteSize.X, 0, 1)
-                value = math.floor(min + (max - min) * pct)
-                ValueLabel.Text = tostring(value) .. suffix
-                Fill.Size = UDim2.new(pct, 0, 1, 0)
-                SliderKnob.Position = UDim2.new(pct, 0, 0.5, 0)
-                callback(value)
-            end
+            -- SMOOTHER SLIDER:
+local function UpdateSlider(input)
+    local pct = math.clamp((input.Position.X - Track.AbsolutePosition.X) / Track.AbsoluteSize.X, 0, 1)
+    value = math.floor(min + (max - min) * pct)
+    ValueLabel.Text = tostring(value) .. suffix
+    
+    -- Smooth fill animation
+    Util.Tween(Fill, {Size = UDim2.new(pct, 0, 1, 0)}, Theme.QuickSpeed / 2)
+    Util.Tween(SliderKnob, {Position = UDim2.new(pct, 0, 0.5, 0)}, Theme.QuickSpeed / 2)
+    
+    callback(value)
+end
             
             table.insert(Connections, Hitbox.InputBegan:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 then
@@ -1976,17 +1981,33 @@ end))
             
             local hovered, pressed = false, false
             
-            local function UpdateState()
-                local targetColor
-                if pressed then
-                    targetColor = Theme.AccentDark
-                elseif hovered then
-                    targetColor = Theme.AccentLight
-                else
-                    targetColor = Theme.Accent
-                end
-                Util.Tween(Button, {BackgroundColor3 = targetColor}, Theme.QuickSpeed)
-            end
+            -- BETTER HOVER ANIMATION:
+local function UpdateState()
+    local targetColor
+    local targetSize = Button.Size
+    
+    if pressed then
+        targetColor = Theme.AccentDark
+        -- Slight scale down when pressed
+        Util.Tween(Button, {
+            BackgroundColor3 = targetColor,
+            Size = UDim2.new(targetSize.X.Scale, targetSize.X.Offset - 2, 0, 26)
+        }, Theme.QuickSpeed / 2)
+    elseif hovered then
+        targetColor = Theme.AccentLight
+        -- Slight scale up on hover
+        Util.Tween(Button, {
+            BackgroundColor3 = targetColor,
+            Size = UDim2.new(0, 72, 0, 30)
+        }, Theme.QuickSpeed)
+    else
+        targetColor = Theme.Accent
+        Util.Tween(Button, {
+            BackgroundColor3 = targetColor,
+            Size = UDim2.new(0, 70, 0, 28)
+        }, Theme.QuickSpeed)
+    end
+end
             
             table.insert(Connections, Button.MouseEnter:Connect(function()
                 hovered = true
