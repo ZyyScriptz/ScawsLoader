@@ -1,0 +1,2358 @@
+local Kovari = {}
+
+-- Services
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local CoreGui = game:GetService("CoreGui")
+local MarketplaceService = game:GetService("MarketplaceService")
+local TextService = game:GetService("TextService")
+local RunService = game:GetService("RunService")
+
+-- Player
+local LocalPlayer = Players.LocalPlayer
+
+-- Theme
+local Theme = {
+    Background = Color3.fromRGB(13, 13, 17),
+    Surface = Color3.fromRGB(20, 20, 26),
+    SurfaceLight = Color3.fromRGB(28, 28, 36),
+    SurfaceHover = Color3.fromRGB(35, 35, 45),
+    SurfaceActive = Color3.fromRGB(42, 42, 54),
+
+    Border = Color3.fromRGB(40, 40, 52),
+    Divider = Color3.fromRGB(34, 34, 44),
+
+    Text = Color3.fromRGB(245, 245, 250),
+    TextSecondary = Color3.fromRGB(140, 140, 160),
+    TextMuted = Color3.fromRGB(85, 85, 100),
+
+    Accent = Color3.fromRGB(75, 52, 130),
+    AccentHover = Color3.fromRGB(90, 65, 150),
+    AccentActive = Color3.fromRGB(65, 45, 115),
+    AccentMuted = Color3.fromRGB(50, 38, 85),
+
+    Success = Color3.fromRGB(55, 150, 90),
+    Warning = Color3.fromRGB(200, 150, 55),
+    Error = Color3.fromRGB(170, 55, 55),
+
+    Font = Enum.Font.Gotham,
+    FontBold = Enum.Font.GothamBold,
+    FontSemibold = Enum.Font.GothamSemibold,
+
+    CornerSmall = 5,
+    CornerMedium = 7,
+    CornerLarge = 9,
+
+    SpeedFast = 0.12,
+    SpeedNormal = 0.22,
+    SpeedSlow = 0.32,
+}
+
+-- Utility Functions
+local function Create(class, props)
+    local inst = Instance.new(class)
+    for k, v in pairs(props or {}) do
+        if k ~= "Parent" then
+            pcall(function() inst[k] = v end)
+        end
+    end
+    if props and props.Parent then
+        inst.Parent = props.Parent
+    end
+    return inst
+end
+
+local function Tween(obj, props, duration, style, direction)
+    if not obj then return nil end
+    local t = TweenService:Create(
+        obj,
+        TweenInfo.new(duration or Theme.SpeedNormal, style or Enum.EasingStyle.Quint, direction or Enum.EasingDirection.Out),
+        props
+    )
+    t:Play()
+    return t
+end
+
+local function Corner(parent, radius)
+    return Create("UICorner", {CornerRadius = UDim.new(0, radius or Theme.CornerMedium), Parent = parent})
+end
+
+local function Stroke(parent, color, thickness)
+    return Create("UIStroke", {
+        Color = color or Theme.Border,
+        Thickness = thickness or 1,
+        ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+        Parent = parent
+    })
+end
+
+local function Ripple(button)
+    local ripple = Create("Frame", {
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        Position = UDim2.new(0.5, 0, 0.5, 0),
+        Size = UDim2.new(0, 0, 0, 0),
+        BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+        BackgroundTransparency = 0.88,
+        ZIndex = button.ZIndex + 1,
+        Parent = button
+    })
+    Corner(ripple, 50)
+
+    local maxSize = math.max(button.AbsoluteSize.X, button.AbsoluteSize.Y) * 2.5
+    Tween(ripple, {Size = UDim2.new(0, maxSize, 0, maxSize), BackgroundTransparency = 1}, 0.4)
+
+    task.delay(0.4, function()
+        if ripple and ripple.Parent then ripple:Destroy() end
+    end)
+end
+
+local function GetGameName()
+    local ok, name = pcall(function()
+        return MarketplaceService:GetProductInfo(game.PlaceId).Name
+    end)
+    return ok and name or "Unknown Game"
+end
+
+local function FormatDate(ts)
+    local d = os.date("*t", ts)
+    local m = {"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"}
+    return string.format("%s %d, %d", m[d.month], d.day, d.year)
+end
+
+-- Interactive Button Component
+local function CreateButton(config)
+    local parent = config.Parent
+    local size = config.Size or UDim2.new(0, 80, 0, 28)
+    local position = config.Position or UDim2.new(0, 0, 0, 0)
+    local anchor = config.AnchorPoint or Vector2.new(0, 0)
+    local text = config.Text or "Button"
+    local primary = config.Primary ~= false
+    local callback = config.Callback or function() end
+
+    local btn = Create("TextButton", {
+        AnchorPoint = anchor,
+        Size = size,
+        Position = position,
+        BackgroundColor3 = primary and Theme.Accent or Theme.SurfaceLight,
+        Font = Theme.FontSemibold,
+        Text = text,
+        TextColor3 = Theme.Text,
+        TextSize = 11,
+        AutoButtonColor = false,
+        ClipsDescendants = true,
+        Parent = parent
+    })
+    Corner(btn, Theme.CornerSmall)
+
+    if not primary then
+        Stroke(btn, Theme.Border)
+    end
+
+    local hovered, pressed = false, false
+
+    local function UpdateState()
+        local targetColor
+        if pressed then
+            targetColor = primary and Theme.AccentActive or Theme.SurfaceActive
+        elseif hovered then
+            targetColor = primary and Theme.AccentHover or Theme.SurfaceHover
+        else
+            targetColor = primary and Theme.Accent or Theme.SurfaceLight
+        end
+        Tween(btn, {BackgroundColor3 = targetColor}, Theme.SpeedFast)
+    end
+
+    btn.MouseEnter:Connect(function()
+        hovered = true
+        UpdateState()
+    end)
+
+    btn.MouseLeave:Connect(function()
+        hovered = false
+        pressed = false
+        UpdateState()
+    end)
+
+    btn.MouseButton1Down:Connect(function()
+        pressed = true
+        UpdateState()
+    end)
+
+    btn.MouseButton1Up:Connect(function()
+        pressed = false
+        UpdateState()
+    end)
+
+    btn.MouseButton1Click:Connect(function()
+        Ripple(btn)
+        callback()
+    end)
+
+    return btn
+end
+
+-------------------------------------------------------------------------------
+--! SHA256 and JSON Libraries for Key System
+-------------------------------------------------------------------------------
+local function CreateCryptoLib()
+    local MOD = 2^32
+    local MODM = MOD-1
+
+    local function memoize(f)
+        local mt = {}
+        local t = setmetatable({}, mt)
+        function mt:__index(k)
+            local v = f(k)
+            t[k] = v
+            return v
+        end
+        return t
+    end
+
+    local function make_bitop_uncached(t, m)
+        local function bitop(a, b)
+            local res,p = 0,1
+            while a ~= 0 and b ~= 0 do
+                local am, bm = a % m, b % m
+                res = res + t[am*m + bm] * p
+                a = (a - am) / m
+                b = (b - bm) / m
+                p = p * m
+            end
+            res = res + (a + b) * p
+            return res
+        end
+        return bitop
+    end
+
+    local function make_bitop(t)
+        local op1 = make_bitop_uncached(t, 2^1)
+        local op2 = memoize(function(a) return memoize(function(b) return op1(a, b) end) end)
+        return function(a, b)
+            return (op2[a % 2^32])[b % 2^32]
+        end
+    end
+
+    local bxor1 = make_bitop({[0]=0,[1]=1,[2]=1,[3]=0})
+
+    local function bxor(a, b, c, ...)
+        local z = nil
+        if b then
+            a = a % MOD
+            b = b % MOD
+            z = bxor1(a, b)
+            if c then z = bxor(z, c, ...) end
+            return z
+        elseif a then return a % MOD
+        else return 0 end
+    end
+
+    local function band(a, b, c, ...)
+        local z
+        if b then
+            a = a % MOD
+            b = b % MOD
+            z = ((a + b) - bxor1(a,b)) / 2
+            if c then z = band(z, c, ...) end
+            return z
+        elseif a then return a % MOD
+        else return MODM end
+    end
+
+    local function bnot(x) return MODM - (x % MOD) end
+
+    local function rshift1(a, disp)
+        if disp < 0 then return lshift(a,-disp) end
+        return math.floor(a % 2^32 / 2^disp)
+    end
+
+    local function rshift(x, disp)
+        if disp > 31 or disp < -31 then return 0 end
+        return rshift1(x % MOD, disp)
+    end
+
+    local function lshift(a, disp)
+        if disp < 0 then return rshift(a,-disp) end
+        return (a * 2^disp) % 2^32
+    end
+
+    local function rrotate(x, disp)
+        x = x % MOD
+        disp = disp % 32
+        local low = band(x, 2^disp - 1)
+        return rshift(x, disp) + lshift(low, 32 - disp)
+    end
+
+    local k = {
+        0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
+        0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+        0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3,
+        0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+        0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc,
+        0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+        0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7,
+        0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+        0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13,
+        0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+        0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3,
+        0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+        0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5,
+        0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+        0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208,
+        0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
+    }
+
+    local function str2hexa(s)
+        return (string.gsub(s, ".", function(c) return string.format("%02x", string.byte(c)) end))
+    end
+
+    local function num2s(l, n)
+        local s = ""
+        for _ = 1, n do
+            local rem = l % 256
+            s = string.char(rem) .. s
+            l = (l - rem) / 256
+        end
+        return s
+    end
+
+    local function s2num(s, i)
+        local n = 0
+        for j = i, i + 3 do n = n*256 + string.byte(s, j) end
+        return n
+    end
+
+    local function preproc(msg, len)
+        local extra = 64 - ((len + 9) % 64)
+        len = num2s(8 * len, 8)
+        msg = msg .. "\128" .. string.rep("\0", extra) .. len
+        assert(#msg % 64 == 0)
+        return msg
+    end
+
+    local function initH256(H)
+        H[1] = 0x6a09e667
+        H[2] = 0xbb67ae85
+        H[3] = 0x3c6ef372
+        H[4] = 0xa54ff53a
+        H[5] = 0x510e527f
+        H[6] = 0x9b05688c
+        H[7] = 0x1f83d9ab
+        H[8] = 0x5be0cd19
+        return H
+    end
+
+    local function digestblock(msg, i, H)
+        local w = {}
+        for j = 1, 16 do w[j] = s2num(msg, i + (j - 1)*4) end
+        for j = 17, 64 do
+            local v = w[j - 15]
+            local s0 = bxor(rrotate(v, 7), rrotate(v, 18), rshift(v, 3))
+            v = w[j - 2]
+            w[j] = w[j - 16] + s0 + w[j - 7] + bxor(rrotate(v, 17), rrotate(v, 19), rshift(v, 10))
+        end
+
+        local a, b, c, d, e, f, g, h = H[1], H[2], H[3], H[4], H[5], H[6], H[7], H[8]
+        for i = 1, 64 do
+            local s0 = bxor(rrotate(a, 2), rrotate(a, 13), rrotate(a, 22))
+            local maj = bxor(band(a, b), band(a, c), band(b, c))
+            local t2 = s0 + maj
+            local s1 = bxor(rrotate(e, 6), rrotate(e, 11), rrotate(e, 25))
+            local ch = bxor(band(e, f), band(bnot(e), g))
+            local t1 = h + s1 + ch + k[i] + w[i]
+            h, g, f, e, d, c, b, a = g, f, e, (d + t1) % MOD, c, b, a, (t1 + t2) % MOD
+        end
+
+        H[1] = (H[1] + a) % MOD
+        H[2] = (H[2] + b) % MOD
+        H[3] = (H[3] + c) % MOD
+        H[4] = (H[4] + d) % MOD
+        H[5] = (H[5] + e) % MOD
+        H[6] = (H[6] + f) % MOD
+        H[7] = (H[7] + g) % MOD
+        H[8] = (H[8] + h) % MOD
+    end
+
+    local function sha256(msg)
+        msg = preproc(msg, #msg)
+        local H = initH256({})
+        for i = 1, #msg, 64 do digestblock(msg, i, H) end
+        return str2hexa(num2s(H[1], 4) .. num2s(H[2], 4) .. num2s(H[3], 4) .. num2s(H[4], 4) ..
+            num2s(H[5], 4) .. num2s(H[6], 4) .. num2s(H[7], 4) .. num2s(H[8], 4))
+    end
+
+    return sha256
+end
+
+local function CreateJsonLib()
+    local encode, decode
+
+    local escape_char_map = {
+        ["\\"] = "\\\\", ["\""] = "\\\"", ["\b"] = "\\b",
+        ["\f"] = "\\f", ["\n"] = "\\n", ["\r"] = "\\r", ["\t"] = "\\t",
+    }
+
+    local function escape_char(c)
+        return escape_char_map[c] or string.format("\\u%04x", c:byte())
+    end
+
+    local function encode_nil() return "null" end
+
+    local function encode_table(val, stack)
+        local res = {}
+        stack = stack or {}
+        if stack[val] then error("circular reference") end
+        stack[val] = true
+
+        if rawget(val, 1) ~= nil or next(val) == nil then
+            for _, v in ipairs(val) do
+                table.insert(res, encode(v, stack))
+            end
+            stack[val] = nil
+            return "[" .. table.concat(res, ",") .. "]"
+        else
+            for k, v in pairs(val) do
+                table.insert(res, encode(k, stack) .. ":" .. encode(v, stack))
+            end
+            stack[val] = nil
+            return "{" .. table.concat(res, ",") .. "}"
+        end
+    end
+
+    local function encode_string(val)
+        return '"' .. val:gsub('[%z\1-\31\\"]', escape_char) .. '"'
+    end
+
+    local function encode_number(val)
+        if val ~= val or val <= -math.huge or val >= math.huge then
+            error("unexpected number value '" .. tostring(val) .. "'")
+        end
+        return string.format("%.14g", val)
+    end
+
+    local type_func_map = {
+        ["nil"] = encode_nil,
+        ["table"] = encode_table,
+        ["string"] = encode_string,
+        ["number"] = encode_number,
+        ["boolean"] = tostring,
+    }
+
+    encode = function(val, stack)
+        local t = type(val)
+        local f = type_func_map[t]
+        if f then return f(val, stack) end
+        error("unexpected type '" .. t .. "'")
+    end
+
+    local parse
+
+    local function create_set(...)
+        local res = {}
+        for i = 1, select("#", ...) do res[select(i, ...)] = true end
+        return res
+    end
+
+    local space_chars = create_set(" ", "\t", "\r", "\n")
+    local delim_chars = create_set(" ", "\t", "\r", "\n", "]", "}", ",")
+    local escape_chars = create_set("\\", "/", '"', "b", "f", "n", "r", "t", "u")
+    local literals = create_set("true", "false", "null")
+
+    local literal_map = {["true"] = true, ["false"] = false, ["null"] = nil}
+
+    local function next_char(str, idx, set, negate)
+        for i = idx, #str do
+            if set[str:sub(i, i)] ~= negate then return i end
+        end
+        return #str + 1
+    end
+
+    local function decode_error(str, idx, msg)
+        local line_count, col_count = 1, 1
+        for i = 1, idx - 1 do
+            col_count = col_count + 1
+            if str:sub(i, i) == "\n" then line_count = line_count + 1; col_count = 1 end
+        end
+        error(string.format("%s at line %d col %d", msg, line_count, col_count))
+    end
+
+    local function codepoint_to_utf8(n)
+        local f = math.floor
+        if n <= 0x7f then return string.char(n)
+        elseif n <= 0x7ff then return string.char(f(n / 64) + 192, n % 64 + 128)
+        elseif n <= 0xffff then return string.char(f(n / 4096) + 224, f(n % 4096 / 64) + 128, n % 64 + 128)
+        elseif n <= 0x10ffff then return string.char(f(n / 262144) + 240, f(n % 262144 / 4096) + 128, f(n % 4096 / 64) + 128, n % 64 + 128)
+        end
+        error(string.format("invalid unicode codepoint '%x'", n))
+    end
+
+    local function parse_unicode_escape(s)
+        local n1 = tonumber(s:sub(1, 4), 16)
+        local n2 = tonumber(s:sub(7, 10), 16)
+        if n2 then return codepoint_to_utf8((n1 - 0xd800) * 0x400 + n2 - 0xdc00 + 0x10000)
+        else return codepoint_to_utf8(n1) end
+    end
+
+    local function parse_string(str, i)
+        local res = ""
+        local j = i + 1
+        local k = j
+
+        while j <= #str do
+            local x = str:byte(j)
+            if x < 32 then decode_error(str, j, "control character in string")
+            elseif x == 92 then
+                res = res .. str:sub(k, j - 1)
+                j = j + 1
+                local c = str:sub(j, j)
+                if c == "u" then
+                    local hex = str:match("^[dD][89aAbB]%x%x\\u%x%x%x%x", j + 1) or str:match("^%x%x%x%x", j + 1) or decode_error(str, j - 1, "invalid unicode escape in string")
+                    res = res .. parse_unicode_escape(hex)
+                    j = j + #hex
+                else
+                    if not escape_chars[c] then decode_error(str, j - 1, "invalid escape char '" .. c .. "' in string") end
+                    res = res .. ({b = "\b", f = "\f", n = "\n", r = "\r", t = "\t"})[c] or c
+                end
+                k = j + 1
+            elseif x == 34 then
+                res = res .. str:sub(k, j - 1)
+                return res, j + 1
+            end
+            j = j + 1
+        end
+        decode_error(str, i, "expected closing quote for string")
+    end
+
+    local function parse_number(str, i)
+        local x = next_char(str, i, delim_chars)
+        local s = str:sub(i, x - 1)
+        local n = tonumber(s)
+        if not n then decode_error(str, i, "invalid number '" .. s .. "'") end
+        return n, x
+    end
+
+    local function parse_literal(str, i)
+        local x = next_char(str, i, delim_chars)
+        local word = str:sub(i, x - 1)
+        if not literals[word] then decode_error(str, i, "invalid literal '" .. word .. "'") end
+        return literal_map[word], x
+    end
+
+    local function parse_array(str, i)
+        local res = {}
+        local n = 1
+        i = i + 1
+        while 1 do
+            local x
+            i = next_char(str, i, space_chars, true)
+            if str:sub(i, i) == "]" then i = i + 1; break end
+            x, i = parse(str, i)
+            res[n] = x
+            n = n + 1
+            i = next_char(str, i, space_chars, true)
+            local chr = str:sub(i, i)
+            i = i + 1
+            if chr == "]" then break end
+            if chr ~= "," then decode_error(str, i, "expected ']' or ','") end
+        end
+        return res, i
+    end
+
+    local function parse_object(str, i)
+        local res = {}
+        i = i + 1
+        while 1 do
+            local key, val
+            i = next_char(str, i, space_chars, true)
+            if str:sub(i, i) == "}" then i = i + 1; break end
+            if str:sub(i, i) ~= '"' then decode_error(str, i, "expected string for key") end
+            key, i = parse(str, i)
+            i = next_char(str, i, space_chars, true)
+            if str:sub(i, i) ~= ":" then decode_error(str, i, "expected ':' after key") end
+            i = next_char(str, i + 1, space_chars, true)
+            val, i = parse(str, i)
+            res[key] = val
+            i = next_char(str, i, space_chars, true)
+            local chr = str:sub(i, i)
+            i = i + 1
+            if chr == "}" then break end
+            if chr ~= "," then decode_error(str, i, "expected '}' or ','") end
+        end
+        return res, i
+    end
+
+    local char_func_map = {
+        ['"'] = parse_string,
+        ["0"] = parse_number, ["1"] = parse_number, ["2"] = parse_number, ["3"] = parse_number,
+        ["4"] = parse_number, ["5"] = parse_number, ["6"] = parse_number, ["7"] = parse_number,
+        ["8"] = parse_number, ["9"] = parse_number, ["-"] = parse_number,
+        ["t"] = parse_literal, ["f"] = parse_literal, ["n"] = parse_literal,
+        ["["] = parse_array, ["{"] = parse_object,
+    }
+
+    parse = function(str, idx)
+        local chr = str:sub(idx, idx)
+        local f = char_func_map[chr]
+        if f then return f(str, idx) end
+        decode_error(str, idx, "unexpected character '" .. chr .. "'")
+    end
+
+    decode = function(str)
+        if type(str) ~= "string" then error("expected argument of type string, got " .. type(str)) end
+        local res, idx = parse(str, next_char(str, 1, space_chars, true))
+        idx = next_char(str, idx, space_chars, true)
+        if idx <= #str then decode_error(str, idx, "trailing garbage") end
+        return res
+    end
+
+    return {encode = encode, decode = decode}
+end
+
+local lDigest = CreateCryptoLib()
+local JsonLib = CreateJsonLib()
+local lEncode, lDecode = JsonLib.encode, JsonLib.decode
+
+-- Platoboost Key System Functions
+local function CreateKeySystem(config)
+    local service = config.ServiceId or 0
+    local secret = config.Secret or ""
+    local useNonce = config.UseNonce ~= false
+    
+    local requestSending = false
+    local fSetClipboard = setclipboard or toclipboard or function() end
+    local fRequest = request or http_request or syn_request or function() return {StatusCode = 0} end
+    local fStringChar, fToString, fStringSub = string.char, tostring, string.sub
+    local fOsTime, fMathRandom, fMathFloor = os.time, math.random, math.floor
+    local fGetHwid = gethwid or function() return tostring(LocalPlayer.UserId) end
+    
+    local cachedLink, cachedTime = "", 0
+    
+    -- Pick host
+    local host = "https://api.platoboost.com"
+    pcall(function()
+        local hostResponse = fRequest({
+            Url = host .. "/public/connectivity",
+            Method = "GET"
+        })
+        if hostResponse.StatusCode ~= 200 and hostResponse.StatusCode ~= 429 then
+            host = "https://api.platoboost.net"
+        end
+    end)
+    
+    local function generateNonce()
+        local str = ""
+        for _ = 1, 16 do
+            str = str .. fStringChar(fMathFloor(fMathRandom() * (122 - 97 + 1)) + 97)
+        end
+        return str
+    end
+    
+    local function cacheLink()
+        if cachedTime + (10*60) < fOsTime() then
+            local success, response = pcall(function()
+                return fRequest({
+                    Url = host .. "/public/start",
+                    Method = "POST",
+                    Body = lEncode({
+                        service = service,
+                        identifier = lDigest(fGetHwid())
+                    }),
+                    Headers = {
+                        ["Content-Type"] = "application/json"
+                    }
+                })
+            end)
+            
+            if success and response.StatusCode == 200 then
+                local decoded = lDecode(response.Body)
+                if decoded.success == true then
+                    cachedLink = decoded.data.url
+                    cachedTime = fOsTime()
+                    return true, cachedLink
+                else
+                    return false, decoded.message
+                end
+            elseif success and response.StatusCode == 429 then
+                return false, "Rate limited, please wait."
+            end
+            return false, "Failed to get link."
+        else
+            return true, cachedLink
+        end
+    end
+    
+    local function copyLink()
+        local success, link = cacheLink()
+        if success then
+            pcall(function() fSetClipboard(link) end)
+            return true
+        end
+        return false
+    end
+    
+    local function redeemKey(key)
+        local nonce = generateNonce()
+        local body = {
+            identifier = lDigest(fGetHwid()),
+            key = key
+        }
+        if useNonce then body.nonce = nonce end
+        
+        local success, response = pcall(function()
+            return fRequest({
+                Url = host .. "/public/redeem/" .. fToString(service),
+                Method = "POST",
+                Body = lEncode(body),
+                Headers = {["Content-Type"] = "application/json"}
+            })
+        end)
+        
+        if success and response.StatusCode == 200 then
+            local decoded = lDecode(response.Body)
+            if decoded.success == true and decoded.data.valid == true then
+                if useNonce then
+                    return decoded.data.hash == lDigest("true" .. "-" .. nonce .. "-" .. secret)
+                end
+                return true
+            end
+        end
+        return false
+    end
+    
+    local function verifyKey(key)
+        if requestSending then return false, "Please wait..." end
+        requestSending = true
+        
+        local nonce = generateNonce()
+        local endpoint = host .. "/public/whitelist/" .. fToString(service) .. "?identifier=" .. lDigest(fGetHwid()) .. "&key=" .. key
+        if useNonce then endpoint = endpoint .. "&nonce=" .. nonce end
+        
+        local success, response = pcall(function()
+            return fRequest({Url = endpoint, Method = "GET"})
+        end)
+        
+        requestSending = false
+        
+        if success and response.StatusCode == 200 then
+            local decoded = lDecode(response.Body)
+            if decoded.success == true then
+                if decoded.data.valid == true then
+                    if useNonce then
+                        return decoded.data.hash == lDigest("true" .. "-" .. nonce .. "-" .. secret), "Key verified!"
+                    end
+                    return true, "Key verified!"
+                else
+                    if fStringSub(key, 1, 4) == "KEY_" then
+                        local redeemed = redeemKey(key)
+                        return redeemed, redeemed and "Key redeemed!" or "Failed to redeem key."
+                    end
+                    return false, "Invalid key."
+                end
+            else
+                return false, decoded.message or "Verification failed."
+            end
+        elseif success and response.StatusCode == 429 then
+            return false, "Rate limited, please wait."
+        end
+        return false, "Connection error."
+    end
+    
+    return {
+        CopyLink = copyLink,
+        CacheLink = cacheLink,
+        VerifyKey = verifyKey
+    }
+end
+
+-------------------------------------------------------------------------------
+--! Key System UI
+-------------------------------------------------------------------------------
+function Kovari:KeySystem(config)
+    config = config or {}
+    local title = config.Title or "KOVARI"
+    local subtitle = config.Subtitle or "Key System"
+    local serviceId = config.ServiceId or 0
+    local secret = config.Secret or ""
+    local useNonce = config.UseNonce ~= false
+    local discordLink = config.Discord or "discord.gg/49JBP5JRSR"
+    local onSuccess = config.OnSuccess or function() end
+    local onFailed = config.OnFailed or function() end
+    
+    -- Initialize key system
+    local KeySystem = CreateKeySystem({
+        ServiceId = serviceId,
+        Secret = secret,
+        UseNonce = useNonce
+    })
+    
+    -- Screen GUI
+    local ScreenGui = Create("ScreenGui", {
+        Name = "KovariKeySystem",
+        ResetOnSpawn = false,
+        ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+        IgnoreGuiInset = true
+    })
+    
+    if syn and syn.protect_gui then
+        syn.protect_gui(ScreenGui)
+        ScreenGui.Parent = CoreGui
+    elseif gethui then
+        ScreenGui.Parent = gethui()
+    else
+        ScreenGui.Parent = CoreGui
+    end
+    
+    -- Background Blur
+    local BlurFrame = Create("Frame", {
+        Size = UDim2.new(1, 0, 1, 0),
+        BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+        BackgroundTransparency = 1,
+        Parent = ScreenGui
+    })
+    
+    -- Main Frame
+    local Main = Create("Frame", {
+        Name = "Main",
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        Position = UDim2.new(0.5, 0, 0.5, 0),
+        Size = UDim2.new(0, 380, 0, 320),
+        BackgroundColor3 = Theme.Background,
+        ClipsDescendants = true,
+        Parent = ScreenGui
+    })
+    Corner(Main, Theme.CornerLarge)
+    local MainStroke = Stroke(Main, Theme.Border)
+    
+    -- Shadow
+    local Shadow = Create("ImageLabel", {
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        Position = UDim2.new(0.5, 0, 0.5, 3),
+        Size = UDim2.new(1, 24, 1, 24),
+        BackgroundTransparency = 1,
+        Image = "rbxassetid://5554236805",
+        ImageColor3 = Color3.fromRGB(0, 0, 0),
+        ImageTransparency = 0.65,
+        ScaleType = Enum.ScaleType.Slice,
+        SliceCenter = Rect.new(23, 23, 277, 277),
+        ZIndex = -1,
+        Parent = Main
+    })
+    
+    -- Intro Animation
+    Main.BackgroundTransparency = 1
+    MainStroke.Transparency = 1
+    Shadow.ImageTransparency = 1
+    BlurFrame.BackgroundTransparency = 1
+    Main.Size = UDim2.new(0, 340, 0, 280)
+    
+    task.spawn(function()
+        task.wait(0.03)
+        Tween(BlurFrame, {BackgroundTransparency = 0.5}, Theme.SpeedSlow)
+        Tween(Main, {BackgroundTransparency = 0, Size = UDim2.new(0, 380, 0, 320)}, Theme.SpeedSlow, Enum.EasingStyle.Back)
+        Tween(MainStroke, {Transparency = 0}, Theme.SpeedNormal)
+        task.wait(0.08)
+        Tween(Shadow, {ImageTransparency = 0.65}, Theme.SpeedNormal)
+    end)
+    
+    -- Smooth Dragging
+    local dragging = false
+    local dragStart = nil
+    local startPos = nil
+    local smoothness = 0.15
+    local targetPosition = Main.Position
+    
+    Main.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = Main.Position
+        end
+    end)
+    
+    Main.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = input.Position - dragStart
+            targetPosition = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+    
+    local dragConnection = RunService.RenderStepped:Connect(function()
+        if dragging then
+            local currentX = Main.Position.X.Offset
+            local currentY = Main.Position.Y.Offset
+            local targetX = targetPosition.X.Offset
+            local targetY = targetPosition.Y.Offset
+            local newX = currentX + (targetX - currentX) * smoothness
+            local newY = currentY + (targetY - currentY) * smoothness
+            Main.Position = UDim2.new(Main.Position.X.Scale, newX, Main.Position.Y.Scale, newY)
+        end
+    end)
+    
+    -- Header
+    local Header = Create("Frame", {
+        Size = UDim2.new(1, 0, 0, 70),
+        BackgroundColor3 = Theme.Surface,
+        Parent = Main
+    })
+    Corner(Header, Theme.CornerLarge)
+    
+    Create("Frame", {
+        Size = UDim2.new(1, 0, 0, 10),
+        Position = UDim2.new(0, 0, 1, -10),
+        BackgroundColor3 = Theme.Surface,
+        BorderSizePixel = 0,
+        Parent = Header
+    })
+    
+    Create("Frame", {
+        Size = UDim2.new(1, -24, 0, 1),
+        Position = UDim2.new(0, 12, 1, 0),
+        BackgroundColor3 = Theme.Divider,
+        BorderSizePixel = 0,
+        Parent = Header
+    })
+    
+    -- Logo
+    local Logo = Create("Frame", {
+        Size = UDim2.new(0, 42, 0, 42),
+        Position = UDim2.new(0, 16, 0.5, -21),
+        BackgroundColor3 = Theme.Accent,
+        Parent = Header
+    })
+    Corner(Logo, 8)
+    
+    local LogoImage = Create("ImageLabel", {
+        Size = UDim2.new(1, -6, 1, -6),
+        Position = UDim2.new(0, 3, 0, 3),
+        BackgroundTransparency = 1,
+        Image = "rbxassetid://104988871729944",
+        ScaleType = Enum.ScaleType.Fit,
+        Parent = Logo
+    })
+    Corner(LogoImage, 5)
+    
+    -- Title
+    Create("TextLabel", {
+        Size = UDim2.new(0, 150, 0, 20),
+        Position = UDim2.new(0, 70, 0, 18),
+        BackgroundTransparency = 1,
+        Font = Theme.FontBold,
+        Text = title,
+        TextColor3 = Theme.Text,
+        TextSize = 16,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        Parent = Header
+    })
+    
+    Create("TextLabel", {
+        Size = UDim2.new(0, 150, 0, 14),
+        Position = UDim2.new(0, 70, 0, 40),
+        BackgroundTransparency = 1,
+        Font = Theme.Font,
+        Text = subtitle,
+        TextColor3 = Theme.TextSecondary,
+        TextSize = 11,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        Parent = Header
+    })
+    
+    -- Content
+    local Content = Create("Frame", {
+        Size = UDim2.new(1, -24, 1, -90),
+        Position = UDim2.new(0, 12, 0, 78),
+        BackgroundTransparency = 1,
+        Parent = Main
+    })
+    
+    -- Key Input Section
+    local InputSection = Create("Frame", {
+        Size = UDim2.new(1, 0, 0, 70),
+        BackgroundColor3 = Theme.Surface,
+        Parent = Content
+    })
+    Corner(InputSection, Theme.CornerMedium)
+    Stroke(InputSection, Theme.Border)
+    
+    Create("TextLabel", {
+        Size = UDim2.new(1, -16, 0, 18),
+        Position = UDim2.new(0, 8, 0, 8),
+        BackgroundTransparency = 1,
+        Font = Theme.FontSemibold,
+        Text = "Enter Your Key",
+        TextColor3 = Theme.Text,
+        TextSize = 11,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        Parent = InputSection
+    })
+    
+    local KeyInputBox = Create("Frame", {
+        Size = UDim2.new(1, -16, 0, 32),
+        Position = UDim2.new(0, 8, 0, 30),
+        BackgroundColor3 = Theme.SurfaceLight,
+        Parent = InputSection
+    })
+    Corner(KeyInputBox, Theme.CornerSmall)
+    Stroke(KeyInputBox, Theme.Border)
+    
+    local KeyInput = Create("TextBox", {
+        Size = UDim2.new(1, -16, 1, 0),
+        Position = UDim2.new(0, 8, 0, 0),
+        BackgroundTransparency = 1,
+        Font = Theme.Font,
+        PlaceholderText = "Paste your key here...",
+        PlaceholderColor3 = Theme.TextMuted,
+        Text = "",
+        TextColor3 = Theme.Text,
+        TextSize = 11,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        ClearTextOnFocus = false,
+        Parent = KeyInputBox
+    })
+    
+    KeyInput.Focused:Connect(function()
+        Tween(KeyInputBox, {BackgroundColor3 = Theme.SurfaceHover}, Theme.SpeedFast)
+    end)
+    
+    KeyInput.FocusLost:Connect(function()
+        Tween(KeyInputBox, {BackgroundColor3 = Theme.SurfaceLight}, Theme.SpeedFast)
+    end)
+    
+    -- Status Message
+    local StatusLabel = Create("TextLabel", {
+        Size = UDim2.new(1, 0, 0, 20),
+        Position = UDim2.new(0, 0, 0, 78),
+        BackgroundTransparency = 1,
+        Font = Theme.Font,
+        Text = "",
+        TextColor3 = Theme.TextSecondary,
+        TextSize = 10,
+        Parent = Content
+    })
+    
+    -- Buttons
+    local ButtonContainer = Create("Frame", {
+        Size = UDim2.new(1, 0, 0, 36),
+        Position = UDim2.new(0, 0, 0, 102),
+        BackgroundTransparency = 1,
+        Parent = Content
+    })
+    
+    -- Verify Button
+    local VerifyBtn = Create("TextButton", {
+        Size = UDim2.new(0.48, 0, 1, 0),
+        Position = UDim2.new(0, 0, 0, 0),
+        BackgroundColor3 = Theme.Accent,
+        Font = Theme.FontSemibold,
+        Text = "Verify Key",
+        TextColor3 = Theme.Text,
+        TextSize = 12,
+        AutoButtonColor = false,
+        ClipsDescendants = true,
+        Parent = ButtonContainer
+    })
+    Corner(VerifyBtn, Theme.CornerSmall)
+    
+    local verifyHover, verifyPressed = false, false
+    local function UpdateVerifyState()
+        local targetColor
+        if verifyPressed then
+            targetColor = Theme.AccentActive
+        elseif verifyHover then
+            targetColor = Theme.AccentHover
+        else
+            targetColor = Theme.Accent
+        end
+        Tween(VerifyBtn, {BackgroundColor3 = targetColor}, Theme.SpeedFast)
+    end
+    
+    VerifyBtn.MouseEnter:Connect(function() verifyHover = true UpdateVerifyState() end)
+    VerifyBtn.MouseLeave:Connect(function() verifyHover = false verifyPressed = false UpdateVerifyState() end)
+    VerifyBtn.MouseButton1Down:Connect(function() verifyPressed = true UpdateVerifyState() end)
+    VerifyBtn.MouseButton1Up:Connect(function() verifyPressed = false UpdateVerifyState() end)
+    
+    -- Get Key Button
+    local GetKeyBtn = Create("TextButton", {
+        AnchorPoint = Vector2.new(1, 0),
+        Size = UDim2.new(0.48, 0, 1, 0),
+        Position = UDim2.new(1, 0, 0, 0),
+        BackgroundColor3 = Theme.SurfaceLight,
+        Font = Theme.FontSemibold,
+        Text = "Get Key",
+        TextColor3 = Theme.Text,
+        TextSize = 12,
+        AutoButtonColor = false,
+        ClipsDescendants = true,
+        Parent = ButtonContainer
+    })
+    Corner(GetKeyBtn, Theme.CornerSmall)
+    Stroke(GetKeyBtn, Theme.Border)
+    
+    local getKeyHover, getKeyPressed = false, false
+    local function UpdateGetKeyState()
+        local targetColor
+        if getKeyPressed then
+            targetColor = Theme.SurfaceActive
+        elseif getKeyHover then
+            targetColor = Theme.SurfaceHover
+        else
+            targetColor = Theme.SurfaceLight
+        end
+        Tween(GetKeyBtn, {BackgroundColor3 = targetColor}, Theme.SpeedFast)
+    end
+    
+    GetKeyBtn.MouseEnter:Connect(function() getKeyHover = true UpdateGetKeyState() end)
+    GetKeyBtn.MouseLeave:Connect(function() getKeyHover = false getKeyPressed = false UpdateGetKeyState() end)
+    GetKeyBtn.MouseButton1Down:Connect(function() getKeyPressed = true UpdateGetKeyState() end)
+    GetKeyBtn.MouseButton1Up:Connect(function() getKeyPressed = false UpdateGetKeyState() end)
+    
+    -- Discord Section
+    local DiscordSection = Create("Frame", {
+        Size = UDim2.new(1, 0, 0, 38),
+        Position = UDim2.new(0, 0, 0, 146),
+        BackgroundColor3 = Theme.Surface,
+        Parent = Content
+    })
+    Corner(DiscordSection, Theme.CornerMedium)
+    Stroke(DiscordSection, Theme.Border)
+    
+    Create("TextLabel", {
+        Size = UDim2.new(0, 20, 1, 0),
+        Position = UDim2.new(0, 10, 0, 0),
+        BackgroundTransparency = 1,
+        Font = Theme.Font,
+        Text = "💬",
+        TextSize = 12,
+        Parent = DiscordSection
+    })
+    
+    Create("TextLabel", {
+        Size = UDim2.new(0, 100, 1, 0),
+        Position = UDim2.new(0, 32, 0, 0),
+        BackgroundTransparency = 1,
+        Font = Theme.FontSemibold,
+        Text = "Need help?",
+        TextColor3 = Theme.Text,
+        TextSize = 11,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        Parent = DiscordSection
+    })
+    
+    local DiscordBtn = Create("TextButton", {
+        AnchorPoint = Vector2.new(1, 0.5),
+        Size = UDim2.new(0, 100, 0, 26),
+        Position = UDim2.new(1, -8, 0.5, 0),
+        BackgroundColor3 = Theme.SurfaceLight,
+        Font = Theme.FontSemibold,
+        Text = "Join Discord",
+        TextColor3 = Theme.Text,
+        TextSize = 10,
+        AutoButtonColor = false,
+        Parent = DiscordSection
+    })
+    Corner(DiscordBtn, Theme.CornerSmall)
+    Stroke(DiscordBtn, Theme.Border)
+    
+    DiscordBtn.MouseEnter:Connect(function()
+        Tween(DiscordBtn, {BackgroundColor3 = Theme.SurfaceHover}, Theme.SpeedFast)
+    end)
+    DiscordBtn.MouseLeave:Connect(function()
+        Tween(DiscordBtn, {BackgroundColor3 = Theme.SurfaceLight}, Theme.SpeedFast)
+    end)
+    
+    -- Info Text
+    Create("TextLabel", {
+        Size = UDim2.new(1, 0, 0, 14),
+        Position = UDim2.new(0, 0, 1, -14),
+        BackgroundTransparency = 1,
+        Font = Theme.Font,
+        Text = "Keys are valid for 24 hours after activation",
+        TextColor3 = Theme.TextMuted,
+        TextSize = 9,
+        Parent = Content
+    })
+    
+    -- Button Functionality
+    local function SetStatus(text, color)
+        StatusLabel.Text = text
+        StatusLabel.TextColor3 = color or Theme.TextSecondary
+    end
+    
+    local function CloseKeySystem()
+        dragConnection:Disconnect()
+        Tween(BlurFrame, {BackgroundTransparency = 1}, Theme.SpeedNormal)
+        Tween(Shadow, {ImageTransparency = 1}, Theme.SpeedFast)
+        Tween(MainStroke, {Transparency = 1}, Theme.SpeedFast)
+        Tween(Main, {BackgroundTransparency = 1, Size = UDim2.new(0, 340, 0, 0)}, Theme.SpeedNormal)
+        task.delay(Theme.SpeedNormal + 0.05, function()
+            ScreenGui:Destroy()
+        end)
+    end
+    
+    VerifyBtn.MouseButton1Click:Connect(function()
+        Ripple(VerifyBtn)
+        local key = KeyInput.Text
+        
+        if key == "" then
+            SetStatus("Please enter a key.", Theme.Warning)
+            return
+        end
+        
+        SetStatus("Verifying key...", Theme.TextSecondary)
+        VerifyBtn.Text = "..."
+        
+        task.spawn(function()
+            local success, message = KeySystem.VerifyKey(key)
+            
+            if success then
+                SetStatus("✓ " .. message, Theme.Success)
+                VerifyBtn.Text = "Success!"
+                Tween(VerifyBtn, {BackgroundColor3 = Theme.Success}, Theme.SpeedFast)
+                
+                task.delay(1, function()
+                    CloseKeySystem()
+                    task.delay(0.3, function()
+                        onSuccess()
+                    end)
+                end)
+            else
+                SetStatus("✗ " .. message, Theme.Error)
+                VerifyBtn.Text = "Verify Key"
+                Tween(VerifyBtn, {BackgroundColor3 = Theme.Error}, Theme.SpeedFast)
+                task.delay(1, function()
+                    Tween(VerifyBtn, {BackgroundColor3 = Theme.Accent}, Theme.SpeedFast)
+                end)
+                onFailed(message)
+            end
+        end)
+    end)
+    
+    GetKeyBtn.MouseButton1Click:Connect(function()
+        Ripple(GetKeyBtn)
+        SetStatus("Getting key link...", Theme.TextSecondary)
+        
+        task.spawn(function()
+            local success = KeySystem.CopyLink()
+            if success then
+                SetStatus("✓ Link copied to clipboard!", Theme.Success)
+                GetKeyBtn.Text = "Copied!"
+                task.delay(2, function()
+                    GetKeyBtn.Text = "Get Key"
+                    SetStatus("", Theme.TextSecondary)
+                end)
+            else
+                SetStatus("✗ Failed to get link.", Theme.Error)
+            end
+        end)
+    end)
+    
+    DiscordBtn.MouseButton1Click:Connect(function()
+        Ripple(DiscordBtn)
+        pcall(function()
+            setclipboard(discordLink)
+        end)
+        DiscordBtn.Text = "Copied!"
+        task.delay(1.5, function()
+            DiscordBtn.Text = "Join Discord"
+        end)
+    end)
+    
+    return {
+        Destroy = CloseKeySystem,
+        SetStatus = SetStatus
+    }
+end
+
+-- Main Library Init Function
+function Kovari:Init(config)
+    config = config or {}
+    local toggleKey = config.ToggleKey or Enum.KeyCode.RightControl
+    local discordInvite = config.Discord or "discord.gg/49JBP5JRSR"
+
+    -- Screen GUI
+    local ScreenGui = Create("ScreenGui", {
+        Name = "KovariUI",
+        ResetOnSpawn = false,
+        ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+        IgnoreGuiInset = true
+    })
+
+    if syn and syn.protect_gui then
+        syn.protect_gui(ScreenGui)
+        ScreenGui.Parent = CoreGui
+    elseif gethui then
+        ScreenGui.Parent = gethui()
+    else
+        ScreenGui.Parent = CoreGui
+    end
+
+    -- UI Scale for resizing
+    local UIScaleObj = Create("UIScale", {
+        Scale = 1,
+        Parent = ScreenGui
+    })
+
+    -- Main Frame
+    local Main = Create("Frame", {
+        Name = "Main",
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        Position = UDim2.new(0.5, 0, 0.5, 0),
+        Size = UDim2.new(0, 560, 0, 360),
+        BackgroundColor3 = Theme.Background,
+        ClipsDescendants = true,
+        Parent = ScreenGui
+    })
+    Corner(Main, Theme.CornerLarge)
+    local MainStroke = Stroke(Main, Theme.Border)
+
+    -- Shadow
+    local Shadow = Create("ImageLabel", {
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        Position = UDim2.new(0.5, 0, 0.5, 3),
+        Size = UDim2.new(1, 24, 1, 24),
+        BackgroundTransparency = 1,
+        Image = "rbxassetid://5554236805",
+        ImageColor3 = Color3.fromRGB(0, 0, 0),
+        ImageTransparency = 0.65,
+        ScaleType = Enum.ScaleType.Slice,
+        SliceCenter = Rect.new(23, 23, 277, 277),
+        ZIndex = -1,
+        Parent = Main
+    })
+
+    -- Intro Animation
+    Main.BackgroundTransparency = 1
+    MainStroke.Transparency = 1
+    Shadow.ImageTransparency = 1
+    Main.Size = UDim2.new(0, 520, 0, 330)
+
+    task.spawn(function()
+        task.wait(0.03)
+        Tween(Main, {BackgroundTransparency = 0, Size = UDim2.new(0, 560, 0, 360)}, Theme.SpeedSlow, Enum.EasingStyle.Back)
+        Tween(MainStroke, {Transparency = 0}, Theme.SpeedNormal)
+        task.wait(0.08)
+        Tween(Shadow, {ImageTransparency = 0.65}, Theme.SpeedNormal)
+    end)
+
+    -- Top Bar
+    local TopBar = Create("Frame", {
+        Size = UDim2.new(1, 0, 0, 44),
+        BackgroundColor3 = Theme.Surface,
+        Parent = Main
+    })
+    Corner(TopBar, Theme.CornerLarge)
+
+    Create("Frame", {
+        Size = UDim2.new(1, 0, 0, 10),
+        Position = UDim2.new(0, 0, 1, -10),
+        BackgroundColor3 = Theme.Surface,
+        BorderSizePixel = 0,
+        Parent = TopBar
+    })
+
+    Create("Frame", {
+        Size = UDim2.new(1, -24, 0, 1),
+        Position = UDim2.new(0, 12, 1, 0),
+        BackgroundColor3 = Theme.Divider,
+        BorderSizePixel = 0,
+        Parent = TopBar
+    })
+
+    -- Logo with Image
+    local Logo = Create("Frame", {
+        Size = UDim2.new(0, 28, 0, 28),
+        Position = UDim2.new(0, 12, 0.5, -14),
+        BackgroundColor3 = Theme.Accent,
+        Parent = TopBar
+    })
+    Corner(Logo, 6)
+
+    Create("ImageLabel", {
+        Size = UDim2.new(1, -4, 1, -4),
+        Position = UDim2.new(0, 2, 0, 2),
+        BackgroundTransparency = 1,
+        Image = "rbxassetid://104988871729944",
+        ScaleType = Enum.ScaleType.Fit,
+        Parent = Logo
+    })
+
+    Create("TextLabel", {
+        Size = UDim2.new(0, 70, 0, 18),
+        Position = UDim2.new(0, 48, 0.5, -9),
+        BackgroundTransparency = 1,
+        Font = Theme.FontBold,
+        Text = "KOVARI",
+        TextColor3 = Theme.Text,
+        TextSize = 14,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        Parent = TopBar
+    })
+
+    -- Status
+    local StatusContainer = Create("Frame", {
+        AnchorPoint = Vector2.new(1, 0.5),
+        Position = UDim2.new(1, -12, 0.5, 0),
+        Size = UDim2.new(0, 180, 0, 30),
+        BackgroundTransparency = 1,
+        Parent = TopBar
+    })
+
+    local StatusDot = Create("Frame", {
+        AnchorPoint = Vector2.new(1, 0.5),
+        Size = UDim2.new(0, 6, 0, 6),
+        Position = UDim2.new(1, 0, 0.5, 5),
+        BackgroundColor3 = Theme.Success,
+        Parent = StatusContainer
+    })
+    Corner(StatusDot, 3)
+
+    local StatusText = Create("TextLabel", {
+        AnchorPoint = Vector2.new(1, 0),
+        Size = UDim2.new(1, -10, 0, 12),
+        Position = UDim2.new(1, -10, 0.5, 0),
+        BackgroundTransparency = 1,
+        Font = Theme.Font,
+        Text = "Connected",
+        TextColor3 = Theme.Success,
+        TextSize = 10,
+        TextXAlignment = Enum.TextXAlignment.Right,
+        Parent = StatusContainer
+    })
+
+    Create("TextLabel", {
+        AnchorPoint = Vector2.new(1, 1),
+        Size = UDim2.new(1, 0, 0, 12),
+        Position = UDim2.new(1, 0, 0.5, -2),
+        BackgroundTransparency = 1,
+        Font = Theme.FontSemibold,
+        Text = GetGameName(),
+        TextColor3 = Theme.Text,
+        TextSize = 11,
+        TextXAlignment = Enum.TextXAlignment.Right,
+        TextTruncate = Enum.TextTruncate.AtEnd,
+        Parent = StatusContainer
+    })
+
+    -- Smooth Dragging
+    local dragging = false
+    local dragStart = nil
+    local startPos = nil
+    local smoothness = 0.15
+    local targetPosition = Main.Position
+
+    TopBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = Main.Position
+        end
+    end)
+
+    TopBar.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = input.Position - dragStart
+            targetPosition = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+
+    RunService.RenderStepped:Connect(function()
+        if dragging then
+            local currentX = Main.Position.X.Offset
+            local currentY = Main.Position.Y.Offset
+            local targetX = targetPosition.X.Offset
+            local targetY = targetPosition.Y.Offset
+            local newX = currentX + (targetX - currentX) * smoothness
+            local newY = currentY + (targetY - currentY) * smoothness
+            Main.Position = UDim2.new(Main.Position.X.Scale, newX, Main.Position.Y.Scale, newY)
+        end
+    end)
+
+    -- Tab Bar
+    local TabBar = Create("Frame", {
+        Size = UDim2.new(1, -24, 0, 30),
+        Position = UDim2.new(0, 12, 0, 48),
+        BackgroundTransparency = 1,
+        Parent = Main
+    })
+
+    Create("UIListLayout", {
+        FillDirection = Enum.FillDirection.Horizontal,
+        SortOrder = Enum.SortOrder.LayoutOrder,
+        Padding = UDim.new(0, 3),
+        Parent = TabBar
+    })
+
+    -- Content Area
+    local ContentArea = Create("Frame", {
+        Size = UDim2.new(1, -24, 1, -90),
+        Position = UDim2.new(0, 12, 0, 82),
+        BackgroundTransparency = 1,
+        ClipsDescendants = true,
+        Parent = Main
+    })
+
+    -- Tab System
+    local AllTabs = {}
+    local CurrentTab = nil
+
+    local function SwitchTab(newTab)
+        if CurrentTab == newTab then return end
+        
+        for _, tab in ipairs(AllTabs) do
+            tab.Content.Visible = false
+            Tween(tab.Button, {TextColor3 = Theme.TextMuted}, Theme.SpeedFast)
+            Tween(tab.Indicator, {Size = UDim2.new(0, 0, 0, 2)}, Theme.SpeedFast)
+        end
+        
+        newTab.Content.Visible = true
+        Tween(newTab.Button, {TextColor3 = Theme.Text}, Theme.SpeedFast)
+        Tween(newTab.Indicator, {Size = UDim2.new(0.6, 0, 0, 2)}, Theme.SpeedNormal, Enum.EasingStyle.Back)
+        
+        CurrentTab = newTab
+    end
+
+    -- Built-in Profile Tab
+    local function CreateProfileTab()
+        local tab = {}
+        
+        local textWidth = TextService:GetTextSize("Profile", 11, Theme.FontSemibold, Vector2.new(100, 30)).X
+        local btnWidth = math.max(textWidth + 18, 60)
+        
+        local btn = Create("TextButton", {
+            Size = UDim2.new(0, btnWidth, 1, 0),
+            BackgroundTransparency = 1,
+            Font = Theme.FontSemibold,
+            Text = "Profile",
+            TextColor3 = Theme.TextMuted,
+            TextSize = 11,
+            AutoButtonColor = false,
+            LayoutOrder = -100,
+            Parent = TabBar
+        })
+        
+        local indicator = Create("Frame", {
+            AnchorPoint = Vector2.new(0.5, 1),
+            Size = UDim2.new(0, 0, 0, 2),
+            Position = UDim2.new(0.5, 0, 1, 0),
+            BackgroundColor3 = Theme.Accent,
+            BorderSizePixel = 0,
+            Parent = btn
+        })
+        Corner(indicator, 1)
+        
+        local content = Create("Frame", {
+            Size = UDim2.new(1, 0, 1, 0),
+            BackgroundTransparency = 1,
+            Visible = false,
+            Parent = ContentArea
+        })
+        
+        -- Left Panel
+        local LeftPanel = Create("Frame", {
+            Size = UDim2.new(0, 155, 1, 0),
+            BackgroundColor3 = Theme.Surface,
+            Parent = content
+        })
+        Corner(LeftPanel, Theme.CornerMedium)
+        Stroke(LeftPanel, Theme.Border)
+
+        -- Avatar
+        local AvatarContainer = Create("Frame", {
+            AnchorPoint = Vector2.new(0.5, 0),
+            Size = UDim2.new(0, 85, 0, 85),
+            Position = UDim2.new(0.5, 0, 0, 14),
+            BackgroundColor3 = Theme.SurfaceLight,
+            Parent = LeftPanel
+        })
+        Corner(AvatarContainer, Theme.CornerMedium)
+        Stroke(AvatarContainer, Theme.Border)
+
+        local Avatar = Create("ImageLabel", {
+            Size = UDim2.new(1, -6, 1, -6),
+            Position = UDim2.new(0, 3, 0, 3),
+            BackgroundTransparency = 1,
+            Image = "rbxthumb://type=AvatarHeadShot&id=" .. LocalPlayer.UserId .. "&w=420&h=420",
+            Parent = AvatarContainer
+        })
+        Corner(Avatar, 5)
+
+        Create("TextLabel", {
+            AnchorPoint = Vector2.new(0.5, 0),
+            Size = UDim2.new(1, -16, 0, 16),
+            Position = UDim2.new(0.5, 0, 0, 106),
+            BackgroundTransparency = 1,
+            Font = Theme.FontBold,
+            Text = LocalPlayer.DisplayName,
+            TextColor3 = Theme.Text,
+            TextSize = 13,
+            TextTruncate = Enum.TextTruncate.AtEnd,
+            Parent = LeftPanel
+        })
+
+        Create("TextLabel", {
+            AnchorPoint = Vector2.new(0.5, 0),
+            Size = UDim2.new(1, -16, 0, 13),
+            Position = UDim2.new(0.5, 0, 0, 123),
+            BackgroundTransparency = 1,
+            Font = Theme.Font,
+            Text = "@" .. LocalPlayer.Name,
+            TextColor3 = Theme.TextSecondary,
+            TextSize = 10,
+            TextTruncate = Enum.TextTruncate.AtEnd,
+            Parent = LeftPanel
+        })
+
+        local AccentLine = Create("Frame", {
+            AnchorPoint = Vector2.new(0.5, 0),
+            Size = UDim2.new(0, 35, 0, 2),
+            Position = UDim2.new(0.5, 0, 0, 144),
+            BackgroundColor3 = Theme.Accent,
+            Parent = LeftPanel
+        })
+        Corner(AccentLine, 1)
+
+        -- Discord Button
+        local DiscordBox = Create("Frame", {
+            AnchorPoint = Vector2.new(0.5, 1),
+            Size = UDim2.new(1, -16, 0, 30),
+            Position = UDim2.new(0.5, 0, 1, -8),
+            BackgroundColor3 = Theme.SurfaceLight,
+            Parent = LeftPanel
+        })
+        Corner(DiscordBox, Theme.CornerSmall)
+        Stroke(DiscordBox, Theme.Border)
+
+        Create("TextLabel", {
+            Size = UDim2.new(0, 14, 1, 0),
+            Position = UDim2.new(0, 8, 0, 0),
+            BackgroundTransparency = 1,
+            Font = Theme.Font,
+            Text = "🔗",
+            TextSize = 9,
+            Parent = DiscordBox
+        })
+
+        local DiscordLabel = Create("TextLabel", {
+            Size = UDim2.new(1, -28, 1, 0),
+            Position = UDim2.new(0, 24, 0, 0),
+            BackgroundTransparency = 1,
+            Font = Theme.Font,
+            Text = discordInvite,
+            TextColor3 = Theme.TextSecondary,
+            TextSize = 9,
+            TextXAlignment = Enum.TextXAlignment.Left,
+            TextTruncate = Enum.TextTruncate.AtEnd,
+            Parent = DiscordBox
+        })
+
+        local DiscordButton = Create("TextButton", {
+            Size = UDim2.new(1, 0, 1, 0),
+            BackgroundTransparency = 1,
+            Text = "",
+            Parent = DiscordBox
+        })
+
+        local copying = false
+        DiscordButton.MouseButton1Click:Connect(function()
+            if copying then return end
+            copying = true
+            pcall(function() setclipboard(discordInvite) end)
+            
+            local orig = DiscordLabel.Text
+            DiscordLabel.Text = "Copied!"
+            DiscordLabel.TextColor3 = Theme.Success
+            Tween(DiscordBox, {BackgroundColor3 = Theme.AccentMuted}, Theme.SpeedFast)
+            
+            task.delay(1, function()
+                DiscordLabel.Text = orig
+                DiscordLabel.TextColor3 = Theme.TextSecondary
+                Tween(DiscordBox, {BackgroundColor3 = Theme.SurfaceLight}, Theme.SpeedFast)
+                copying = false
+            end)
+        end)
+
+        DiscordButton.MouseEnter:Connect(function()
+            if not copying then Tween(DiscordBox, {BackgroundColor3 = Theme.SurfaceHover}, Theme.SpeedFast) end
+        end)
+
+        DiscordButton.MouseLeave:Connect(function()
+            if not copying then Tween(DiscordBox, {BackgroundColor3 = Theme.SurfaceLight}, Theme.SpeedFast) end
+        end)
+
+        -- Right Panel
+        local RightPanel = Create("Frame", {
+            AnchorPoint = Vector2.new(1, 0),
+            Position = UDim2.new(1, 0, 0, 0),
+            Size = UDim2.new(1, -165, 1, 0),
+            BackgroundColor3 = Theme.Surface,
+            Parent = content
+        })
+        Corner(RightPanel, Theme.CornerMedium)
+        Stroke(RightPanel, Theme.Border)
+
+        Create("TextLabel", {
+            Size = UDim2.new(1, -20, 0, 18),
+            Position = UDim2.new(0, 10, 0, 10),
+            BackgroundTransparency = 1,
+            Font = Theme.FontBold,
+            Text = "Account Information",
+            TextColor3 = Theme.Text,
+            TextSize = 12,
+            TextXAlignment = Enum.TextXAlignment.Left,
+            Parent = RightPanel
+        })
+
+        Create("Frame", {
+            Size = UDim2.new(1, -20, 0, 1),
+            Position = UDim2.new(0, 10, 0, 32),
+            BackgroundColor3 = Theme.Divider,
+            BorderSizePixel = 0,
+            Parent = RightPanel
+        })
+
+        local InfoList = Create("Frame", {
+            Size = UDim2.new(1, -20, 1, -45),
+            Position = UDim2.new(0, 10, 0, 38),
+            BackgroundTransparency = 1,
+            Parent = RightPanel
+        })
+
+        Create("UIListLayout", {
+            SortOrder = Enum.SortOrder.LayoutOrder,
+            Padding = UDim.new(0, 0),
+            Parent = InfoList
+        })
+
+        local function InfoRow(label, value)
+            local row = Create("Frame", {
+                Size = UDim2.new(1, 0, 0, 36),
+                BackgroundTransparency = 1,
+                Parent = InfoList
+            })
+            
+            Create("TextLabel", {
+                Size = UDim2.new(0.4, 0, 1, 0),
+                BackgroundTransparency = 1,
+                Font = Theme.Font,
+                Text = label,
+                TextColor3 = Theme.TextSecondary,
+                TextSize = 10,
+                TextXAlignment = Enum.TextXAlignment.Left,
+                Parent = row
+            })
+            
+            Create("TextLabel", {
+                AnchorPoint = Vector2.new(1, 0),
+                Size = UDim2.new(0.58, 0, 1, 0),
+                Position = UDim2.new(1, 0, 0, 0),
+                BackgroundTransparency = 1,
+                Font = Theme.FontSemibold,
+                Text = value,
+                TextColor3 = Theme.Text,
+                TextSize = 10,
+                TextXAlignment = Enum.TextXAlignment.Right,
+                TextTruncate = Enum.TextTruncate.AtEnd,
+                Parent = row
+            })
+            
+            Create("Frame", {
+                AnchorPoint = Vector2.new(0, 1),
+                Size = UDim2.new(1, 0, 0, 1),
+                Position = UDim2.new(0, 0, 1, 0),
+                BackgroundColor3 = Theme.Divider,
+                BorderSizePixel = 0,
+                Parent = row
+            })
+        end
+                InfoRow("User ID", tostring(LocalPlayer.UserId))
+        InfoRow("Account Age", tostring(LocalPlayer.AccountAge) .. " days")
+        InfoRow("Join Date", FormatDate(os.time() - (LocalPlayer.AccountAge * 86400)))
+        InfoRow("Current Game", GetGameName())
+        InfoRow("Server ID", game.JobId ~= "" and (game.JobId:sub(1, 12) .. "...") or "Studio")
+        
+        tab.Name = "Profile"
+        tab.Button = btn
+        tab.Indicator = indicator
+        tab.Content = content
+        
+        btn.MouseButton1Click:Connect(function()
+            SwitchTab(tab)
+        end)
+        
+        btn.MouseEnter:Connect(function()
+            if CurrentTab ~= tab then
+                Tween(btn, {TextColor3 = Theme.TextSecondary}, Theme.SpeedFast)
+            end
+        end)
+        
+        btn.MouseLeave:Connect(function()
+            if CurrentTab ~= tab then
+                Tween(btn, {TextColor3 = Theme.TextMuted}, Theme.SpeedFast)
+            end
+        end)
+        
+        table.insert(AllTabs, tab)
+        
+        task.defer(function()
+            SwitchTab(tab)
+        end)
+        
+        return tab
+    end
+    
+    CreateProfileTab()
+
+    -- Toggle UI
+    local visible = true
+    local toggling = false
+    local uiScale = 100
+
+    UserInputService.InputBegan:Connect(function(input, gpe)
+        if not gpe and input.KeyCode == toggleKey and not toggling then
+            toggling = true
+            visible = not visible
+            
+            if visible then
+                Main.Visible = true
+                Main.BackgroundTransparency = 1
+                Main.Size = UDim2.new(0, 560, 0, 0)
+                Main.Position = UDim2.new(0.5, 0, 0.5, 0)
+                MainStroke.Transparency = 1
+                Shadow.ImageTransparency = 1
+                
+                Tween(Main, {
+                    BackgroundTransparency = 0, 
+                    Size = UDim2.new(0, 560, 0, 360)
+                }, Theme.SpeedSlow, Enum.EasingStyle.Back)
+                Tween(MainStroke, {Transparency = 0}, Theme.SpeedNormal)
+                task.delay(0.1, function()
+                    Tween(Shadow, {ImageTransparency = 0.65}, Theme.SpeedNormal)
+                end)
+                
+                task.delay(Theme.SpeedSlow, function() toggling = false end)
+            else
+                Tween(Shadow, {ImageTransparency = 1}, Theme.SpeedFast)
+                Tween(Main, {
+                    BackgroundTransparency = 1, 
+                    Size = UDim2.new(0, 560, 0, 0)
+                }, Theme.SpeedNormal, Enum.EasingStyle.Quint)
+                Tween(MainStroke, {Transparency = 1}, Theme.SpeedNormal)
+                
+                task.delay(Theme.SpeedNormal, function()
+                    if not visible then Main.Visible = false end
+                    toggling = false
+                end)
+            end
+        end
+    end)
+
+    -- API
+    local API = {
+        Gui = ScreenGui,
+        Main = Main,
+        Theme = Theme,
+        
+        CreateTab = function(_, name, default)
+            local tab = {}
+            
+            local textWidth = TextService:GetTextSize(name, 11, Theme.FontSemibold, Vector2.new(100, 30)).X
+            local btnWidth = math.max(textWidth + 18, 60)
+            
+            local btn = Create("TextButton", {
+                Size = UDim2.new(0, btnWidth, 1, 0),
+                BackgroundTransparency = 1,
+                Font = Theme.FontSemibold,
+                Text = name,
+                TextColor3 = Theme.TextMuted,
+                TextSize = 11,
+                AutoButtonColor = false,
+                Parent = TabBar
+            })
+            
+            local indicator = Create("Frame", {
+                AnchorPoint = Vector2.new(0.5, 1),
+                Size = UDim2.new(0, 0, 0, 2),
+                Position = UDim2.new(0.5, 0, 1, 0),
+                BackgroundColor3 = Theme.Accent,
+                BorderSizePixel = 0,
+                Parent = btn
+            })
+            Corner(indicator, 1)
+            
+            local tabContent = Create("Frame", {
+                Size = UDim2.new(1, 0, 1, 0),
+                BackgroundTransparency = 1,
+                Visible = false,
+                Parent = ContentArea
+            })
+            
+            tab.Name = name
+            tab.Button = btn
+            tab.Indicator = indicator
+            tab.Content = tabContent
+            
+            btn.MouseButton1Click:Connect(function()
+                SwitchTab(tab)
+            end)
+            
+            btn.MouseEnter:Connect(function()
+                if CurrentTab ~= tab then
+                    Tween(btn, {TextColor3 = Theme.TextSecondary}, Theme.SpeedFast)
+                end
+            end)
+            
+            btn.MouseLeave:Connect(function()
+                if CurrentTab ~= tab then
+                    Tween(btn, {TextColor3 = Theme.TextMuted}, Theme.SpeedFast)
+                end
+            end)
+            
+            table.insert(AllTabs, tab)
+            
+            if default then
+                task.defer(function()
+                    SwitchTab(tab)
+                end)
+            end
+            
+            -- Tab API
+            local TabAPI = {}
+            
+            function TabAPI:AddSection(sectionName)
+                local section = {}
+                
+                local sectionFrame = Create("Frame", {
+                    Size = UDim2.new(1, 0, 0, 0),
+                    BackgroundColor3 = Theme.Surface,
+                    AutomaticSize = Enum.AutomaticSize.Y,
+                    Parent = tabContent
+                })
+                Corner(sectionFrame, Theme.CornerMedium)
+                Stroke(sectionFrame, Theme.Border)
+                
+                Create("TextLabel", {
+                    Size = UDim2.new(1, -20, 0, 28),
+                    Position = UDim2.new(0, 10, 0, 0),
+                    BackgroundTransparency = 1,
+                    Font = Theme.FontBold,
+                    Text = sectionName,
+                    TextColor3 = Theme.Text,
+                    TextSize = 12,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    Parent = sectionFrame
+                })
+                
+                Create("Frame", {
+                    Size = UDim2.new(1, -20, 0, 1),
+                    Position = UDim2.new(0, 10, 0, 28),
+                    BackgroundColor3 = Theme.Divider,
+                    BorderSizePixel = 0,
+                    Parent = sectionFrame
+                })
+                
+                local sectionContent = Create("Frame", {
+                    Size = UDim2.new(1, -20, 0, 0),
+                    Position = UDim2.new(0, 10, 0, 34),
+                    BackgroundTransparency = 1,
+                    AutomaticSize = Enum.AutomaticSize.Y,
+                    Parent = sectionFrame
+                })
+                
+                Create("UIListLayout", {
+                    SortOrder = Enum.SortOrder.LayoutOrder,
+                    Padding = UDim.new(0, 0),
+                    Parent = sectionContent
+                })
+                
+                Create("UIPadding", {
+                    PaddingBottom = UDim.new(0, 10),
+                    Parent = sectionFrame
+                })
+                
+                section.Frame = sectionFrame
+                section.Content = sectionContent
+                
+                function section:AddToggle(cfg)
+                    cfg = cfg or {}
+                    local toggleName = cfg.Name or "Toggle"
+                    local default = cfg.Default or false
+                    local callback = cfg.Callback or function() end
+                    
+                    local state = default
+                    
+                    local row = Create("Frame", {
+                        Size = UDim2.new(1, 0, 0, 36),
+                        BackgroundTransparency = 1,
+                        Parent = sectionContent
+                    })
+                    
+                    Create("TextLabel", {
+                        Size = UDim2.new(0.6, 0, 1, 0),
+                        BackgroundTransparency = 1,
+                        Font = Theme.FontSemibold,
+                        Text = toggleName,
+                        TextColor3 = Theme.Text,
+                        TextSize = 11,
+                        TextXAlignment = Enum.TextXAlignment.Left,
+                        Parent = row
+                    })
+                    
+                    local switch = Create("Frame", {
+                        AnchorPoint = Vector2.new(1, 0.5),
+                        Position = UDim2.new(1, 0, 0.5, 0),
+                        Size = UDim2.new(0, 34, 0, 18),
+                        BackgroundColor3 = state and Theme.Accent or Theme.SurfaceLight,
+                        Parent = row
+                    })
+                    Corner(switch, 9)
+                    local switchStroke = Stroke(switch, state and Theme.AccentMuted or Theme.Border)
+                    
+                    local knob = Create("Frame", {
+                        AnchorPoint = Vector2.new(0, 0.5),
+                        Position = state and UDim2.new(1, -14, 0.5, 0) or UDim2.new(0, 3, 0.5, 0),
+                        Size = UDim2.new(0, 11, 0, 11),
+                        BackgroundColor3 = Theme.Text,
+                        Parent = switch
+                    })
+                    Corner(knob, 6)
+                    
+                    local switchBtn = Create("TextButton", {
+                        Size = UDim2.new(1, 0, 1, 0),
+                        BackgroundTransparency = 1,
+                        Text = "",
+                        Parent = switch
+                    })
+                    
+                    switchBtn.MouseButton1Click:Connect(function()
+                        state = not state
+                        Tween(switch, {BackgroundColor3 = state and Theme.Accent or Theme.SurfaceLight}, Theme.SpeedFast)
+                        Tween(knob, {Position = state and UDim2.new(1, -14, 0.5, 0) or UDim2.new(0, 3, 0.5, 0)}, Theme.SpeedNormal, Enum.EasingStyle.Back)
+                        switchStroke.Color = state and Theme.AccentMuted or Theme.Border
+                        callback(state)
+                    end)
+                    
+                    Create("Frame", {
+                        AnchorPoint = Vector2.new(0, 1),
+                        Size = UDim2.new(1, 0, 0, 1),
+                        Position = UDim2.new(0, 0, 1, 0),
+                        BackgroundColor3 = Theme.Divider,
+                        BorderSizePixel = 0,
+                        Parent = row
+                    })
+                    
+                    return {
+                        SetState = function(_, newState)
+                            state = newState
+                            Tween(switch, {BackgroundColor3 = state and Theme.Accent or Theme.SurfaceLight}, Theme.SpeedFast)
+                            Tween(knob, {Position = state and UDim2.new(1, -14, 0.5, 0) or UDim2.new(0, 3, 0.5, 0)}, Theme.SpeedNormal, Enum.EasingStyle.Back)
+                            switchStroke.Color = state and Theme.AccentMuted or Theme.Border
+                        end,
+                        GetState = function()
+                            return state
+                        end
+                    }
+                end
+                
+                function section:AddSlider(cfg)
+                    cfg = cfg or {}
+                    local sliderName = cfg.Name or "Slider"
+                    local min = cfg.Min or 0
+                    local max = cfg.Max or 100
+                    local default = cfg.Default or min
+                    local suffix = cfg.Suffix or ""
+                    local callback = cfg.Callback or function() end
+                    
+                    local val = default
+                    
+                    local row = Create("Frame", {
+                        Size = UDim2.new(1, 0, 0, 44),
+                        BackgroundTransparency = 1,
+                        Parent = sectionContent
+                    })
+                    
+                    Create("TextLabel", {
+                        Size = UDim2.new(0.5, 0, 0, 20),
+                        BackgroundTransparency = 1,
+                        Font = Theme.FontSemibold,
+                        Text = sliderName,
+                        TextColor3 = Theme.Text,
+                        TextSize = 11,
+                        TextXAlignment = Enum.TextXAlignment.Left,
+                        Parent = row
+                    })
+                    
+                    local valLabel = Create("TextLabel", {
+                        AnchorPoint = Vector2.new(1, 0),
+                        Size = UDim2.new(0.5, 0, 0, 20),
+                        Position = UDim2.new(1, 0, 0, 0),
+                        BackgroundTransparency = 1,
+                        Font = Theme.FontBold,
+                        Text = tostring(val) .. suffix,
+                        TextColor3 = Theme.Accent,
+                        TextSize = 10,
+                        TextXAlignment = Enum.TextXAlignment.Right,
+                        Parent = row
+                    })
+                    
+                    local track = Create("Frame", {
+                        Size = UDim2.new(1, 0, 0, 4),
+                        Position = UDim2.new(0, 0, 0, 26),
+                        BackgroundColor3 = Theme.SurfaceLight,
+                        Parent = row
+                    })
+                    Corner(track, 2)
+                    
+                    local fill = Create("Frame", {
+                        Size = UDim2.new((val - min) / (max - min), 0, 1, 0),
+                        BackgroundColor3 = Theme.Accent,
+                        Parent = track
+                    })
+                    Corner(fill, 2)
+                    
+                    local sliderKnob = Create("Frame", {
+                        AnchorPoint = Vector2.new(0.5, 0.5),
+                        Position = UDim2.new((val - min) / (max - min), 0, 0.5, 0),
+                        Size = UDim2.new(0, 10, 0, 10),
+                        BackgroundColor3 = Theme.Text,
+                        ZIndex = 2,
+                        Parent = track
+                    })
+                    Corner(sliderKnob, 5)
+                    
+                    local hitbox = Create("TextButton", {
+                        Size = UDim2.new(1, 0, 1, 14),
+                        Position = UDim2.new(0, 0, 0, -7),
+                        BackgroundTransparency = 1,
+                        Text = "",
+                        Parent = track
+                    })
+                    
+                    local sliderDragging = false
+                    
+                    local function Update(input)
+                        local pct = math.clamp((input.Position.X - track.AbsolutePosition.X) / track.AbsoluteSize.X, 0, 1)
+                        val = math.floor(min + (max - min) * pct)
+                        valLabel.Text = tostring(val) .. suffix
+                        fill.Size = UDim2.new(pct, 0, 1, 0)
+                        sliderKnob.Position = UDim2.new(pct, 0, 0.5, 0)
+                        callback(val)
+                    end
+                    
+                    hitbox.InputBegan:Connect(function(input)
+                        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                            sliderDragging = true
+                            Update(input)
+                        end
+                    end)
+                    
+                    hitbox.InputEnded:Connect(function(input)
+                        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                            sliderDragging = false
+                        end
+                    end)
+                    
+                    UserInputService.InputChanged:Connect(function(input)
+                        if sliderDragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                            Update(input)
+                        end
+                    end)
+                    
+                    Create("Frame", {
+                        AnchorPoint = Vector2.new(0, 1),
+                        Size = UDim2.new(1, 0, 0, 1),
+                        Position = UDim2.new(0, 0, 1, 0),
+                        BackgroundColor3 = Theme.Divider,
+                        BorderSizePixel = 0,
+                        Parent = row
+                    })
+                    
+                    return {
+                        SetValue = function(_, newVal)
+                            val = math.clamp(newVal, min, max)
+                            local pct = (val - min) / (max - min)
+                            valLabel.Text = tostring(val) .. suffix
+                            fill.Size = UDim2.new(pct, 0, 1, 0)
+                            sliderKnob.Position = UDim2.new(pct, 0, 0.5, 0)
+                        end,
+                        GetValue = function()
+                            return val
+                        end
+                    }
+                end
+                
+                function section:AddKeybind(cfg)
+                    cfg = cfg or {}
+                    local keybindName = cfg.Name or "Keybind"
+                    local default = cfg.Default or Enum.KeyCode.E
+                    local callback = cfg.Callback or function() end
+                    
+                    local key = default
+                    local binding = false
+                    
+                    local row = Create("Frame", {
+                        Size = UDim2.new(1, 0, 0, 36),
+                        BackgroundTransparency = 1,
+                        Parent = sectionContent
+                    })
+                    
+                    Create("TextLabel", {
+                        Size = UDim2.new(0.6, 0, 1, 0),
+                        BackgroundTransparency = 1,
+                        Font = Theme.FontSemibold,
+                        Text = keybindName,
+                        TextColor3 = Theme.Text,
+                        TextSize = 11,
+                        TextXAlignment = Enum.TextXAlignment.Left,
+                        Parent = row
+                    })
+                    
+                    local keyBtn = Create("TextButton", {
+                        AnchorPoint = Vector2.new(1, 0.5),
+                        Position = UDim2.new(1, 0, 0.5, 0),
+                        Size = UDim2.new(0, 60, 0, 22),
+                        BackgroundColor3 = Theme.SurfaceLight,
+                        Font = Theme.FontSemibold,
+                        Text = key.Name,
+                        TextColor3 = Theme.Text,
+                        TextSize = 9,
+                        AutoButtonColor = false,
+                        Parent = row
+                    })
+                    Corner(keyBtn, Theme.CornerSmall)
+                    Stroke(keyBtn, Theme.Border)
+                    
+                    keyBtn.MouseButton1Click:Connect(function()
+                        binding = true
+                        keyBtn.Text = "..."
+                        Tween(keyBtn, {BackgroundColor3 = Theme.Accent}, Theme.SpeedFast)
+                    end)
+                    
+                    keyBtn.MouseEnter:Connect(function()
+                        if not binding then Tween(keyBtn, {BackgroundColor3 = Theme.SurfaceHover}, Theme.SpeedFast) end
+                    end)
+                    
+                    keyBtn.MouseLeave:Connect(function()
+                        if not binding then Tween(keyBtn, {BackgroundColor3 = Theme.SurfaceLight}, Theme.SpeedFast) end
+                    end)
+                    
+                    UserInputService.InputBegan:Connect(function(input, gpe)
+                        if binding and input.UserInputType == Enum.UserInputType.Keyboard then
+                            key = input.KeyCode
+                            keyBtn.Text = key.Name
+                            binding = false
+                            Tween(keyBtn, {BackgroundColor3 = Theme.SurfaceLight}, Theme.SpeedFast)
+                            callback(key)
+                        end
+                    end)
+                    
+                    Create("Frame", {
+                        AnchorPoint = Vector2.new(0, 1),
+                        Size = UDim2.new(1, 0, 0, 1),
+                        Position = UDim2.new(0, 0, 1, 0),
+                        BackgroundColor3 = Theme.Divider,
+                        BorderSizePixel = 0,
+                        Parent = row
+                    })
+                    
+                    return {
+                        SetKey = function(_, newKey)
+                            key = newKey
+                            keyBtn.Text = key.Name
+                        end,
+                        GetKey = function()
+                            return key
+                        end
+                    }
+                end
+                
+                function section:AddButton(cfg)
+                    cfg = cfg or {}
+                    local buttonName = cfg.Name or "Button"
+                    local callback = cfg.Callback or function() end
+                    
+                    local row = Create("Frame", {
+                        Size = UDim2.new(1, 0, 0, 36),
+                        BackgroundTransparency = 1,
+                        Parent = sectionContent
+                    })
+                    
+                    Create("TextLabel", {
+                        Size = UDim2.new(0.6, 0, 1, 0),
+                        BackgroundTransparency = 1,
+                        Font = Theme.FontSemibold,
+                        Text = buttonName,
+                        TextColor3 = Theme.Text,
+                        TextSize = 11,
+                        TextXAlignment = Enum.TextXAlignment.Left,
+                        Parent = row
+                    })
+                    
+                    CreateButton({
+                        Parent = row,
+                        Size = UDim2.new(0, 60, 0, 24),
+                        Position = UDim2.new(1, 0, 0.5, 0),
+                        AnchorPoint = Vector2.new(1, 0.5),
+                        Text = "Execute",
+                        Primary = true,
+                        Callback = callback
+                    })
+                    
+                    Create("Frame", {
+                        AnchorPoint = Vector2.new(0, 1),
+                        Size = UDim2.new(1, 0, 0, 1),
+                        Position = UDim2.new(0, 0, 1, 0),
+                        BackgroundColor3 = Theme.Divider,
+                        BorderSizePixel = 0,
+                        Parent = row
+                    })
+                end
+                
+                return section
+            end
+            
+            return TabAPI
+        end,
+        
+        SetStatus = function(_, text, color)
+            StatusText.Text = text
+            StatusText.TextColor3 = color or Theme.TextSecondary
+            StatusDot.BackgroundColor3 = color or Theme.TextSecondary
+        end,
+        
+        SetToggleKey = function(_, key)
+            toggleKey = key
+        end,
+        
+        SetScale = function(_, scale)
+            uiScale = scale
+            local s = scale / 100
+            Tween(UIScaleObj, {Scale = s}, Theme.SpeedFast)
+        end,
+        
+        Destroy = function(_)
+            toggling = true
+            Tween(Shadow, {ImageTransparency = 1}, Theme.SpeedFast)
+            Tween(MainStroke, {Transparency = 1}, Theme.SpeedFast)
+            Tween(Main, {BackgroundTransparency = 1, Size = UDim2.new(0, 500, 0, 0)}, Theme.SpeedNormal)
+            task.delay(Theme.SpeedNormal + 0.05, function()
+                ScreenGui:Destroy()
+            end)
+        end,
+    }
+
+    return API
+end
+
+return Kovari
