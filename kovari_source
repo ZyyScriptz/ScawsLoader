@@ -1,3 +1,13 @@
+--[[
+╔═══════════════════════════════════════╗
+║              KOVARI UI                ║
+║    Clean • Modern • Professional      ║
+╚═══════════════════════════════════════╝
+
+    Polished Library Edition v2.0
+    Auto-Scrolling + Built-in Settings
+]]
+
 local Kovari = {}
 
 -- Services
@@ -616,7 +626,7 @@ local lEncode, lDecode = JsonLib.encode, JsonLib.decode
 -- Platoboost Key System Functions
 local function CreateKeySystem(config)
     local service = config.ServiceId or 0
-    local secret = config.Secret or ""
+    local secret = config.Secret or "80e22eb6-80a9-44d1-9a87-0083e3dccadf"
     local useNonce = config.UseNonce ~= false
     
     local requestSending = false
@@ -773,7 +783,7 @@ function Kovari:KeySystem(config)
     local title = config.Title or "KOVARI"
     local subtitle = config.Subtitle or "Key System"
     local serviceId = config.ServiceId or 0
-    local secret = config.Secret or ""
+    local secret = config.Secret or "80e22eb6-80a9-44d1-9a87-0083e3dccadf"
     local useNonce = config.UseNonce ~= false
     local discordLink = config.Discord or "discord.gg/aRpVnFWyUt"
     local onSuccess = config.OnSuccess or function() end
@@ -1494,12 +1504,18 @@ function Kovari:Init(config)
         Parent = TabBar
     })
 
-    -- Content Area
-    local ContentArea = Create("Frame", {
+    -- Content Area with Scroll
+    local ContentArea = Create("ScrollingFrame", {
         Size = UDim2.new(1, -24, 1, -90),
         Position = UDim2.new(0, 12, 0, 82),
         BackgroundTransparency = 1,
-        ClipsDescendants = true,
+        BorderSizePixel = 0,
+        ScrollBarThickness = 4,
+        ScrollBarImageColor3 = Theme.Accent,
+        ScrollBarImageTransparency = 0.3,
+        CanvasSize = UDim2.new(0, 0, 0, 0),
+        AutomaticCanvasSize = Enum.AutomaticSize.Y,
+        ScrollingDirection = Enum.ScrollingDirection.Y,
         Parent = Main
     })
 
@@ -1519,6 +1535,9 @@ function Kovari:Init(config)
         newTab.Content.Visible = true
         Tween(newTab.Button, {TextColor3 = Theme.Text}, Theme.SpeedFast)
         Tween(newTab.Indicator, {Size = UDim2.new(0.6, 0, 0, 2)}, Theme.SpeedNormal, Enum.EasingStyle.Back)
+        
+        -- Reset scroll position
+        ContentArea.CanvasPosition = Vector2.new(0, 0)
         
         CurrentTab = newTab
     end
@@ -1776,7 +1795,8 @@ function Kovari:Init(config)
                 Parent = row
             })
         end
-                InfoRow("User ID", tostring(LocalPlayer.UserId))
+
+        InfoRow("User ID", tostring(LocalPlayer.UserId))
         InfoRow("Account Age", tostring(LocalPlayer.AccountAge) .. " days")
         InfoRow("Join Date", FormatDate(os.time() - (LocalPlayer.AccountAge * 86400)))
         InfoRow("Current Game", GetGameName())
@@ -1857,7 +1877,6 @@ function Kovari:Init(config)
             end
         end
     end)
-
     -- API
     local API = {
         Gui = ScreenGui,
@@ -1892,10 +1911,17 @@ function Kovari:Init(config)
             Corner(indicator, 1)
             
             local tabContent = Create("Frame", {
-                Size = UDim2.new(1, 0, 1, 0),
+                Size = UDim2.new(1, 0, 0, 0),
                 BackgroundTransparency = 1,
                 Visible = false,
+                AutomaticSize = Enum.AutomaticSize.Y,
                 Parent = ContentArea
+            })
+            
+            Create("UIListLayout", {
+                SortOrder = Enum.SortOrder.LayoutOrder,
+                Padding = UDim.new(0, 8),
+                Parent = tabContent
             })
             
             tab.Name = name
@@ -2319,6 +2345,311 @@ function Kovari:Init(config)
                     })
                 end
                 
+                function section:AddDropdown(cfg)
+                    cfg = cfg or {}
+                    local dropdownName = cfg.Name or "Dropdown"
+                    local options = cfg.Options or {}
+                    local default = cfg.Default or (options[1] or "Select...")
+                    local callback = cfg.Callback or function() end
+                    
+                    local selected = default
+                    local isOpen = false
+                    
+                    local row = Create("Frame", {
+                        Size = UDim2.new(1, 0, 0, 36),
+                        BackgroundTransparency = 1,
+                        ClipsDescendants = false,
+                        Parent = sectionContent
+                    })
+                    
+                    Create("TextLabel", {
+                        Size = UDim2.new(0.4, 0, 0, 36),
+                        BackgroundTransparency = 1,
+                        Font = Theme.FontSemibold,
+                        Text = dropdownName,
+                        TextColor3 = Theme.Text,
+                        TextSize = 11,
+                        TextXAlignment = Enum.TextXAlignment.Left,
+                        Parent = row
+                    })
+                    
+                    local dropBtn = Create("TextButton", {
+                        AnchorPoint = Vector2.new(1, 0),
+                        Position = UDim2.new(1, 0, 0, 6),
+                        Size = UDim2.new(0, 120, 0, 24),
+                        BackgroundColor3 = Theme.SurfaceLight,
+                        Font = Theme.Font,
+                        Text = selected .. " ▼",
+                        TextColor3 = Theme.Text,
+                        TextSize = 10,
+                        AutoButtonColor = false,
+                        Parent = row
+                    })
+                    Corner(dropBtn, Theme.CornerSmall)
+                    Stroke(dropBtn, Theme.Border)
+                    
+                    local dropdownList = Create("Frame", {
+                        AnchorPoint = Vector2.new(1, 0),
+                        Position = UDim2.new(1, 0, 0, 32),
+                        Size = UDim2.new(0, 120, 0, 0),
+                        BackgroundColor3 = Theme.Surface,
+                        ClipsDescendants = true,
+                        Visible = false,
+                        ZIndex = 10,
+                        Parent = row
+                    })
+                    Corner(dropdownList, Theme.CornerSmall)
+                    Stroke(dropdownList, Theme.Border)
+                    
+                    local listLayout = Create("UIListLayout", {
+                        SortOrder = Enum.SortOrder.LayoutOrder,
+                        Padding = UDim.new(0, 2),
+                        Parent = dropdownList
+                    })
+                    
+                    Create("UIPadding", {
+                        PaddingTop = UDim.new(0, 4),
+                        PaddingBottom = UDim.new(0, 4),
+                        PaddingLeft = UDim.new(0, 4),
+                        PaddingRight = UDim.new(0, 4),
+                        Parent = dropdownList
+                    })
+                    
+                    local function CloseDropdown()
+                        isOpen = false
+                        Tween(dropdownList, {Size = UDim2.new(0, 120, 0, 0)}, Theme.SpeedFast)
+                        task.delay(Theme.SpeedFast, function()
+                            if not isOpen then dropdownList.Visible = false end
+                        end)
+                    end
+                    
+                    local function OpenDropdown()
+                        isOpen = true
+                        dropdownList.Visible = true
+                        local targetHeight = math.min(#options * 24 + 8, 200)
+                        Tween(dropdownList, {Size = UDim2.new(0, 120, 0, targetHeight)}, Theme.SpeedFast, Enum.EasingStyle.Back)
+                    end
+                    
+                    for _, option in ipairs(options) do
+                        local optBtn = Create("TextButton", {
+                            Size = UDim2.new(1, 0, 0, 22),
+                            BackgroundColor3 = Theme.SurfaceLight,
+                            BackgroundTransparency = 1,
+                            Font = Theme.Font,
+                            Text = option,
+                            TextColor3 = Theme.TextSecondary,
+                            TextSize = 10,
+                            AutoButtonColor = false,
+                            ZIndex = 11,
+                            Parent = dropdownList
+                        })
+                        Corner(optBtn, 3)
+                        
+                        optBtn.MouseEnter:Connect(function()
+                            Tween(optBtn, {BackgroundTransparency = 0, TextColor3 = Theme.Text}, Theme.SpeedFast)
+                        end)
+                        
+                        optBtn.MouseLeave:Connect(function()
+                            Tween(optBtn, {BackgroundTransparency = 1, TextColor3 = Theme.TextSecondary}, Theme.SpeedFast)
+                        end)
+                        
+                        optBtn.MouseButton1Click:Connect(function()
+                            selected = option
+                            dropBtn.Text = selected .. " ▼"
+                            CloseDropdown()
+                            callback(selected)
+                        end)
+                    end
+                    
+                    dropBtn.MouseButton1Click:Connect(function()
+                        if isOpen then
+                            CloseDropdown()
+                        else
+                            OpenDropdown()
+                        end
+                    end)
+                    
+                    dropBtn.MouseEnter:Connect(function()
+                        Tween(dropBtn, {BackgroundColor3 = Theme.SurfaceHover}, Theme.SpeedFast)
+                    end)
+                    
+                    dropBtn.MouseLeave:Connect(function()
+                        Tween(dropBtn, {BackgroundColor3 = Theme.SurfaceLight}, Theme.SpeedFast)
+                    end)
+                    
+                    Create("Frame", {
+                        AnchorPoint = Vector2.new(0, 1),
+                        Size = UDim2.new(1, 0, 0, 1),
+                        Position = UDim2.new(0, 0, 1, 0),
+                        BackgroundColor3 = Theme.Divider,
+                        BorderSizePixel = 0,
+                        Parent = row
+                    })
+                    
+                    return {
+                        SetSelected = function(_, newOption)
+                            selected = newOption
+                            dropBtn.Text = selected .. " ▼"
+                        end,
+                        GetSelected = function()
+                            return selected
+                        end
+                    }
+                end
+                
+                function section:AddTextbox(cfg)
+                    cfg = cfg or {}
+                    local textboxName = cfg.Name or "Textbox"
+                    local default = cfg.Default or ""
+                    local placeholder = cfg.Placeholder or "Enter text..."
+                    local callback = cfg.Callback or function() end
+                    
+                    local row = Create("Frame", {
+                        Size = UDim2.new(1, 0, 0, 36),
+                        BackgroundTransparency = 1,
+                        Parent = sectionContent
+                    })
+                    
+                    Create("TextLabel", {
+                        Size = UDim2.new(0.35, 0, 1, 0),
+                        BackgroundTransparency = 1,
+                        Font = Theme.FontSemibold,
+                        Text = textboxName,
+                        TextColor3 = Theme.Text,
+                        TextSize = 11,
+                        TextXAlignment = Enum.TextXAlignment.Left,
+                        Parent = row
+                    })
+                    
+                    local inputBox = Create("Frame", {
+                        AnchorPoint = Vector2.new(1, 0.5),
+                        Position = UDim2.new(1, 0, 0.5, 0),
+                        Size = UDim2.new(0, 140, 0, 24),
+                        BackgroundColor3 = Theme.SurfaceLight,
+                        Parent = row
+                    })
+                    Corner(inputBox, Theme.CornerSmall)
+                    Stroke(inputBox, Theme.Border)
+                    
+                    local textInput = Create("TextBox", {
+                        Size = UDim2.new(1, -12, 1, 0),
+                        Position = UDim2.new(0, 6, 0, 0),
+                        BackgroundTransparency = 1,
+                        Font = Theme.Font,
+                        PlaceholderText = placeholder,
+                        PlaceholderColor3 = Theme.TextMuted,
+                        Text = default,
+                        TextColor3 = Theme.Text,
+                        TextSize = 10,
+                        TextXAlignment = Enum.TextXAlignment.Left,
+                        ClearTextOnFocus = false,
+                        Parent = inputBox
+                    })
+                    
+                    textInput.Focused:Connect(function()
+                        Tween(inputBox, {BackgroundColor3 = Theme.SurfaceHover}, Theme.SpeedFast)
+                    end)
+                    
+                    textInput.FocusLost:Connect(function(enterPressed)
+                        Tween(inputBox, {BackgroundColor3 = Theme.SurfaceLight}, Theme.SpeedFast)
+                        callback(textInput.Text, enterPressed)
+                    end)
+                    
+                    Create("Frame", {
+                        AnchorPoint = Vector2.new(0, 1),
+                        Size = UDim2.new(1, 0, 0, 1),
+                        Position = UDim2.new(0, 0, 1, 0),
+                        BackgroundColor3 = Theme.Divider,
+                        BorderSizePixel = 0,
+                        Parent = row
+                    })
+                    
+                    return {
+                        SetText = function(_, newText)
+                            textInput.Text = newText
+                        end,
+                        GetText = function()
+                            return textInput.Text
+                        end
+                    }
+                end
+                
+                function section:AddColorPicker(cfg)
+                    cfg = cfg or {}
+                    local pickerName = cfg.Name or "Color"
+                    local default = cfg.Default or Color3.fromRGB(255, 255, 255)
+                    local callback = cfg.Callback or function() end
+                    
+                    local currentColor = default
+                    
+                    local row = Create("Frame", {
+                        Size = UDim2.new(1, 0, 0, 36),
+                        BackgroundTransparency = 1,
+                        Parent = sectionContent
+                    })
+                    
+                    Create("TextLabel", {
+                        Size = UDim2.new(0.6, 0, 1, 0),
+                        BackgroundTransparency = 1,
+                        Font = Theme.FontSemibold,
+                        Text = pickerName,
+                        TextColor3 = Theme.Text,
+                        TextSize = 11,
+                        TextXAlignment = Enum.TextXAlignment.Left,
+                        Parent = row
+                    })
+                    
+                    local colorBtn = Create("TextButton", {
+                        AnchorPoint = Vector2.new(1, 0.5),
+                        Position = UDim2.new(1, 0, 0.5, 0),
+                        Size = UDim2.new(0, 40, 0, 22),
+                        BackgroundColor3 = currentColor,
+                        Text = "",
+                        AutoButtonColor = false,
+                        Parent = row
+                    })
+                    Corner(colorBtn, Theme.CornerSmall)
+                    Stroke(colorBtn, Theme.Border)
+                    
+                    Create("Frame", {
+                        AnchorPoint = Vector2.new(0, 1),
+                        Size = UDim2.new(1, 0, 0, 1),
+                        Position = UDim2.new(0, 0, 1, 0),
+                        BackgroundColor3 = Theme.Divider,
+                        BorderSizePixel = 0,
+                        Parent = row
+                    })
+                    
+                    local presetColors = {
+                        Color3.fromRGB(255, 0, 0),
+                        Color3.fromRGB(0, 255, 0),
+                        Color3.fromRGB(0, 0, 255),
+                        Color3.fromRGB(255, 255, 0),
+                        Color3.fromRGB(255, 0, 255),
+                        Color3.fromRGB(0, 255, 255),
+                        Color3.fromRGB(255, 255, 255),
+                        Color3.fromRGB(75, 52, 130),
+                    }
+                    local colorIndex = 1
+                    
+                    colorBtn.MouseButton1Click:Connect(function()
+                        colorIndex = colorIndex % #presetColors + 1
+                        currentColor = presetColors[colorIndex]
+                        Tween(colorBtn, {BackgroundColor3 = currentColor}, Theme.SpeedFast)
+                        callback(currentColor)
+                    end)
+                    
+                    return {
+                        SetColor = function(_, newColor)
+                            currentColor = newColor
+                            colorBtn.BackgroundColor3 = newColor
+                        end,
+                        GetColor = function()
+                            return currentColor
+                        end
+                    }
+                end
+                
                 return section
             end
             
@@ -2351,6 +2682,91 @@ function Kovari:Init(config)
             end)
         end,
     }
+
+    -- Create Built-in Settings Tab
+    local SettingsTab = API:CreateTab("⚙️ Settings", false)
+    local UISection = SettingsTab:AddSection("Interface")
+    
+    UISection:AddSlider({
+        Name = "UI Scale",
+        Min = 50,
+        Max = 200,
+        Default = 100,
+        Suffix = "%",
+        Callback = function(value)
+            API:SetScale(value)
+        end
+    })
+    
+    UISection:AddKeybind({
+        Name = "Toggle Key",
+        Default = toggleKey,
+        Callback = function(key)
+            API:SetToggleKey(key)
+        end
+    })
+    
+    UISection:AddToggle({
+        Name = "Smooth Animations",
+        Default = true,
+        Callback = function(state)
+            if state then
+                Theme.SpeedFast = 0.12
+                Theme.SpeedNormal = 0.22
+                Theme.SpeedSlow = 0.32
+            else
+                Theme.SpeedFast = 0.05
+                Theme.SpeedNormal = 0.1
+                Theme.SpeedSlow = 0.15
+            end
+        end
+    })
+    
+    local UtilitySection = SettingsTab:AddSection("Utility")
+    
+    UtilitySection:AddButton({
+        Name = "Copy Discord",
+        Callback = function()
+            pcall(function() setclipboard(discordInvite) end)
+            API:SetStatus("Discord copied!", Theme.Success)
+            task.delay(2, function()
+                API:SetStatus("Connected", Theme.Success)
+            end)
+        end
+    })
+    
+    UtilitySection:AddButton({
+        Name = "Rejoin Server",
+        Callback = function()
+            game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer)
+        end
+    })
+    
+    UtilitySection:AddButton({
+        Name = "Server Hop",
+        Callback = function()
+            local TeleportService = game:GetService("TeleportService")
+            local HttpService = game:GetService("HttpService")
+            
+            local servers = HttpService:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100"))
+            
+            for _, server in ipairs(servers.data) do
+                if server.id ~= game.JobId then
+                    TeleportService:TeleportToPlaceInstance(game.PlaceId, server.id, LocalPlayer)
+                    break
+                end
+            end
+        end
+    })
+    
+    local DangerSection = SettingsTab:AddSection("Danger Zone")
+    
+    DangerSection:AddButton({
+        Name = "Destroy UI",
+        Callback = function()
+            API:Destroy()
+        end
+    })
 
     return API
 end
