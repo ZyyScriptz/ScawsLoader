@@ -1,9 +1,3 @@
---[[
-    Kovari UI Library - Fixed & Improved Version
-    Part 1 of 2: Core Library, Utilities, Key System
-]]
-
--- Prevent duplicate loading
 if _G.KovariLoaded then
     warn("[Kovari] Library already loaded in this game session")
     return _G.KovariInstance
@@ -26,8 +20,6 @@ local TeleportService = game:GetService("TeleportService")
 
 -- Player
 local LocalPlayer = Players.LocalPlayer
-
--- iOS Inspired Theme (Fixed colors - no more white)
 local Theme = {
     -- Backgrounds
     Primary = Color3.fromRGB(0, 0, 0),
@@ -933,7 +925,7 @@ function Kovari:CreateKeyUI(config)
     
     local title = config.Title or "KOVARI"
     local subtitle = config.Subtitle or "Key System"
-    local discordLink = config.Discord or "discord.gg/aRpVnFWyUt"
+    local discordLink = config.Discord or "discord.gg/QcvddpVeTM"
     local onSuccess = config.OnSuccess or function() end
     local onFailed = config.OnFailed or function() end
     
@@ -1432,7 +1424,7 @@ function Kovari:Init(config)
     config = config or {}
     
     local toggleKey = config.ToggleKey or Enum.KeyCode.RightControl
-    local discordInvite = config.Discord or "discord.gg/aRpVnFWyUt"
+    local discordInvite = config.Discord or "discord.gg/QcvddpVeTM"
     
     local Theme = self.Theme
     local Util = self.Util
@@ -3166,20 +3158,20 @@ local Kovari = loadstring(game:HttpGet("YOUR_URL"))()
 -- With Key System
 local UI = Kovari:Load({
     ToggleKey = Enum.KeyCode.RightControl,
-    Discord = "discord.gg/aRpVnFWyUt",
+    Discord = "discord.gg/QcvddpVeTM",
     KeySystem = {
         Title = "My Script",
         Subtitle = "Premium Script",
         ServiceId = 18623,
         Secret = "your-secret-here",
-        Discord = "discord.gg/aRpVnFWyUt"
+        Discord = "discord.gg/QcvddpVeTM"
     }
 })
 
 -- Without Key System
 local UI = Kovari:Init({
     ToggleKey = Enum.KeyCode.RightControl,
-    Discord = "discord.gg/aRpVnFWyUt"
+    Discord = "discord.gg/QcvddpVeTM"
 })
 
 local MainTab = UI:CreateTab("Main", true)
