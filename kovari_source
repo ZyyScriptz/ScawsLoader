@@ -918,8 +918,8 @@ function Kovari:CreateKeyUI(config)
     config = config or {}
     
     local keyHandler = KeySystemHandler.new({
-        ServiceId = config.ServiceId or 18623,
-        Secret = config.Secret or "80e22eb6-80a9-44d1-9a87-0083e3dccadf",
+        ServiceId = config.ServiceId or 18760,
+        Secret = config.Secret or "3e3bef44-815e-4903-a219-0f2244be8b6d",
         UseNonce = config.UseNonce
     })
     
@@ -3162,7 +3162,7 @@ local UI = Kovari:Load({
     KeySystem = {
         Title = "My Script",
         Subtitle = "Premium Script",
-        ServiceId = 18623,
+        ServiceId = 18760,
         Secret = "your-secret-here",
         Discord = "discord.gg/QcvddpVeTM"
     }
