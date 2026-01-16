@@ -774,10 +774,7 @@ function KeySystemHandler:GetHWID()
     local getHwid = gethwid or function()
         return tostring(LocalPlayer.UserId)
     end
-    
-    local hwid = getHwid()
-    warn("[DEBUG] HWID Generated:", hwid)
-    return hwid
+    return getHwid()
 end
 
 function KeySystemHandler:GenerateNonce()
@@ -787,190 +784,70 @@ function KeySystemHandler:GenerateNonce()
         local idx = math.random(1, #chars)
         result = result .. chars:sub(idx, idx)
     end
-    warn("[DEBUG] Nonce Generated:", result)
     return result
 end
 
 function KeySystemHandler:Request(options)
-    warn("[DEBUG] REQUEST DETAILS:")
-    warn("  URL:", options.Url)
-    warn("  Method:", options.Method)
-    warn("  Headers:", JSON.encode(options.Headers or {}))
-    if options.Body then
-        warn("  Body:", options.Body)
-    end
-    
     local requestFunc = request or http_request or syn_request or function()
-        warn("[DEBUG] WARNING: No request function found!")
         return {StatusCode = 0}
     end
-    
-    local success, result = pcall(function()
+    return pcall(function()
         return requestFunc(options)
     end)
-    
-    warn("[DEBUG] REQUEST RESULT:")
-    warn("  Success:", success)
-    if success then
-        warn("  Status Code:", result.StatusCode)
-        warn("  Response Body:", result.Body or "No body")
-    else
-        warn("  ERROR:", result)
-    end
-    
-    return success, result
 end
 
 function KeySystemHandler:GetKeyLink()
-    warn("[DEBUG] ========== GET KEY LINK STARTED ==========")
-    
     if self.CachedTime + 600 > os.time() then
-        warn("[DEBUG] Using cached link (still valid)")
         return true, self.CachedLink
     end
-    
-    warn("[DEBUG] Cache expired or empty, fetching new link...")
-    
-    local hwid = self:GetHWID()
-    local hashedHwid = SHA256(hwid)
-    warn("[DEBUG] HWID Hash:", hashedHwid)
-    
-    local requestBody = {
-        service = self.ServiceId,
-        identifier = hashedHwid
-    }
-    warn("[DEBUG] Request Body:", JSON.encode(requestBody))
     
     local success, response = self:Request({
         Url = self.Host .. "/public/start",
         Method = "POST",
-        Body = JSON.encode(requestBody),
+        Body = JSON.encode({
+            service = self.ServiceId,
+            identifier = SHA256(self:GetHWID())
+        }),
         Headers = {
             ["Content-Type"] = "application/json"
         }
     })
     
-    warn("[DEBUG] ========== RESPONSE ANALYSIS ==========")
-    
-    if not success then
-        warn("[DEBUG ERROR] Request failed completely")
-        warn("[DEBUG ERROR] Response:", response)
-        return false, "Connection failed - " .. tostring(response)
-    end
-    
-    if response.StatusCode ~= 200 then
-        warn("[DEBUG ERROR] Bad status code:", response.StatusCode)
-        
-        if response.StatusCode == 429 then
-            warn("[DEBUG ERROR] Rate limited!")
-            return false, "Rate limited. Please wait."
-        elseif response.StatusCode == 400 then
-            warn("[DEBUG ERROR] Bad request - Check ServiceId/Secret")
-            return false, "Invalid request (400) - Check configuration"
-        elseif response.StatusCode == 401 then
-            warn("[DEBUG ERROR] Unauthorized - Invalid ServiceId/Secret")
-            return false, "Unauthorized (401) - Invalid credentials"
-        elseif response.StatusCode == 403 then
-            warn("[DEBUG ERROR] Forbidden - Service might be disabled")
-            return false, "Forbidden (403) - Service disabled"
-        elseif response.StatusCode == 404 then
-            warn("[DEBUG ERROR] Endpoint not found")
-            return false, "Endpoint not found (404)"
-        elseif response.StatusCode == 500 then
-            warn("[DEBUG ERROR] Server error")
-            return false, "Server error (500) - Try again later"
-        else
-            warn("[DEBUG ERROR] Unknown status code")
-            return false, "HTTP " .. response.StatusCode
+    if success and response.StatusCode == 200 then
+        local data = JSON.decode(response.Body)
+        if data.success then
+            self.CachedLink = data.data.url
+            self.CachedTime = os.time()
+            return true, self.CachedLink
         end
+        return false, data.message or "Failed to get link"
+    elseif success and response.StatusCode == 429 then
+        return false, "Rate limited. Please wait."
     end
     
-    warn("[DEBUG] Status code OK (200)")
-    warn("[DEBUG] Raw response body:", response.Body)
-    
-    local parseSuccess, data = pcall(function()
-        return JSON.decode(response.Body)
-    end)
-    
-    if not parseSuccess then
-        warn("[DEBUG ERROR] Failed to parse JSON")
-        warn("[DEBUG ERROR] Parse error:", data)
-        warn("[DEBUG ERROR] Raw body was:", response.Body)
-        return false, "Invalid server response (JSON parse failed)"
-    end
-    
-    warn("[DEBUG] Parsed JSON:", JSON.encode(data))
-    
-    if not data.success then
-        warn("[DEBUG ERROR] Server returned success=false")
-        warn("[DEBUG ERROR] Message:", data.message or "No message")
-        return false, data.message or "Server rejected request"
-    end
-    
-    if not data.data or not data.data.url then
-        warn("[DEBUG ERROR] Missing URL in response")
-        warn("[DEBUG ERROR] Data structure:", JSON.encode(data))
-        return false, "Invalid response structure (missing URL)"
-    end
-    
-    warn("[DEBUG SUCCESS] Got link:", data.data.url)
-    
-    self.CachedLink = data.data.url
-    self.CachedTime = os.time()
-    
-    warn("[DEBUG] ========== GET KEY LINK SUCCESS ==========")
-    return true, self.CachedLink
+    return false, "Connection failed"
 end
 
 function KeySystemHandler:CopyLink()
-    warn("[DEBUG] CopyLink called")
-    
     local success, link = self:GetKeyLink()
-    
-    if not success then
-        warn("[DEBUG ERROR] Failed to get link:", link)
-        return false, link
-    end
-    
-    warn("[DEBUG] Attempting to copy link to clipboard")
-    
-    local clipboardFunc = setclipboard or toclipboard or function()
-        warn("[DEBUG WARNING] No clipboard function available")
-        return false
-    end
-    
-    local copySuccess = pcall(function()
-        clipboardFunc(link)
-    end)
-    
-    if copySuccess then
-        warn("[DEBUG SUCCESS] Link copied to clipboard")
+    if success then
+        pcall(function()
+            (setclipboard or toclipboard or function() end)(link)
+        end)
         return true
-    else
-        warn("[DEBUG ERROR] Failed to copy to clipboard")
-        return false, "Clipboard function failed"
     end
+    return false
 end
 
 function KeySystemHandler:RedeemKey(key)
-    warn("[DEBUG] ========== REDEEM KEY STARTED ==========")
-    warn("[DEBUG] Key:", key)
-    
     local nonce = self:GenerateNonce()
-    local hwid = self:GetHWID()
-    local hashedHwid = SHA256(hwid)
-    
     local body = {
-        identifier = hashedHwid,
+        identifier = SHA256(self:GetHWID()),
         key = key
     }
-    
     if self.UseNonce then
         body.nonce = nonce
-        warn("[DEBUG] Using nonce:", nonce)
     end
-    
-    warn("[DEBUG] Redeem body:", JSON.encode(body))
     
     local success, response = self:Request({
         Url = self.Host .. "/public/redeem/" .. tostring(self.ServiceId),
@@ -979,67 +856,30 @@ function KeySystemHandler:RedeemKey(key)
         Headers = {["Content-Type"] = "application/json"}
     })
     
-    if not success then
-        warn("[DEBUG ERROR] Redeem request failed:", response)
-        return false
-    end
-    
-    if response.StatusCode ~= 200 then
-        warn("[DEBUG ERROR] Redeem status code:", response.StatusCode)
-        return false
-    end
-    
-    local parseSuccess, data = pcall(function()
-        return JSON.decode(response.Body)
-    end)
-    
-    if not parseSuccess then
-        warn("[DEBUG ERROR] Redeem JSON parse failed:", data)
-        return false
-    end
-    
-    warn("[DEBUG] Redeem response:", JSON.encode(data))
-    
-    if data.success and data.data.valid then
-        if self.UseNonce then
-            local expectedHash = SHA256("true-" .. nonce .. "-" .. self.Secret)
-            local hashMatch = data.data.hash == expectedHash
-            warn("[DEBUG] Hash validation:", hashMatch)
-            warn("[DEBUG] Expected:", expectedHash)
-            warn("[DEBUG] Received:", data.data.hash)
-            return hashMatch
+    if success and response.StatusCode == 200 then
+        local data = JSON.decode(response.Body)
+        if data.success and data.data.valid then
+            if self.UseNonce then
+                return data.data.hash == SHA256("true-" .. nonce .. "-" .. self.Secret)
+            end
+            return true
         end
-        warn("[DEBUG SUCCESS] Key redeemed!")
-        return true
     end
-    
-    warn("[DEBUG ERROR] Redeem failed - invalid key")
     return false
 end
 
 function KeySystemHandler:VerifyKey(key)
-    warn("[DEBUG] ========== VERIFY KEY STARTED ==========")
-    warn("[DEBUG] Key:", key)
-    
     if self.RequestPending then
-        warn("[DEBUG] Request already pending")
         return false, "Please wait..."
     end
-    
     self.RequestPending = true
     
     local nonce = self:GenerateNonce()
-    local hwid = self:GetHWID()
-    local hashedHwid = SHA256(hwid)
-    
     local endpoint = self.Host .. "/public/whitelist/" .. tostring(self.ServiceId)
-    endpoint = endpoint .. "?identifier=" .. hashedHwid .. "&key=" .. key
-    
+    endpoint = endpoint .. "?identifier=" .. SHA256(self:GetHWID()) .. "&key=" .. key
     if self.UseNonce then
         endpoint = endpoint .. "&nonce=" .. nonce
     end
-    
-    warn("[DEBUG] Verify endpoint:", endpoint)
     
     local success, response = self:Request({
         Url = endpoint,
@@ -1048,86 +888,40 @@ function KeySystemHandler:VerifyKey(key)
     
     self.RequestPending = false
     
-    if not success then
-        warn("[DEBUG ERROR] Verify request failed:", response)
-        return false, "Connection error - " .. tostring(response)
-    end
-    
-    warn("[DEBUG] Verify status code:", response.StatusCode)
-    
-    if response.StatusCode == 429 then
-        warn("[DEBUG ERROR] Rate limited")
+    if success and response.StatusCode == 200 then
+        local data = JSON.decode(response.Body)
+        if data.success then
+            if data.data.valid then
+                if self.UseNonce then
+                    local valid = data.data.hash == SHA256("true-" .. nonce .. "-" .. self.Secret)
+                    return valid, valid and "Key verified!" or "Verification failed"
+                end
+                return true, "Key verified!"
+            else
+                if key:sub(1, 4) == "KEY_" then
+                    local redeemed = self:RedeemKey(key)
+                    return redeemed, redeemed and "Key redeemed!" or "Failed to redeem"
+                end
+                return false, "Invalid key"
+            end
+        end
+        return false, data.message or "Verification failed"
+    elseif success and response.StatusCode == 429 then
         return false, "Rate limited. Please wait."
     end
     
-    if response.StatusCode ~= 200 then
-        warn("[DEBUG ERROR] Non-200 status:", response.StatusCode)
-        return false, "HTTP " .. response.StatusCode
-    end
-    
-    local parseSuccess, data = pcall(function()
-        return JSON.decode(response.Body)
-    end)
-    
-    if not parseSuccess then
-        warn("[DEBUG ERROR] Verify JSON parse failed:", data)
-        return false, "Invalid server response"
-    end
-    
-    warn("[DEBUG] Verify response:", JSON.encode(data))
-    
-    if not data.success then
-        warn("[DEBUG ERROR] Server returned success=false")
-        return false, data.message or "Verification failed"
-    end
-    
-    if data.data.valid then
-        warn("[DEBUG] Key is valid")
-        
-        if self.UseNonce then
-            local expectedHash = SHA256("true-" .. nonce .. "-" .. self.Secret)
-            local hashMatch = data.data.hash == expectedHash
-            warn("[DEBUG] Nonce validation:", hashMatch)
-            warn("[DEBUG] Expected hash:", expectedHash)
-            warn("[DEBUG] Received hash:", data.data.hash)
-            
-            if not hashMatch then
-                return false, "Hash validation failed"
-            end
-        end
-        
-        warn("[DEBUG SUCCESS] Key verified!")
-        return true, "Key verified!"
-    else
-        warn("[DEBUG] Key not valid - checking if redeemable")
-        
-        if key:sub(1, 4) == "KEY_" then
-            warn("[DEBUG] Key starts with KEY_ - attempting redeem")
-            local redeemed = self:RedeemKey(key)
-            return redeemed, redeemed and "Key redeemed!" or "Failed to redeem"
-        end
-        
-        warn("[DEBUG ERROR] Invalid key")
-        return false, "Invalid key"
-    end
+    return false, "Connection error"
 end
 
+-- Key System UI (Fixed animations and colors)
 function Kovari:CreateKeyUI(config)
     config = config or {}
-    
-    warn("[DEBUG] ========== KEY SYSTEM INITIALIZATION ==========")
-    warn("[DEBUG] ServiceId:", config.ServiceId or 18623)
-    warn("[DEBUG] UseNonce:", config.UseNonce or false)
-    warn("[DEBUG] Secret (first 10 chars):", string.sub(config.Secret or "80e22eb6-80a9-44d1-9a87-0083e3dccadf", 1, 10) .. "...")
     
     local keyHandler = KeySystemHandler.new({
         ServiceId = config.ServiceId or 18623,
         Secret = config.Secret or "80e22eb6-80a9-44d1-9a87-0083e3dccadf",
         UseNonce = config.UseNonce
     })
-    
-    warn("[DEBUG] KeySystemHandler created")
-    warn("[DEBUG] Host:", keyHandler.Host)
     
     local title = config.Title or "KOVARI"
     local subtitle = config.Subtitle or "Key System"
