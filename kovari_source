@@ -7,7 +7,6 @@ _G.KovariLoaded = true
 local Kovari = {}
 Kovari.__index = Kovari
 
--- Services
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
@@ -19,7 +18,6 @@ local TeleportService = game:GetService("TeleportService")
 
 local LocalPlayer = Players.LocalPlayer
 
--- Theme Configuration
 local Theme = {
     Primary = Color3.fromRGB(0, 0, 0),
     Secondary = Color3.fromRGB(18, 18, 20),
@@ -57,7 +55,6 @@ local Theme = {
     SlowSpeed = 0.3,
 }
 
--- Utility Functions
 local Util = {}
 
 function Util.Create(className, properties)
@@ -166,7 +163,6 @@ function Util.FormatDate(timestamp)
     return string.format("%s %d, %d", months[date.month], date.day, date.year)
 end
 
--- Animation Helpers
 local Animate = {}
 
 function Animate.FadeIn(object, duration, delay)
@@ -180,28 +176,17 @@ function Animate.FadeIn(object, duration, delay)
             Util.Tween(object, {BackgroundTransparency = originalTransparency}, duration)
         end)
     end
-    
-    if object:IsA("TextLabel") or object:IsA("TextButton") or object:IsA("TextBox") then
-        local originalTextTransparency = object:GetAttribute("TargetTextTransparency") or 0
-        object.TextTransparency = 1
-        task.delay(delay, function()
-            Util.Tween(object, {TextTransparency = originalTextTransparency}, duration)
-        end)
-    end
 end
 
--- FIXED JUNKIE KEY SYSTEM HANDLER
 local JunkieKeySystem = {}
 
 function JunkieKeySystem.new(config)
     local self = setmetatable({}, {__index = JunkieKeySystem})
     
-    -- Junkie Configuration (CORRECT FORMAT)
     self.ApiKey = config.ApiKey or config.api or ""
     self.Service = config.Service or config.service or ""
     self.Provider = config.Provider or config.provider or ""
     
-    -- Load Junkie SDK (CORRECT URL - UPDATED 2025)
     self.SDK = nil
     local success, result = pcall(function()
         return loadstring(game:HttpGet("https://junkie-development.de/sdk/JunkieKeySystem.lua"))()
@@ -252,7 +237,6 @@ function JunkieKeySystem:VerifyKey(key)
         return false, "Please enter a key"
     end
     
-    -- Clean the key (remove spaces)
     key = key:gsub("%s+", "")
     
     local success, result = pcall(function()
@@ -266,11 +250,9 @@ function JunkieKeySystem:VerifyKey(key)
     end
 end
 
--- Key System UI (FIXED VERSION)
 function Kovari:CreateKeyUI(config)
     config = config or {}
     
-    -- Initialize Junkie Handler with CORRECT format
     local keyHandler = JunkieKeySystem.new({
         ApiKey = config.ApiKey or config.api or "",
         Service = config.Service or config.service or "",
@@ -283,11 +265,9 @@ function Kovari:CreateKeyUI(config)
     local onSuccess = config.OnSuccess or function() end
     local onFailed = config.OnFailed or function() end
     
-    -- Set global flags
     getgenv().SCRIPT_KEY = nil
     getgenv().UI_CLOSED = false
     
-    -- Create ScreenGui
     local ScreenGui = Util.Create("ScreenGui", {
         Name = "KovariKeySystem",
         ResetOnSpawn = false,
@@ -306,7 +286,6 @@ function Kovari:CreateKeyUI(config)
         end
     end)
     
-    -- Blur Background
     local Blur = Util.Create("Frame", {
         Size = UDim2.new(1, 0, 1, 0),
         BackgroundColor3 = Color3.fromRGB(0, 0, 0),
@@ -314,7 +293,6 @@ function Kovari:CreateKeyUI(config)
         Parent = ScreenGui
     })
     
-    -- Main Container
     local MainFrame = Util.Create("Frame", {
         Name = "Main",
         AnchorPoint = Vector2.new(0.5, 0.5),
@@ -328,7 +306,6 @@ function Kovari:CreateKeyUI(config)
     local MainStroke = Util.Stroke(MainFrame, Theme.Border, 1)
     local MainShadow = Util.Shadow(MainFrame, 6, 0.5)
     
-    -- Header
     local Header = Util.Create("Frame", {
         Size = UDim2.new(1, 0, 0, 80),
         BackgroundColor3 = Theme.Tertiary,
@@ -352,7 +329,6 @@ function Kovari:CreateKeyUI(config)
         Parent = Header
     })
     
-    -- Logo
     local LogoContainer = Util.Create("Frame", {
         Size = UDim2.new(0, 48, 0, 48),
         Position = UDim2.new(0, 20, 0.5, -24),
@@ -371,7 +347,6 @@ function Kovari:CreateKeyUI(config)
     })
     Util.Corner(LogoIcon, 6)
     
-    -- Title
     local TitleLabel = Util.Create("TextLabel", {
         Size = UDim2.new(0, 200, 0, 22),
         Position = UDim2.new(0, 80, 0, 22),
@@ -396,7 +371,6 @@ function Kovari:CreateKeyUI(config)
         Parent = Header
     })
     
-    -- Content
     local Content = Util.Create("Frame", {
         Size = UDim2.new(1, -32, 1, -100),
         Position = UDim2.new(0, 16, 0, 88),
@@ -404,7 +378,6 @@ function Kovari:CreateKeyUI(config)
         Parent = MainFrame
     })
     
-    -- Key Input Section
     local InputSection = Util.Create("Frame", {
         Size = UDim2.new(1, 0, 0, 80),
         BackgroundColor3 = Theme.Tertiary,
@@ -449,7 +422,6 @@ function Kovari:CreateKeyUI(config)
         Parent = InputBox
     })
     
-    -- Status
     local StatusLabel = Util.Create("TextLabel", {
         Size = UDim2.new(1, 0, 0, 20),
         Position = UDim2.new(0, 0, 0, 88),
@@ -461,7 +433,6 @@ function Kovari:CreateKeyUI(config)
         Parent = Content
     })
     
-    -- Buttons
     local ButtonContainer = Util.Create("Frame", {
         Size = UDim2.new(1, 0, 0, 40),
         Position = UDim2.new(0, 0, 0, 112),
@@ -499,7 +470,6 @@ function Kovari:CreateKeyUI(config)
     Util.Corner(GetKeyButton, Theme.CornerRadiusSmall)
     local GetKeyStroke = Util.Stroke(GetKeyButton, Theme.Border, 1)
     
-    -- Discord Section
     local DiscordSection = Util.Create("Frame", {
         Size = UDim2.new(1, 0, 0, 44),
         Position = UDim2.new(0, 0, 0, 160),
@@ -536,7 +506,6 @@ function Kovari:CreateKeyUI(config)
     Util.Corner(DiscordButton, Theme.CornerRadiusSmall)
     local DiscordBtnStroke = Util.Stroke(DiscordButton, Theme.Border, 1)
     
-    -- Footer
     local FooterLabel = Util.Create("TextLabel", {
         Size = UDim2.new(1, 0, 0, 16),
         Position = UDim2.new(0, 0, 1, -20),
@@ -548,10 +517,8 @@ function Kovari:CreateKeyUI(config)
         Parent = Content
     })
     
-    -- Connections Storage
     local Connections = {}
     
-    -- Dragging
     local dragging = false
     local dragStart, startPos
     local targetPos = MainFrame.Position
@@ -586,7 +553,6 @@ function Kovari:CreateKeyUI(config)
         end
     end))
     
-    -- Input Focus Effects
     table.insert(Connections, KeyInput.Focused:Connect(function()
         Util.Tween(InputBox, {BackgroundColor3 = Theme.FillHover}, Theme.QuickSpeed)
         Util.Tween(InputBoxStroke, {Color = Theme.Accent}, Theme.QuickSpeed)
@@ -597,7 +563,6 @@ function Kovari:CreateKeyUI(config)
         Util.Tween(InputBoxStroke, {Color = Theme.Border}, Theme.QuickSpeed)
     end))
     
-    -- Button Hover Effects
     local function SetupButton(button, isPrimary)
         local hovered, pressed = false, false
         
@@ -639,13 +604,11 @@ function Kovari:CreateKeyUI(config)
     SetupButton(GetKeyButton, false)
     SetupButton(DiscordButton, false)
     
-    -- Status Function
     local function SetStatus(text, color)
         StatusLabel.Text = text
         StatusLabel.TextColor3 = color or Theme.TextSecondary
     end
     
-    -- Close Function
     local function Close()
         for _, conn in ipairs(Connections) do
             conn:Disconnect()
@@ -679,7 +642,6 @@ function Kovari:CreateKeyUI(config)
         end)
     end
     
-    -- Button Callbacks (FIXED WITH CORRECT JUNKIE CALLS)
     table.insert(Connections, VerifyButton.MouseButton1Click:Connect(function()
         Util.Ripple(VerifyButton)
         local key = KeyInput.Text
@@ -763,7 +725,6 @@ Kovari.Theme = Theme
 Kovari.Animate = Animate
 
 _G.KovariInstance = Kovari
--- Main UI Initialization
 function Kovari:Init(config)
     config = config or {}
     
@@ -774,7 +735,6 @@ function Kovari:Init(config)
     local Util = self.Util
     local Animate = self.Animate
     
-    -- State
     local AllTabs = {}
     local CurrentTab = nil
     local UIVisible = true
@@ -782,7 +742,6 @@ function Kovari:Init(config)
     local UIScaleValue = 100
     local Connections = {}
     
-    -- Create ScreenGui
     local ScreenGui = Util.Create("ScreenGui", {
         Name = "KovariUI",
         ResetOnSpawn = false,
@@ -801,13 +760,11 @@ function Kovari:Init(config)
         end
     end)
     
-    -- UI Scale
     local UIScale = Util.Create("UIScale", {
         Scale = 1,
         Parent = ScreenGui
     })
     
-    -- Main Frame
     local Main = Util.Create("Frame", {
         Name = "Main",
         AnchorPoint = Vector2.new(0.5, 0.5),
@@ -821,7 +778,6 @@ function Kovari:Init(config)
     local MainStroke = Util.Stroke(Main, Theme.Border, 1)
     local MainShadow = Util.Shadow(Main, 6, 0.5)
     
-    -- Top Bar
     local TopBar = Util.Create("Frame", {
         Size = UDim2.new(1, 0, 0, 52),
         BackgroundColor3 = Theme.Secondary,
@@ -845,7 +801,6 @@ function Kovari:Init(config)
         Parent = TopBar
     })
     
-    -- Logo
     local LogoFrame = Util.Create("Frame", {
         Size = UDim2.new(0, 32, 0, 32),
         Position = UDim2.new(0, 14, 0.5, -16),
@@ -875,7 +830,6 @@ function Kovari:Init(config)
         Parent = TopBar
     })
     
-    -- Status Indicator
     local StatusContainer = Util.Create("Frame", {
         AnchorPoint = Vector2.new(1, 0.5),
         Position = UDim2.new(1, -14, 0.5, 0),
@@ -920,7 +874,6 @@ function Kovari:Init(config)
         Parent = StatusContainer
     })
     
-    -- Tab Bar
     local TabBar = Util.Create("Frame", {
         Size = UDim2.new(1, -28, 0, 32),
         Position = UDim2.new(0, 14, 0, 56),
@@ -936,7 +889,6 @@ function Kovari:Init(config)
         Parent = TabBar
     })
     
-    -- Content Container
     local ContentContainer = Util.Create("ScrollingFrame", {
         Size = UDim2.new(1, -28, 1, -100),
         Position = UDim2.new(0, 14, 0, 92),
@@ -951,7 +903,6 @@ function Kovari:Init(config)
         Parent = Main
     })
     
-    -- Dragging
     local dragging = false
     local dragStart, startPos
     local targetPos = Main.Position
@@ -986,7 +937,6 @@ function Kovari:Init(config)
         end
     end))
     
-    -- Row Divider Helper
     local function CreateRowDivider(parent)
         return Util.Create("Frame", {
             AnchorPoint = Vector2.new(0, 1),
@@ -998,7 +948,6 @@ function Kovari:Init(config)
         })
     end
     
-    -- Section Creator
     local function CreateSection(parent, sectionName)
         local section = {}
         
@@ -1058,7 +1007,6 @@ function Kovari:Init(config)
             Parent = SectionContent
         })
         
-        -- Toggle Component
         function section:AddToggle(cfg)
             cfg = cfg or {}
             local toggleName = cfg.Name or "Toggle"
@@ -1128,7 +1076,6 @@ function Kovari:Init(config)
             }
         end
         
-        -- Slider Component
         function section:AddSlider(cfg)
             cfg = cfg or {}
             local sliderName = cfg.Name or "Slider"
@@ -1246,7 +1193,6 @@ function Kovari:Init(config)
             }
         end
         
-        -- Button Component
         function section:AddButton(cfg)
             cfg = cfg or {}
             local buttonName = cfg.Name or "Button"
@@ -1305,7 +1251,6 @@ function Kovari:Init(config)
             end))
         end
         
-        -- Dropdown Component
         function section:AddDropdown(cfg)
             cfg = cfg or {}
             local dropdownName = cfg.Name or "Dropdown"
@@ -1465,7 +1410,6 @@ function Kovari:Init(config)
             }
         end
         
-        -- Label Component
         function section:AddLabel(cfg)
             cfg = cfg or {}
             local text = cfg.Text or "Label"
@@ -1494,10 +1438,60 @@ function Kovari:Init(config)
             }
         end
         
+        function section:AddColorPicker(cfg)
+            cfg = cfg or {}
+            local pickerName = cfg.Name or "Color"
+            local default = cfg.Default or Color3.fromRGB(255, 255, 255)
+            local callback = cfg.Callback or function() end
+            
+            local currentColor = default
+            
+            local Row = Util.Create("Frame", {
+                Size = UDim2.new(1, 0, 0, 42),
+                BackgroundTransparency = 1,
+                Parent = SectionContent
+            })
+            
+            local Label = Util.Create("TextLabel", {
+                Size = UDim2.new(0.6, 0, 1, 0),
+                BackgroundTransparency = 1,
+                Font = Theme.FontMedium,
+                Text = pickerName,
+                TextColor3 = Theme.TextPrimary,
+                TextSize = 13,
+                TextXAlignment = Enum.TextXAlignment.Left,
+                Parent = Row
+            })
+            
+            local ColorButton = Util.Create("TextButton", {
+                AnchorPoint = Vector2.new(1, 0.5),
+                Position = UDim2.new(1, 0, 0.5, 0),
+                Size = UDim2.new(0, 44, 0, 26),
+                BackgroundColor3 = currentColor,
+                Text = "",
+                AutoButtonColor = false,
+                Parent = Row
+            })
+            Util.Corner(ColorButton, Theme.CornerRadiusSmall)
+            Util.Stroke(ColorButton, Theme.Border)
+            
+            CreateRowDivider(Row)
+            
+            table.insert(Connections, ColorButton.MouseButton1Click:Connect(function()
+                callback(currentColor)
+            end))
+            
+            return {
+                SetColor = function(_, newColor)
+                    currentColor = newColor
+                    ColorButton.BackgroundColor3 = newColor
+                end
+            }
+        end
+        
         return section
     end
     
-    -- Tab Creator
     local function CreateTab(name, layoutOrder, isDefault)
         local tab = {}
         
@@ -1570,7 +1564,224 @@ function Kovari:Init(config)
         return tab
     end
     
-    -- Toggle Visibility
+    local function CreateProfileTab()
+        local profileTab = CreateTab("Profile", -100, true)
+        
+        local ProfileContent = Util.Create("Frame", {
+            Size = UDim2.new(1, 0, 0, 230),
+            BackgroundTransparency = 1,
+            Parent = profileTab.Content
+        })
+        
+        local LeftPanel = Util.Create("Frame", {
+            Size = UDim2.new(0, 160, 1, 0),
+            BackgroundColor3 = Theme.Secondary,
+            Parent = ProfileContent
+        })
+        Util.Corner(LeftPanel, Theme.CornerRadius)
+        Util.Stroke(LeftPanel, Theme.Border)
+        
+        local AvatarFrame = Util.Create("Frame", {
+            AnchorPoint = Vector2.new(0.5, 0),
+            Size = UDim2.new(0, 90, 0, 90),
+            Position = UDim2.new(0.5, 0, 0, 16),
+            BackgroundColor3 = Theme.Fill,
+            Parent = LeftPanel
+        })
+        Util.Corner(AvatarFrame, Theme.CornerRadius)
+        Util.Stroke(AvatarFrame, Theme.Border)
+        
+        local Avatar = Util.Create("ImageLabel", {
+            Size = UDim2.new(1, -8, 1, -8),
+            Position = UDim2.new(0, 4, 0, 4),
+            BackgroundTransparency = 1,
+            Image = "rbxthumb://type=AvatarHeadShot&id=" .. LocalPlayer.UserId .. "&w=420&h=420",
+            Parent = AvatarFrame
+        })
+        Util.Corner(Avatar, 8)
+        
+        local DisplayName = Util.Create("TextLabel", {
+            AnchorPoint = Vector2.new(0.5, 0),
+            Size = UDim2.new(1, -20, 0, 18),
+            Position = UDim2.new(0.5, 0, 0, 114),
+            BackgroundTransparency = 1,
+            Font = Theme.FontBold,
+            Text = LocalPlayer.DisplayName,
+            TextColor3 = Theme.TextPrimary,
+            TextSize = 14,
+            TextTruncate = Enum.TextTruncate.AtEnd,
+            Parent = LeftPanel
+        })
+        
+        local Username = Util.Create("TextLabel", {
+            AnchorPoint = Vector2.new(0.5, 0),
+            Size = UDim2.new(1, -20, 0, 14),
+            Position = UDim2.new(0.5, 0, 0, 134),
+            BackgroundTransparency = 1,
+            Font = Theme.FontMedium,
+            Text = "@" .. LocalPlayer.Name,
+            TextColor3 = Theme.TextSecondary,
+            TextSize = 11,
+            TextTruncate = Enum.TextTruncate.AtEnd,
+            Parent = LeftPanel
+        })
+        
+        local AccentBar = Util.Create("Frame", {
+            AnchorPoint = Vector2.new(0.5, 0),
+            Size = UDim2.new(0, 40, 0, 3),
+            Position = UDim2.new(0.5, 0, 0, 156),
+            BackgroundColor3 = Theme.Accent,
+            Parent = LeftPanel
+        })
+        Util.Corner(AccentBar, 2)
+        
+        local DiscordFrame = Util.Create("Frame", {
+            AnchorPoint = Vector2.new(0.5, 1),
+            Size = UDim2.new(1, -20, 0, 34),
+            Position = UDim2.new(0.5, 0, 1, -10),
+            BackgroundColor3 = Theme.Fill,
+            Parent = LeftPanel
+        })
+        Util.Corner(DiscordFrame, Theme.CornerRadiusSmall)
+        Util.Stroke(DiscordFrame, Theme.Border)
+        
+        local DiscordText = Util.Create("TextLabel", {
+            Size = UDim2.new(1, -16, 1, 0),
+            Position = UDim2.new(0, 8, 0, 0),
+            BackgroundTransparency = 1,
+            Font = Theme.FontMedium,
+            Text = discordInvite,
+            TextColor3 = Theme.TextSecondary,
+            TextSize = 10,
+            TextXAlignment = Enum.TextXAlignment.Center,
+            TextTruncate = Enum.TextTruncate.AtEnd,
+            Parent = DiscordFrame
+        })
+        
+        local DiscordButton = Util.Create("TextButton", {
+            Size = UDim2.new(1, 0, 1, 0),
+            BackgroundTransparency = 1,
+            Text = "",
+            Parent = DiscordFrame
+        })
+        
+        local copying = false
+        table.insert(Connections, DiscordButton.MouseButton1Click:Connect(function()
+            if copying then return end
+            copying = true
+            pcall(function()
+                (setclipboard or toclipboard or function() end)(discordInvite)
+            end)
+            
+            local orig = DiscordText.Text
+            DiscordText.Text = "Copied!"
+            DiscordText.TextColor3 = Theme.Success
+            Util.Tween(DiscordFrame, {BackgroundColor3 = Theme.AccentMuted}, Theme.QuickSpeed)
+            
+            task.delay(1.2, function()
+                DiscordText.Text = orig
+                DiscordText.TextColor3 = Theme.TextSecondary
+                Util.Tween(DiscordFrame, {BackgroundColor3 = Theme.Fill}, Theme.QuickSpeed)
+                copying = false
+            end)
+        end))
+        
+        local RightPanel = Util.Create("Frame", {
+            AnchorPoint = Vector2.new(1, 0),
+            Position = UDim2.new(1, 0, 0, 0),
+            Size = UDim2.new(1, -170, 1, 0),
+            BackgroundColor3 = Theme.Secondary,
+            Parent = ProfileContent
+        })
+        Util.Corner(RightPanel, Theme.CornerRadius)
+        Util.Stroke(RightPanel, Theme.Border)
+        
+        local InfoHeader = Util.Create("TextLabel", {
+            Size = UDim2.new(1, -24, 0, 22),
+            Position = UDim2.new(0, 12, 0, 12),
+            BackgroundTransparency = 1,
+            Font = Theme.FontBold,
+            Text = "Account Information",
+            TextColor3 = Theme.TextPrimary,
+            TextSize = 13,
+            TextXAlignment = Enum.TextXAlignment.Left,
+            Parent = RightPanel
+        })
+        
+        local InfoDivider = Util.Create("Frame", {
+            Size = UDim2.new(1, -24, 0, 1),
+            Position = UDim2.new(0, 12, 0, 38),
+            BackgroundColor3 = Theme.Separator,
+            BorderSizePixel = 0,
+            Parent = RightPanel
+        })
+        
+        local InfoList = Util.Create("Frame", {
+            Size = UDim2.new(1, -24, 1, -52),
+            Position = UDim2.new(0, 12, 0, 44),
+            BackgroundTransparency = 1,
+            Parent = RightPanel
+        })
+        
+        Util.Create("UIListLayout", {
+            SortOrder = Enum.SortOrder.LayoutOrder,
+            Padding = UDim.new(0, 0),
+            Parent = InfoList
+        })
+        
+        local function InfoRow(label, value)
+            local row = Util.Create("Frame", {
+                Size = UDim2.new(1, 0, 0, 34),
+                BackgroundTransparency = 1,
+                Parent = InfoList
+            })
+            
+            Util.Create("TextLabel", {
+                Size = UDim2.new(0.45, 0, 1, 0),
+                BackgroundTransparency = 1,
+                Font = Theme.FontMedium,
+                Text = label,
+                TextColor3 = Theme.TextSecondary,
+                TextSize = 11,
+                TextXAlignment = Enum.TextXAlignment.Left,
+                Parent = row
+            })
+            
+            Util.Create("TextLabel", {
+                AnchorPoint = Vector2.new(1, 0),
+                Size = UDim2.new(0.53, 0, 1, 0),
+                Position = UDim2.new(1, 0, 0, 0),
+                BackgroundTransparency = 1,
+                Font = Theme.FontSemibold,
+                Text = value,
+                TextColor3 = Theme.TextPrimary,
+                TextSize = 11,
+                TextXAlignment = Enum.TextXAlignment.Right,
+                TextTruncate = Enum.TextTruncate.AtEnd,
+                Parent = row
+            })
+            
+            Util.Create("Frame", {
+                AnchorPoint = Vector2.new(0, 1),
+                Size = UDim2.new(1, 0, 0, 1),
+                Position = UDim2.new(0, 0, 1, 0),
+                BackgroundColor3 = Theme.Separator,
+                BorderSizePixel = 0,
+                Parent = row
+            })
+        end
+        
+        InfoRow("User ID", tostring(LocalPlayer.UserId))
+        InfoRow("Account Age", tostring(LocalPlayer.AccountAge) .. " days")
+        InfoRow("Join Date", Util.FormatDate(os.time() - (LocalPlayer.AccountAge * 86400)))
+        InfoRow("Current Game", Util.GetGameName())
+        InfoRow("Server ID", game.JobId ~= "" and (game.JobId:sub(1, 14) .. "...") or "Studio")
+        
+        return profileTab
+    end
+    
+    CreateProfileTab()
+    
     table.insert(Connections, UserInputService.InputBegan:Connect(function(input, gpe)
         if not gpe and input.KeyCode == toggleKey and not Toggling then
             Toggling = true
@@ -1591,7 +1802,6 @@ function Kovari:Init(config)
         end
     end))
     
-    -- API
     local API = {
         Gui = ScreenGui,
         Main = Main,
@@ -1675,6 +1885,34 @@ function Kovari:Init(config)
             end)
         end
     }
+    
+    local SettingsTab = API:CreateTab("Settings", false)
+    
+    local UISection = SettingsTab:AddSection("Interface")
+    UISection:AddSlider({Name = "UI Scale", Min = 50, Max = 150, Default = 100, Suffix = "%", Callback = function(v) API:SetScale(v) end})
+    UISection:AddToggle({Name = "Smooth Animations", Default = true, Callback = function(state)
+        if state then
+            Theme.QuickSpeed = 0.12
+            Theme.NormalSpeed = 0.2
+            Theme.SlowSpeed = 0.35
+        else
+            Theme.QuickSpeed = 0.06
+            Theme.NormalSpeed = 0.1
+            Theme.SlowSpeed = 0.15
+        end
+    end})
+    
+    local UtilSection = SettingsTab:AddSection("Utility")
+    UtilSection:AddButton({Name = "Copy Discord Invite", ButtonText = "Copy", Callback = function()
+        pcall(function() (setclipboard or toclipboard or function() end)(discordInvite) end)
+        API:Notify("Copied", "Discord invite copied to clipboard!", 2)
+    end})
+    UtilSection:AddButton({Name = "Rejoin Server", ButtonText = "Rejoin", Callback = function()
+        TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer)
+    end})
+    
+    local DangerSection = SettingsTab:AddSection("Danger Zone")
+    DangerSection:AddButton({Name = "Destroy UI", ButtonText = "Destroy", Callback = function() API:Destroy() end})
     
     return API
 end
