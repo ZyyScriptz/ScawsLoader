@@ -20,6 +20,8 @@ local TeleportService = game:GetService("TeleportService")
 
 -- Player
 local LocalPlayer = Players.LocalPlayer
+
+-- Theme Configuration
 local Theme = {
     -- Backgrounds
     Primary = Color3.fromRGB(0, 0, 0),
@@ -66,13 +68,12 @@ local Theme = {
     CornerRadiusSmall = 8,
     CornerRadiusLarge = 16,
     
-    -- Animation (Improved timings)
-    SpringSpeed = 0.3,
-SpringSpeed = 0.25,  -- Faster spring
-SpringDamping = 0.75,  -- Bouncier
-QuickSpeed = 0.1,  -- Snappier
-NormalSpeed = 0.18,  -- Faster normal
-SlowSpeed = 0.3,  -- Faster slow
+    -- Animation
+    SpringSpeed = 0.25,
+    SpringDamping = 0.75,
+    QuickSpeed = 0.1,
+    NormalSpeed = 0.18,
+    SlowSpeed = 0.3,
 }
 
 -- Utility Functions
@@ -276,559 +277,53 @@ function Animate.ScaleIn(object, duration, delay)
     end)
 end
 
--- SHA256 Implementation for Key System
-local function CreateSHA256()
-    local MOD = 2^32
-    local MODM = MOD - 1
-    
-    local function memoize(f)
-        local mt = {}
-        local t = setmetatable({}, mt)
-        function mt:__index(k)
-            local v = f(k)
-            t[k] = v
-            return v
-        end
-        return t
-    end
-    
-    local function make_bitop_uncached(t, m)
-        local function bitop(a, b)
-            local res, p = 0, 1
-            while a ~= 0 and b ~= 0 do
-                local am, bm = a % m, b % m
-                res = res + t[am * m + bm] * p
-                a = (a - am) / m
-                b = (b - bm) / m
-                p = p * m
-            end
-            res = res + (a + b) * p
-            return res
-        end
-        return bitop
-    end
-    
-    local function make_bitop(t)
-        local op1 = make_bitop_uncached(t, 2^1)
-        local op2 = memoize(function(a)
-            return memoize(function(b)
-                return op1(a, b)
-            end)
-        end)
-        return function(a, b)
-            return (op2[a % 2^32])[b % 2^32]
-        end
-    end
-    
-    local bxor1 = make_bitop({[0] = 0, [1] = 1, [2] = 1, [3] = 0})
-    
-    local function bxor(a, b, c, ...)
-        local z = nil
-        if b then
-            a = a % MOD
-            b = b % MOD
-            z = bxor1(a, b)
-            if c then z = bxor(z, c, ...) end
-            return z
-        elseif a then
-            return a % MOD
-        else
-            return 0
-        end
-    end
-    
-    local function band(a, b, c, ...)
-        local z
-        if b then
-            a = a % MOD
-            b = b % MOD
-            z = ((a + b) - bxor1(a, b)) / 2
-            if c then z = band(z, c, ...) end
-            return z
-        elseif a then
-            return a % MOD
-        else
-            return MODM
-        end
-    end
-    
-    local function bnot(x)
-        return MODM - (x % MOD)
-    end
-    
-    local function rshift1(a, disp)
-        return math.floor(a % 2^32 / 2^disp)
-    end
-    
-    local function rshift(x, disp)
-        if disp > 31 or disp < -31 then return 0 end
-        return rshift1(x % MOD, disp)
-    end
-    
-    local function lshift(a, disp)
-        if disp < 0 then return rshift(a, -disp) end
-        return (a * 2^disp) % 2^32
-    end
-    
-    local function rrotate(x, disp)
-        x = x % MOD
-        disp = disp % 32
-        local low = band(x, 2^disp - 1)
-        return rshift(x, disp) + lshift(low, 32 - disp)
-    end
-    
-    local k = {
-        0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
-        0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
-        0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3,
-        0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
-        0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc,
-        0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
-        0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7,
-        0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
-        0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13,
-        0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
-        0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3,
-        0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
-        0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5,
-        0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
-        0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208,
-        0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
-    }
-    
-    local function str2hexa(s)
-        return (string.gsub(s, ".", function(c)
-            return string.format("%02x", string.byte(c))
-        end))
-    end
-    
-    local function num2s(l, n)
-        local s = ""
-        for _ = 1, n do
-            local rem = l % 256
-            s = string.char(rem) .. s
-            l = (l - rem) / 256
-        end
-        return s
-    end
-    
-    local function s2num(s, i)
-        local n = 0
-        for j = i, i + 3 do
-            n = n * 256 + string.byte(s, j)
-        end
-        return n
-    end
-    
-    local function preproc(msg, len)
-        local extra = 64 - ((len + 9) % 64)
-        len = num2s(8 * len, 8)
-        msg = msg .. "\128" .. string.rep("\0", extra) .. len
-        return msg
-    end
-    
-    local function initH256(H)
-        H[1] = 0x6a09e667
-        H[2] = 0xbb67ae85
-        H[3] = 0x3c6ef372
-        H[4] = 0xa54ff53a
-        H[5] = 0x510e527f
-        H[6] = 0x9b05688c
-        H[7] = 0x1f83d9ab
-        H[8] = 0x5be0cd19
-        return H
-    end
-    
-    local function digestblock(msg, i, H)
-        local w = {}
-        for j = 1, 16 do
-            w[j] = s2num(msg, i + (j - 1) * 4)
-        end
-        for j = 17, 64 do
-            local v = w[j - 15]
-            local s0 = bxor(rrotate(v, 7), rrotate(v, 18), rshift(v, 3))
-            v = w[j - 2]
-            w[j] = w[j - 16] + s0 + w[j - 7] + bxor(rrotate(v, 17), rrotate(v, 19), rshift(v, 10))
-        end
-        
-        local a, b, c, d, e, f, g, h = H[1], H[2], H[3], H[4], H[5], H[6], H[7], H[8]
-        for j = 1, 64 do
-            local s0 = bxor(rrotate(a, 2), rrotate(a, 13), rrotate(a, 22))
-            local maj = bxor(band(a, b), band(a, c), band(b, c))
-            local t2 = s0 + maj
-            local s1 = bxor(rrotate(e, 6), rrotate(e, 11), rrotate(e, 25))
-            local ch = bxor(band(e, f), band(bnot(e), g))
-            local t1 = h + s1 + ch + k[j] + w[j]
-            h, g, f, e, d, c, b, a = g, f, e, (d + t1) % MOD, c, b, a, (t1 + t2) % MOD
-        end
-        
-        H[1] = (H[1] + a) % MOD
-        H[2] = (H[2] + b) % MOD
-        H[3] = (H[3] + c) % MOD
-        H[4] = (H[4] + d) % MOD
-        H[5] = (H[5] + e) % MOD
-        H[6] = (H[6] + f) % MOD
-        H[7] = (H[7] + g) % MOD
-        H[8] = (H[8] + h) % MOD
-    end
-    
-    return function(msg)
-        msg = preproc(msg, #msg)
-        local H = initH256({})
-        for i = 1, #msg, 64 do
-            digestblock(msg, i, H)
-        end
-        return str2hexa(
-            num2s(H[1], 4) .. num2s(H[2], 4) .. num2s(H[3], 4) .. num2s(H[4], 4) ..
-            num2s(H[5], 4) .. num2s(H[6], 4) .. num2s(H[7], 4) .. num2s(H[8], 4)
-        )
-    end
-end
+-- Junkie Key System Handler
+local JunkieKeySystem = {}
 
--- JSON Library
-local function CreateJSON()
-    local encode, decode
+function JunkieKeySystem.new(config)
+    local self = setmetatable({}, {__index = JunkieKeySystem})
     
-    local escape_char_map = {
-        ["\\"] = "\\\\", ["\""] = "\\\"", ["\b"] = "\\b",
-        ["\f"] = "\\f", ["\n"] = "\\n", ["\r"] = "\\r", ["\t"] = "\\t",
-    }
+    -- Junkie Configuration
+    self.Service = config.Service or "key system"
+    self.Identifier = config.Identifier or tostring(LocalPlayer.UserId)
+    self.Provider = config.Provider or "key system"
+    self.ApiKey = config.ApiKey or "0015f93e-20bf-48fb-a444-33b056019ebe"
     
-    local function escape_char(c)
-        return escape_char_map[c] or string.format("\\u%04x", c:byte())
-    end
-    
-    local function encode_nil()
-        return "null"
-    end
-    
-    local function encode_table(val, stack)
-        local res = {}
-        stack = stack or {}
-        if stack[val] then error("circular reference") end
-        stack[val] = true
-        
-        if rawget(val, 1) ~= nil or next(val) == nil then
-            for _, v in ipairs(val) do
-                table.insert(res, encode(v, stack))
-            end
-            stack[val] = nil
-            return "[" .. table.concat(res, ",") .. "]"
-        else
-            for k, v in pairs(val) do
-                table.insert(res, encode(k, stack) .. ":" .. encode(v, stack))
-            end
-            stack[val] = nil
-            return "{" .. table.concat(res, ",") .. "}"
-        end
-    end
-    
-    local function encode_string(val)
-        return '"' .. val:gsub('[%z\1-\31\\"]', escape_char) .. '"'
-    end
-    
-    local function encode_number(val)
-        if val ~= val or val <= -math.huge or val >= math.huge then
-            error("unexpected number value '" .. tostring(val) .. "'")
-        end
-        return string.format("%.14g", val)
-    end
-    
-    local type_func_map = {
-        ["nil"] = encode_nil,
-        ["table"] = encode_table,
-        ["string"] = encode_string,
-        ["number"] = encode_number,
-        ["boolean"] = tostring,
-    }
-    
-    encode = function(val, stack)
-        local t = type(val)
-        local f = type_func_map[t]
-        if f then return f(val, stack) end
-        error("unexpected type '" .. t .. "'")
-    end
-    
-    local parse
-    
-    local function create_set(...)
-        local res = {}
-        for i = 1, select("#", ...) do
-            res[select(i, ...)] = true
-        end
-        return res
-    end
-    
-    local space_chars = create_set(" ", "\t", "\r", "\n")
-    local delim_chars = create_set(" ", "\t", "\r", "\n", "]", "}", ",")
-    local escape_chars = create_set("\\", "/", '"', "b", "f", "n", "r", "t", "u")
-    local literals = create_set("true", "false", "null")
-    local literal_map = {["true"] = true, ["false"] = false, ["null"] = nil}
-    
-    local function next_char(str, idx, set, negate)
-        for i = idx, #str do
-            if set[str:sub(i, i)] ~= negate then
-                return i
-            end
-        end
-        return #str + 1
-    end
-    
-    local function decode_error(str, idx, msg)
-        local line_count, col_count = 1, 1
-        for i = 1, idx - 1 do
-            col_count = col_count + 1
-            if str:sub(i, i) == "\n" then
-                line_count = line_count + 1
-                col_count = 1
-            end
-        end
-        error(string.format("%s at line %d col %d", msg, line_count, col_count))
-    end
-    
-    local function codepoint_to_utf8(n)
-        local f = math.floor
-        if n <= 0x7f then
-            return string.char(n)
-        elseif n <= 0x7ff then
-            return string.char(f(n / 64) + 192, n % 64 + 128)
-        elseif n <= 0xffff then
-            return string.char(f(n / 4096) + 224, f(n % 4096 / 64) + 128, n % 64 + 128)
-        elseif n <= 0x10ffff then
-            return string.char(f(n / 262144) + 240, f(n % 262144 / 4096) + 128, f(n % 4096 / 64) + 128, n % 64 + 128)
-        end
-        error(string.format("invalid unicode codepoint '%x'", n))
-    end
-    
-    local function parse_unicode_escape(s)
-        local n1 = tonumber(s:sub(1, 4), 16)
-        local n2 = tonumber(s:sub(7, 10), 16)
-        if n2 then
-            return codepoint_to_utf8((n1 - 0xd800) * 0x400 + n2 - 0xdc00 + 0x10000)
-        else
-            return codepoint_to_utf8(n1)
-        end
-    end
-    
-    local function parse_string(str, i)
-        local res = ""
-        local j = i + 1
-        local k = j
-        
-        while j <= #str do
-            local x = str:byte(j)
-            if x < 32 then
-                decode_error(str, j, "control character in string")
-            elseif x == 92 then
-                res = res .. str:sub(k, j - 1)
-                j = j + 1
-                local c = str:sub(j, j)
-                if c == "u" then
-                    local hex = str:match("^[dD][89aAbB]%x%x\\u%x%x%x%x", j + 1) or str:match("^%x%x%x%x", j + 1)
-                    if not hex then decode_error(str, j - 1, "invalid unicode escape in string") end
-                    res = res .. parse_unicode_escape(hex)
-                    j = j + #hex
-                else
-                    if not escape_chars[c] then
-                        decode_error(str, j - 1, "invalid escape char '" .. c .. "' in string")
-                    end
-                    res = res .. (({b = "\b", f = "\f", n = "\n", r = "\r", t = "\t"})[c] or c)
-                end
-                k = j + 1
-            elseif x == 34 then
-                res = res .. str:sub(k, j - 1)
-                return res, j + 1
-            end
-            j = j + 1
-        end
-        decode_error(str, i, "expected closing quote for string")
-    end
-    
-    local function parse_number(str, i)
-        local x = next_char(str, i, delim_chars)
-        local s = str:sub(i, x - 1)
-        local n = tonumber(s)
-        if not n then decode_error(str, i, "invalid number '" .. s .. "'") end
-        return n, x
-    end
-    
-    local function parse_literal(str, i)
-        local x = next_char(str, i, delim_chars)
-        local word = str:sub(i, x - 1)
-        if not literals[word] then decode_error(str, i, "invalid literal '" .. word .. "'") end
-        return literal_map[word], x
-    end
-    
-    local function parse_array(str, i)
-        local res = {}
-        local n = 1
-        i = i + 1
-        while true do
-            local x
-            i = next_char(str, i, space_chars, true)
-            if str:sub(i, i) == "]" then
-                i = i + 1
-                break
-            end
-            x, i = parse(str, i)
-            res[n] = x
-            n = n + 1
-            i = next_char(str, i, space_chars, true)
-            local chr = str:sub(i, i)
-            i = i + 1
-            if chr == "]" then break end
-            if chr ~= "," then decode_error(str, i, "expected ']' or ','") end
-        end
-        return res, i
-    end
-    
-    local function parse_object(str, i)
-        local res = {}
-        i = i + 1
-        while true do
-            local key, val
-            i = next_char(str, i, space_chars, true)
-            if str:sub(i, i) == "}" then
-                i = i + 1
-                break
-            end
-            if str:sub(i, i) ~= '"' then decode_error(str, i, "expected string for key") end
-            key, i = parse(str, i)
-            i = next_char(str, i, space_chars, true)
-            if str:sub(i, i) ~= ":" then decode_error(str, i, "expected ':' after key") end
-            i = next_char(str, i + 1, space_chars, true)
-            val, i = parse(str, i)
-            res[key] = val
-            i = next_char(str, i, space_chars, true)
-            local chr = str:sub(i, i)
-            i = i + 1
-            if chr == "}" then break end
-            if chr ~= "," then decode_error(str, i, "expected '}' or ','") end
-        end
-        return res, i
-    end
-    
-    local char_func_map = {
-        ['"'] = parse_string,
-        ["0"] = parse_number, ["1"] = parse_number, ["2"] = parse_number,
-        ["3"] = parse_number, ["4"] = parse_number, ["5"] = parse_number,
-        ["6"] = parse_number, ["7"] = parse_number, ["8"] = parse_number,
-        ["9"] = parse_number, ["-"] = parse_number,
-        ["t"] = parse_literal, ["f"] = parse_literal, ["n"] = parse_literal,
-        ["["] = parse_array, ["{"] = parse_object,
-    }
-    
-    parse = function(str, idx)
-        local chr = str:sub(idx, idx)
-        local f = char_func_map[chr]
-        if f then return f(str, idx) end
-        decode_error(str, idx, "unexpected character '" .. chr .. "'")
-    end
-    
-    decode = function(str)
-        if type(str) ~= "string" then
-            error("expected argument of type string, got " .. type(str))
-        end
-        local res, idx = parse(str, next_char(str, 1, space_chars, true))
-        idx = next_char(str, idx, space_chars, true)
-        if idx <= #str then decode_error(str, idx, "trailing garbage") end
-        return res
-    end
-    
-    return {encode = encode, decode = decode}
-end
-
-local SHA256 = CreateSHA256()
-local JSON = CreateJSON()
-
--- Key System Handler
-local KeySystemHandler = {}
-
-function KeySystemHandler.new(config)
-    local self = setmetatable({}, {__index = KeySystemHandler})
-    
-    self.ServiceId = config.ServiceId or 0
-    self.Secret = config.Secret or ""
-    self.UseNonce = config.UseNonce ~= false
-    self.Host = "https://api.platoboost.com"
-    self.CachedLink = ""
-    self.CachedTime = 0
-    self.RequestPending = false
-    
-    pcall(function()
-        local response = (request or http_request or syn_request or function()
-            return {StatusCode = 0}
-        end)({
-            Url = self.Host .. "/public/connectivity",
-            Method = "GET"
-        })
-        if response.StatusCode ~= 200 and response.StatusCode ~= 429 then
-            self.Host = "https://api.platoboost.net"
-        end
+    -- Load Junkie SDK
+    self.Junkie = nil
+    local success, result = pcall(function()
+        return loadstring(game:HttpGet("https://jnkie.com/sdk/library.lua"))()
     end)
+    
+    if success and result then
+        self.Junkie = result
+        self.Junkie.service = self.Service
+        self.Junkie.identifier = self.Identifier
+        self.Junkie.provider = self.Provider
+    else
+        warn("[Kovari] Failed to load Junkie SDK:", result)
+    end
     
     return self
 end
 
-function KeySystemHandler:GetHWID()
-    local getHwid = gethwid or function()
-        return tostring(LocalPlayer.UserId)
+function JunkieKeySystem:GetKeyLink()
+    if not self.Junkie then
+        return false, "Junkie SDK not loaded"
     end
-    return getHwid()
-end
-
-function KeySystemHandler:GenerateNonce()
-    local chars = "abcdefghijklmnopqrstuvwxyz"
-    local result = ""
-    for _ = 1, 16 do
-        local idx = math.random(1, #chars)
-        result = result .. chars:sub(idx, idx)
-    end
-    return result
-end
-
-function KeySystemHandler:Request(options)
-    local requestFunc = request or http_request or syn_request or function()
-        return {StatusCode = 0}
-    end
-    return pcall(function()
-        return requestFunc(options)
+    
+    local success, result = pcall(function()
+        return self.Junkie.get_link()
     end)
+    
+    if success and result then
+        return true, result
+    else
+        return false, "Failed to get key link"
+    end
 end
 
-function KeySystemHandler:GetKeyLink()
-    if self.CachedTime + 600 > os.time() then
-        return true, self.CachedLink
-    end
-    
-    local success, response = self:Request({
-        Url = self.Host .. "/public/start",
-        Method = "POST",
-        Body = JSON.encode({
-            service = self.ServiceId,
-            identifier = SHA256(self:GetHWID())
-        }),
-        Headers = {
-            ["Content-Type"] = "application/json"
-        }
-    })
-    
-    if success and response.StatusCode == 200 then
-        local data = JSON.decode(response.Body)
-        if data.success then
-            self.CachedLink = data.data.url
-            self.CachedTime = os.time()
-            return true, self.CachedLink
-        end
-        return false, data.message or "Failed to get link"
-    elseif success and response.StatusCode == 429 then
-        return false, "Rate limited. Please wait."
-    end
-    
-    return false, "Connection failed"
-end
-
-function KeySystemHandler:CopyLink()
+function JunkieKeySystem:CopyLink()
     local success, link = self:GetKeyLink()
     if success then
         pcall(function()
@@ -839,88 +334,39 @@ function KeySystemHandler:CopyLink()
     return false
 end
 
-function KeySystemHandler:RedeemKey(key)
-    local nonce = self:GenerateNonce()
-    local body = {
-        identifier = SHA256(self:GetHWID()),
-        key = key
-    }
-    if self.UseNonce then
-        body.nonce = nonce
+function JunkieKeySystem:VerifyKey(key)
+    if not self.Junkie then
+        return false, "Junkie SDK not loaded"
     end
     
-    local success, response = self:Request({
-        Url = self.Host .. "/public/redeem/" .. tostring(self.ServiceId),
-        Method = "POST",
-        Body = JSON.encode(body),
-        Headers = {["Content-Type"] = "application/json"}
-    })
+    if not key or key == "" then
+        return false, "Please enter a key"
+    end
     
-    if success and response.StatusCode == 200 then
-        local data = JSON.decode(response.Body)
-        if data.success and data.data.valid then
-            if self.UseNonce then
-                return data.data.hash == SHA256("true-" .. nonce .. "-" .. self.Secret)
-            end
-            return true
+    local success, result = pcall(function()
+        return self.Junkie.check_key(key)
+    end)
+    
+    if success and result then
+        if result.valid then
+            return true, "Key verified!"
+        else
+            return false, result.message or "Invalid key"
         end
+    else
+        return false, "Verification failed"
     end
-    return false
 end
 
-function KeySystemHandler:VerifyKey(key)
-    if self.RequestPending then
-        return false, "Please wait..."
-    end
-    self.RequestPending = true
-    
-    local nonce = self:GenerateNonce()
-    local endpoint = self.Host .. "/public/whitelist/" .. tostring(self.ServiceId)
-    endpoint = endpoint .. "?identifier=" .. SHA256(self:GetHWID()) .. "&key=" .. key
-    if self.UseNonce then
-        endpoint = endpoint .. "&nonce=" .. nonce
-    end
-    
-    local success, response = self:Request({
-        Url = endpoint,
-        Method = "GET"
-    })
-    
-    self.RequestPending = false
-    
-    if success and response.StatusCode == 200 then
-        local data = JSON.decode(response.Body)
-        if data.success then
-            if data.data.valid then
-                if self.UseNonce then
-                    local valid = data.data.hash == SHA256("true-" .. nonce .. "-" .. self.Secret)
-                    return valid, valid and "Key verified!" or "Verification failed"
-                end
-                return true, "Key verified!"
-            else
-                if key:sub(1, 4) == "KEY_" then
-                    local redeemed = self:RedeemKey(key)
-                    return redeemed, redeemed and "Key redeemed!" or "Failed to redeem"
-                end
-                return false, "Invalid key"
-            end
-        end
-        return false, data.message or "Verification failed"
-    elseif success and response.StatusCode == 429 then
-        return false, "Rate limited. Please wait."
-    end
-    
-    return false, "Connection error"
-end
-
--- Key System UI (Fixed animations and colors)
+-- Key System UI
 function Kovari:CreateKeyUI(config)
     config = config or {}
     
-    local keyHandler = KeySystemHandler.new({
-        ServiceId = config.ServiceId or 18623,
-        Secret = config.Secret or "80e22eb6-80a9-44d1-9a87-0083e3dccadf",
-        UseNonce = config.UseNonce
+    local keyHandler = JunkieKeySystem.new({
+        Service = config.Service or "key system",
+        Identifier = config.Identifier or tostring(LocalPlayer.UserId),
+        Provider = config.Provider or "key system",
+        ApiKey = config.ApiKey or "0015f93e-20bf-48fb-a444-33b056019ebe"
     })
     
     local title = config.Title or "KOVARI"
@@ -928,6 +374,10 @@ function Kovari:CreateKeyUI(config)
     local discordLink = config.Discord or "discord.gg/QcvddpVeTM"
     local onSuccess = config.OnSuccess or function() end
     local onFailed = config.OnFailed or function() end
+    
+    -- Set global flags
+    getgenv().SCRIPT_KEY = nil
+    getgenv().UI_CLOSED = false
     
     -- Create ScreenGui
     local ScreenGui = Util.Create("ScreenGui", {
@@ -956,7 +406,7 @@ function Kovari:CreateKeyUI(config)
         Parent = ScreenGui
     })
     
-    -- Main Container (Start visible with proper colors)
+    -- Main Container
     local MainFrame = Util.Create("Frame", {
         Name = "Main",
         AnchorPoint = Vector2.new(0.5, 0.5),
@@ -1195,7 +645,7 @@ function Kovari:CreateKeyUI(config)
         Position = UDim2.new(0, 0, 1, -20),
         BackgroundTransparency = 1,
         Font = Theme.FontRegular,
-        Text = "Keys are valid for 24 hours after activation",
+        Text = "Powered by Junkie Key System",
         TextColor3 = Theme.TextTertiary,
         TextSize = 10,
         Parent = Content
@@ -1353,6 +803,8 @@ function Kovari:CreateKeyUI(config)
                 VerifyButton.Text = "Success!"
                 Util.Tween(VerifyButton, {BackgroundColor3 = Theme.Success}, Theme.QuickSpeed)
                 
+                getgenv().SCRIPT_KEY = key
+                
                 task.delay(1.2, function()
                     Close()
                     task.delay(0.4, onSuccess)
@@ -1400,7 +852,10 @@ function Kovari:CreateKeyUI(config)
     end))
     
     return {
-        Destroy = Close,
+        Destroy = function()
+            getgenv().UI_CLOSED = true
+            Close()
+        end,
         SetStatus = SetStatus
     }
 end
@@ -1408,17 +863,8 @@ end
 Kovari.Util = Util
 Kovari.Theme = Theme
 Kovari.Animate = Animate
-Kovari.JSON = JSON
 
--- Store instance globally
 _G.KovariInstance = Kovari
---[[
-    Kovari UI Library - Fixed & Improved Version
-    Part 2 of 2: Main UI System, Tabs, Components
-    
-    This continues from Part 1 - append this code to Part 1
-]]
-
 -- Main UI Initialization
 function Kovari:Init(config)
     config = config or {}
@@ -1463,7 +909,7 @@ function Kovari:Init(config)
         Parent = ScreenGui
     })
     
-    -- Main Frame (Start with proper colors, not transparent)
+    -- Main Frame
     local Main = Util.Create("Frame", {
         Name = "Main",
         AnchorPoint = Vector2.new(0.5, 0.5),
@@ -1654,7 +1100,7 @@ function Kovari:Init(config)
         })
     end
     
-    -- Section Creator (FIXED - now properly defined at the right scope)
+    -- Section Creator
     local function CreateSection(parent, sectionName)
         local section = {}
         
@@ -1707,7 +1153,6 @@ function Kovari:Init(config)
             Parent = SectionContent
         })
         
-        -- Add bottom padding to section
         local BottomPadding = Util.Create("Frame", {
             Size = UDim2.new(1, 0, 0, 8),
             BackgroundTransparency = 1,
@@ -1770,27 +1215,24 @@ function Kovari:Init(config)
             
             CreateRowDivider(Row)
             
-table.insert(Connections, SwitchButton.MouseButton1Click:Connect(function()
-    state = not state
-    
-    -- Smoother color transition
-    Util.Tween(Switch, {
-        BackgroundColor3 = state and Theme.Accent or Theme.Fill
-    }, Theme.QuickSpeed)
-    
-    -- Bounce animation for knob
-    local targetPos = state and UDim2.new(1, -22, 0.5, 0) or UDim2.new(0, 4, 0.5, 0)
-    Util.Spring(Knob, {Position = targetPos}, Theme.QuickSpeed * 1.5)
-    
-    -- Scale pulse effect
-    local originalSize = Knob.Size
-    Util.Tween(Knob, {Size = UDim2.new(0, 20, 0, 20)}, Theme.QuickSpeed / 2)
-    task.delay(Theme.QuickSpeed / 2, function()
-        Util.Spring(Knob, {Size = originalSize}, Theme.QuickSpeed)
-    end)
-    
-    callback(state)
-end))
+            table.insert(Connections, SwitchButton.MouseButton1Click:Connect(function()
+                state = not state
+                
+                Util.Tween(Switch, {
+                    BackgroundColor3 = state and Theme.Accent or Theme.Fill
+                }, Theme.QuickSpeed)
+                
+                local targetPos = state and UDim2.new(1, -22, 0.5, 0) or UDim2.new(0, 4, 0.5, 0)
+                Util.Spring(Knob, {Position = targetPos}, Theme.QuickSpeed * 1.5)
+                
+                local originalSize = Knob.Size
+                Util.Tween(Knob, {Size = UDim2.new(0, 20, 0, 20)}, Theme.QuickSpeed / 2)
+                task.delay(Theme.QuickSpeed / 2, function()
+                    Util.Spring(Knob, {Size = originalSize}, Theme.QuickSpeed)
+                end)
+                
+                callback(state)
+            end))
             
             return {
                 SetState = function(_, newState)
@@ -1884,18 +1326,16 @@ end))
             
             local sliderDragging = false
             
-            -- SMOOTHER SLIDER:
-local function UpdateSlider(input)
-    local pct = math.clamp((input.Position.X - Track.AbsolutePosition.X) / Track.AbsoluteSize.X, 0, 1)
-    value = math.floor(min + (max - min) * pct)
-    ValueLabel.Text = tostring(value) .. suffix
-    
-    -- Smooth fill animation
-    Util.Tween(Fill, {Size = UDim2.new(pct, 0, 1, 0)}, Theme.QuickSpeed / 2)
-    Util.Tween(SliderKnob, {Position = UDim2.new(pct, 0, 0.5, 0)}, Theme.QuickSpeed / 2)
-    
-    callback(value)
-end
+            local function UpdateSlider(input)
+                local pct = math.clamp((input.Position.X - Track.AbsolutePosition.X) / Track.AbsoluteSize.X, 0, 1)
+                value = math.floor(min + (max - min) * pct)
+                ValueLabel.Text = tostring(value) .. suffix
+                
+                Util.Tween(Fill, {Size = UDim2.new(pct, 0, 1, 0)}, Theme.QuickSpeed / 2)
+                Util.Tween(SliderKnob, {Position = UDim2.new(pct, 0, 0.5, 0)}, Theme.QuickSpeed / 2)
+                
+                callback(value)
+            end
             
             table.insert(Connections, Hitbox.InputBegan:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 then
@@ -1973,33 +1413,30 @@ end
             
             local hovered, pressed = false, false
             
-            -- BETTER HOVER ANIMATION:
-local function UpdateState()
-    local targetColor
-    local targetSize = Button.Size
-    
-    if pressed then
-        targetColor = Theme.AccentDark
-        -- Slight scale down when pressed
-        Util.Tween(Button, {
-            BackgroundColor3 = targetColor,
-            Size = UDim2.new(targetSize.X.Scale, targetSize.X.Offset - 2, 0, 26)
-        }, Theme.QuickSpeed / 2)
-    elseif hovered then
-        targetColor = Theme.AccentLight
-        -- Slight scale up on hover
-        Util.Tween(Button, {
-            BackgroundColor3 = targetColor,
-            Size = UDim2.new(0, 72, 0, 30)
-        }, Theme.QuickSpeed)
-    else
-        targetColor = Theme.Accent
-        Util.Tween(Button, {
-            BackgroundColor3 = targetColor,
-            Size = UDim2.new(0, 70, 0, 28)
-        }, Theme.QuickSpeed)
-    end
-end
+            local function UpdateState()
+                local targetColor
+                local targetSize = Button.Size
+                
+                if pressed then
+                    targetColor = Theme.AccentDark
+                    Util.Tween(Button, {
+                        BackgroundColor3 = targetColor,
+                        Size = UDim2.new(targetSize.X.Scale, targetSize.X.Offset - 2, 0, 26)
+                    }, Theme.QuickSpeed / 2)
+                elseif hovered then
+                    targetColor = Theme.AccentLight
+                    Util.Tween(Button, {
+                        BackgroundColor3 = targetColor,
+                        Size = UDim2.new(0, 72, 0, 30)
+                    }, Theme.QuickSpeed)
+                else
+                    targetColor = Theme.Accent
+                    Util.Tween(Button, {
+                        BackgroundColor3 = targetColor,
+                        Size = UDim2.new(0, 70, 0, 28)
+                    }, Theme.QuickSpeed)
+                end
+            end
             
             table.insert(Connections, Button.MouseEnter:Connect(function()
                 hovered = true
@@ -2026,89 +1463,6 @@ end
                 Util.Ripple(Button)
                 callback()
             end))
-        end
-        
-        -- Keybind Component
-        function section:AddKeybind(cfg)
-            cfg = cfg or {}
-            local keybindName = cfg.Name or "Keybind"
-            local default = cfg.Default or Enum.KeyCode.E
-            local callback = cfg.Callback or function() end
-            
-            local key = default
-            local binding = false
-            
-            local Row = Util.Create("Frame", {
-                Size = UDim2.new(1, 0, 0, 42),
-                BackgroundTransparency = 1,
-                Parent = SectionContent
-            })
-            
-            local Label = Util.Create("TextLabel", {
-                Size = UDim2.new(0.6, 0, 1, 0),
-                BackgroundTransparency = 1,
-                Font = Theme.FontMedium,
-                Text = keybindName,
-                TextColor3 = Theme.TextPrimary,
-                TextSize = 13,
-                TextXAlignment = Enum.TextXAlignment.Left,
-                Parent = Row
-            })
-            
-            local KeyButton = Util.Create("TextButton", {
-                AnchorPoint = Vector2.new(1, 0.5),
-                Position = UDim2.new(1, 0, 0.5, 0),
-                Size = UDim2.new(0, 70, 0, 28),
-                BackgroundColor3 = Theme.Fill,
-                Font = Theme.FontSemibold,
-                Text = key.Name,
-                TextColor3 = Theme.TextPrimary,
-                TextSize = 10,
-                AutoButtonColor = false,
-                Parent = Row
-            })
-            Util.Corner(KeyButton, Theme.CornerRadiusSmall)
-            Util.Stroke(KeyButton, Theme.Border)
-            
-            CreateRowDivider(Row)
-            
-            table.insert(Connections, KeyButton.MouseButton1Click:Connect(function()
-                binding = true
-                KeyButton.Text = "..."
-                Util.Tween(KeyButton, {BackgroundColor3 = Theme.Accent}, Theme.QuickSpeed)
-            end))
-            
-            table.insert(Connections, KeyButton.MouseEnter:Connect(function()
-                if not binding then
-                    Util.Tween(KeyButton, {BackgroundColor3 = Theme.FillHover}, Theme.QuickSpeed)
-                end
-            end))
-            
-            table.insert(Connections, KeyButton.MouseLeave:Connect(function()
-                if not binding then
-                    Util.Tween(KeyButton, {BackgroundColor3 = Theme.Fill}, Theme.QuickSpeed)
-                end
-            end))
-            
-            table.insert(Connections, UserInputService.InputBegan:Connect(function(input, gpe)
-                if binding and input.UserInputType == Enum.UserInputType.Keyboard then
-                    key = input.KeyCode
-                    KeyButton.Text = key.Name
-                    binding = false
-                    Util.Tween(KeyButton, {BackgroundColor3 = Theme.Fill}, Theme.QuickSpeed)
-                    callback(key)
-                end
-            end))
-            
-            return {
-                SetKey = function(_, newKey)
-                    key = newKey
-                    KeyButton.Text = key.Name
-                end,
-                GetKey = function()
-                    return key
-                end
-            }
         end
         
         -- Dropdown Component
@@ -2172,11 +1526,11 @@ end
                 AnchorPoint = Vector2.new(1, 0),
                 Position = UDim2.new(1, 0, 0, 38),
                 Size = UDim2.new(0, 130, 0, 0),
-                    BackgroundColor3 = Theme.Tertiary,
+                BackgroundColor3 = Theme.Tertiary,
                 ClipsDescendants = true,
                 Visible = false,
-                ZIndex = 9999,  -- CHANGED FROM 10
-                Parent = ScreenGui  -- CHANGED FROM Row - Now it's a child of ScreenGui directly
+                ZIndex = 9999,
+                Parent = ScreenGui
             })
             Util.Corner(DropdownList, Theme.CornerRadiusSmall)
             Util.Stroke(DropdownList, Theme.Border)
@@ -2198,44 +1552,40 @@ end
             CreateRowDivider(Row)
             
             local function CloseDropdown()
-    isOpen = false
-    
-    -- Fade out with scale animation
-    Util.Tween(DropdownList, {
-        Size = UDim2.new(0, 130, 0, 0),
-        BackgroundTransparency = 1
-    }, Theme.QuickSpeed * 1.5)
-    
-    Util.Spring(Arrow, {Rotation = 0}, Theme.QuickSpeed)
-    
-    task.delay(Theme.QuickSpeed * 1.5, function()
-        if not isOpen then
-            DropdownList.Visible = false
-        end
-    end)
-end
+                isOpen = false
+                
+                Util.Tween(DropdownList, {
+                    Size = UDim2.new(0, 130, 0, 0),
+                    BackgroundTransparency = 1
+                }, Theme.QuickSpeed * 1.5)
+                
+                Util.Spring(Arrow, {Rotation = 0}, Theme.QuickSpeed)
+                
+                task.delay(Theme.QuickSpeed * 1.5, function()
+                    if not isOpen then
+                        DropdownList.Visible = false
+                    end
+                end)
+            end
             
--- FIXED VERSION with better animation:
-local function OpenDropdown()
-    isOpen = true
-    
-    -- Set initial position
-    local buttonPos = DropButton.AbsolutePosition
-    local buttonSize = DropButton.AbsoluteSize
-    DropdownList.Position = UDim2.new(0, buttonPos.X + buttonSize.X, 0, buttonPos.Y + buttonSize.Y + 2)
-    DropdownList.Visible = true
-    
-    local targetHeight = math.min(#options * 26 + 10, 180)
-    
-    -- Better animation with opacity
-    DropdownList.BackgroundTransparency = 1
-    Util.Tween(DropdownList, {BackgroundTransparency = 0}, Theme.QuickSpeed)
-    Util.Spring(DropdownList, {
-        Size = UDim2.new(0, 130, 0, targetHeight)
-    }, Theme.NormalSpeed * 0.8)
-    
-    Util.Spring(Arrow, {Rotation = 180}, Theme.QuickSpeed)
-end
+            local function OpenDropdown()
+                isOpen = true
+                
+                local buttonPos = DropButton.AbsolutePosition
+                local buttonSize = DropButton.AbsoluteSize
+                DropdownList.Position = UDim2.new(0, buttonPos.X + buttonSize.X, 0, buttonPos.Y + buttonSize.Y + 2)
+                DropdownList.Visible = true
+                
+                local targetHeight = math.min(#options * 26 + 10, 180)
+                
+                DropdownList.BackgroundTransparency = 1
+                Util.Tween(DropdownList, {BackgroundTransparency = 0}, Theme.QuickSpeed)
+                Util.Spring(DropdownList, {
+                    Size = UDim2.new(0, 130, 0, targetHeight)
+                }, Theme.NormalSpeed * 0.8)
+                
+                Util.Spring(Arrow, {Rotation = 180}, Theme.QuickSpeed)
+            end
             
             local function PopulateOptions()
                 for _, child in ipairs(DropdownList:GetChildren()) do
@@ -2309,231 +1659,6 @@ end
             }
         end
         
-        -- Textbox Component
-        function section:AddTextbox(cfg)
-            cfg = cfg or {}
-            local textboxName = cfg.Name or "Textbox"
-            local default = cfg.Default or ""
-            local placeholder = cfg.Placeholder or "Enter text..."
-            local callback = cfg.Callback or function() end
-            
-            local Row = Util.Create("Frame", {
-                Size = UDim2.new(1, 0, 0, 42),
-                BackgroundTransparency = 1,
-                Parent = SectionContent
-            })
-            
-            local Label = Util.Create("TextLabel", {
-                Size = UDim2.new(0.35, 0, 1, 0),
-                BackgroundTransparency = 1,
-                Font = Theme.FontMedium,
-                Text = textboxName,
-                TextColor3 = Theme.TextPrimary,
-                TextSize = 13,
-                TextXAlignment = Enum.TextXAlignment.Left,
-                Parent = Row
-            })
-            
-            local InputFrame = Util.Create("Frame", {
-                AnchorPoint = Vector2.new(1, 0.5),
-                Position = UDim2.new(1, 0, 0.5, 0),
-                Size = UDim2.new(0, 150, 0, 28),
-                BackgroundColor3 = Theme.Fill,
-                Parent = Row
-            })
-            Util.Corner(InputFrame, Theme.CornerRadiusSmall)
-            local InputStroke = Util.Stroke(InputFrame, Theme.Border)
-            
-            local TextInput = Util.Create("TextBox", {
-                Size = UDim2.new(1, -16, 1, 0),
-                Position = UDim2.new(0, 8, 0, 0),
-                BackgroundTransparency = 1,
-                Font = Theme.FontMedium,
-                PlaceholderText = placeholder,
-                PlaceholderColor3 = Theme.TextTertiary,
-                Text = default,
-                TextColor3 = Theme.TextPrimary,
-                TextSize = 11,
-                TextXAlignment = Enum.TextXAlignment.Left,
-                ClearTextOnFocus = false,
-                Parent = InputFrame
-            })
-            
-            CreateRowDivider(Row)
-            
-            table.insert(Connections, TextInput.Focused:Connect(function()
-                Util.Tween(InputFrame, {BackgroundColor3 = Theme.FillHover}, Theme.QuickSpeed)
-                Util.Tween(InputStroke, {Color = Theme.Accent}, Theme.QuickSpeed)
-            end))
-            
-            table.insert(Connections, TextInput.FocusLost:Connect(function(enterPressed)
-                Util.Tween(InputFrame, {BackgroundColor3 = Theme.Fill}, Theme.QuickSpeed)
-                Util.Tween(InputStroke, {Color = Theme.Border}, Theme.QuickSpeed)
-                callback(TextInput.Text, enterPressed)
-            end))
-            
-            return {
-                SetText = function(_, newText)
-                    TextInput.Text = newText
-                end,
-                GetText = function()
-                    return TextInput.Text
-                end
-            }
-        end
-        
-        -- Color Picker Component
-        function section:AddColorPicker(cfg)
-            cfg = cfg or {}
-            local pickerName = cfg.Name or "Color"
-            local default = cfg.Default or Color3.fromRGB(255, 255, 255)
-            local callback = cfg.Callback or function() end
-            
-            local currentColor = default
-            local isOpen = false
-            
-            local presetColors = {
-                Color3.fromRGB(255, 59, 48),
-                Color3.fromRGB(255, 149, 0),
-                Color3.fromRGB(255, 204, 0),
-                Color3.fromRGB(52, 199, 89),
-                Color3.fromRGB(0, 199, 190),
-                Color3.fromRGB(48, 176, 199),
-                Color3.fromRGB(50, 173, 230),
-                Color3.fromRGB(0, 122, 255),
-                Color3.fromRGB(88, 86, 214),
-                Color3.fromRGB(175, 82, 222),
-                Color3.fromRGB(255, 45, 85),
-                Color3.fromRGB(255, 255, 255),
-            }
-            
-            local Row = Util.Create("Frame", {
-                Size = UDim2.new(1, 0, 0, 42),
-                BackgroundTransparency = 1,
-                ClipsDescendants = false,
-                ZIndex = 4,
-                Parent = SectionContent
-            })
-            
-            local Label = Util.Create("TextLabel", {
-                Size = UDim2.new(0.6, 0, 1, 0),
-                BackgroundTransparency = 1,
-                Font = Theme.FontMedium,
-                Text = pickerName,
-                TextColor3 = Theme.TextPrimary,
-                TextSize = 13,
-                TextXAlignment = Enum.TextXAlignment.Left,
-                Parent = Row
-            })
-            
-            local ColorButton = Util.Create("TextButton", {
-                AnchorPoint = Vector2.new(1, 0.5),
-                Position = UDim2.new(1, 0, 0.5, 0),
-                Size = UDim2.new(0, 44, 0, 26),
-                BackgroundColor3 = currentColor,
-                Text = "",
-                AutoButtonColor = false,
-                Parent = Row
-            })
-            Util.Corner(ColorButton, Theme.CornerRadiusSmall)
-            Util.Stroke(ColorButton, Theme.Border)
-            
-            -- FIXED VERSION:
-local ColorPanel = Util.Create("Frame", {
-    AnchorPoint = Vector2.new(1, 0),
-    Position = UDim2.new(1, 0, 0, 45),
-    Size = UDim2.new(0, 180, 0, 0),
-    BackgroundColor3 = Theme.Tertiary,
-    ClipsDescendants = true,
-    Visible = false,
-    ZIndex = 9999,  -- CHANGED
-    Parent = ScreenGui  -- CHANGED - Now top level
-})
-            Util.Corner(ColorPanel, Theme.CornerRadiusSmall)
-            Util.Stroke(ColorPanel, Theme.Border)
-            
-            local ColorGrid = Util.Create("Frame", {
-                Size = UDim2.new(1, -16, 0, 60),
-                Position = UDim2.new(0, 8, 0, 8),
-                BackgroundTransparency = 1,
-                ZIndex = 11,
-                Parent = ColorPanel
-            })
-            
-            Util.Create("UIGridLayout", {
-                CellSize = UDim2.new(0, 36, 0, 26),
-                CellPadding = UDim2.new(0, 6, 0, 6),
-                SortOrder = Enum.SortOrder.LayoutOrder,
-                Parent = ColorGrid
-            })
-            
-            CreateRowDivider(Row)
-            
-            for i, color in ipairs(presetColors) do
-                local ColorOption = Util.Create("TextButton", {
-                    BackgroundColor3 = color,
-                    Text = "",
-                    AutoButtonColor = false,
-                    ZIndex = 12,
-                    Parent = ColorGrid
-                })
-                Util.Corner(ColorOption, 4)
-                
-                ColorOption.MouseButton1Click:Connect(function()
-                    currentColor = color
-                    Util.Tween(ColorButton, {BackgroundColor3 = currentColor}, Theme.QuickSpeed)
-                    callback(currentColor)
-                end)
-                
-                ColorOption.MouseEnter:Connect(function()
-                    Util.Tween(ColorOption, {Size = UDim2.new(0, 40, 0, 30)}, Theme.QuickSpeed)
-                end)
-                
-                ColorOption.MouseLeave:Connect(function()
-                    Util.Tween(ColorOption, {Size = UDim2.new(0, 36, 0, 26)}, Theme.QuickSpeed)
-                end)
-            end
-            
-local function ClosePanel()
-    isOpen = false
-    
-    Util.Tween(ColorPanel, {
-        Size = UDim2.new(0, 180, 0, 0),
-        BackgroundTransparency = 1
-    }, Theme.QuickSpeed * 1.5)
-    
-    task.delay(Theme.QuickSpeed * 1.5, function()
-        if not isOpen then
-            ColorPanel.Visible = false
-        end
-    end)
-end
-            
-            local function OpenPanel()
-                isOpen = true
-                ColorPanel.Visible = true
-                Util.Spring(ColorPanel, {Size = UDim2.new(0, 180, 0, 76)}, Theme.NormalSpeed)
-            end
-            
-            table.insert(Connections, ColorButton.MouseButton1Click:Connect(function()
-                if isOpen then
-                    ClosePanel()
-                else
-                    OpenPanel()
-                end
-            end))
-            
-            return {
-                SetColor = function(_, newColor)
-                    currentColor = newColor
-                    ColorButton.BackgroundColor3 = newColor
-                end,
-                GetColor = function()
-                    return currentColor
-                end
-            }
-        end
-        
         -- Label Component
         function section:AddLabel(cfg)
             cfg = cfg or {}
@@ -2566,11 +1691,10 @@ end
         return section
     end
     
-    -- Tab Creator (FIXED - now at proper scope level)
+    -- Tab Creator
     local function CreateTab(name, layoutOrder, isDefault)
         local tab = {}
         
-        -- Tab Button
         local TabButton = Util.Create("TextButton", {
             Size = UDim2.new(0, 0, 1, 0),
             AutomaticSize = Enum.AutomaticSize.X,
@@ -2586,7 +1710,6 @@ end
         })
         Util.Corner(TabButton, Theme.CornerRadiusSmall)
         
-        -- Tab Content
         local TabContent = Util.Create("Frame", {
             Size = UDim2.new(1, 0, 0, 0),
             AutomaticSize = Enum.AutomaticSize.Y,
@@ -2607,11 +1730,9 @@ end
         
         table.insert(AllTabs, tab)
         
-        -- Tab Selection
         local function SelectTab()
             if CurrentTab == tab then return end
             
-            -- Deselect previous
             if CurrentTab then
                 Util.Tween(CurrentTab.Button, {
                     BackgroundTransparency = 1,
@@ -2620,7 +1741,6 @@ end
                 CurrentTab.Content.Visible = false
             end
             
-            -- Select new
             CurrentTab = tab
             Util.Tween(TabButton, {
                 BackgroundTransparency = 0,
@@ -2643,7 +1763,6 @@ end
             end
         end))
         
-        -- Auto-select first or default tab
         if isDefault or #AllTabs == 1 then
             task.defer(SelectTab)
         end
@@ -2661,7 +1780,6 @@ end
             Parent = profileTab.Content
         })
         
-        -- Left Panel (Avatar)
         local LeftPanel = Util.Create("Frame", {
             Size = UDim2.new(0, 160, 1, 0),
             BackgroundColor3 = Theme.Secondary,
@@ -2724,7 +1842,6 @@ end
         })
         Util.Corner(AccentBar, 2)
         
-        -- Discord Link
         local DiscordFrame = Util.Create("Frame", {
             AnchorPoint = Vector2.new(0.5, 1),
             Size = UDim2.new(1, -20, 0, 34),
@@ -2799,7 +1916,6 @@ end
             end
         end))
         
-        -- Right Panel (Info)
         local RightPanel = Util.Create("Frame", {
             AnchorPoint = Vector2.new(1, 0),
             Position = UDim2.new(1, 0, 0, 0),
@@ -3020,7 +2136,6 @@ end
                 Parent = NotifFrame
             })
             
-            -- Animate in
             Util.Spring(NotifFrame, {Position = UDim2.new(1, -20, 1, -20)}, Theme.NormalSpeed)
             
             task.delay(duration, function()
@@ -3033,7 +2148,6 @@ end
         end
     }
     
-    -- Built-in Settings Tab
     local SettingsTab = API:CreateTab("Settings", false)
     
     local UISection = SettingsTab:AddSection("Interface")
@@ -3046,14 +2160,6 @@ end
         Suffix = "%",
         Callback = function(value)
             API:SetScale(value)
-        end
-    })
-    
-    UISection:AddKeybind({
-        Name = "Toggle Key",
-        Default = toggleKey,
-        Callback = function(key)
-            API:SetToggleKey(key)
         end
     })
     
@@ -3094,27 +2200,6 @@ end
         end
     })
     
-    UtilSection:AddButton({
-        Name = "Server Hop",
-        ButtonText = "Hop",
-        Callback = function()
-            local success, servers = pcall(function()
-                return HttpService:JSONDecode(
-                    game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100")
-                )
-            end)
-            
-            if success and servers and servers.data then
-                for _, server in ipairs(servers.data) do
-                    if server.id ~= game.JobId then
-                        TeleportService:TeleportToPlaceInstance(game.PlaceId, server.id, LocalPlayer)
-                        break
-                    end
-                end
-            end
-        end
-    })
-    
     local DangerSection = SettingsTab:AddSection("Danger Zone")
     
     DangerSection:AddButton({
@@ -3145,35 +2230,40 @@ function Kovari:Load(config)
     end
 end
 
--- Store instance globally
 _G.KovariInstance = Kovari
 
 return Kovari
 
 --[[
-USAGE EXAMPLE:
+USAGE EXAMPLE WITH JUNKIE:
 
 local Kovari = loadstring(game:HttpGet("YOUR_URL"))()
 
--- With Key System
+-- With Junkie Key System
 local UI = Kovari:Load({
     ToggleKey = Enum.KeyCode.RightControl,
     Discord = "discord.gg/QcvddpVeTM",
     KeySystem = {
         Title = "My Script",
         Subtitle = "Premium Script",
-        ServiceId = 18623,
-        Secret = "your-secret-here",
+        Service = "key system",
+        Identifier = tostring(game.Players.LocalPlayer.UserId),
+        Provider = "key system",
+        ApiKey = "0015f93e-20bf-48fb-a444-33b056019ebe",
         Discord = "discord.gg/QcvddpVeTM"
     }
 })
 
--- Without Key System
-local UI = Kovari:Init({
-    ToggleKey = Enum.KeyCode.RightControl,
-    Discord = "discord.gg/QcvddpVeTM"
-})
+-- Wait for key validation
+while not getgenv().SCRIPT_KEY and not getgenv().UI_CLOSED do
+    task.wait(0.1)
+end
 
+if not getgenv().SCRIPT_KEY then
+    return -- User closed UI without valid key
+end
+
+-- Your script continues here with validated key
 local MainTab = UI:CreateTab("Main", true)
 local Section = MainTab:AddSection("Features")
 
@@ -3182,59 +2272,6 @@ Section:AddToggle({
     Default = false,
     Callback = function(state)
         print("Toggle:", state)
-    end
-})
-
-Section:AddSlider({
-    Name = "Speed",
-    Min = 0,
-    Max = 100,
-    Default = 50,
-    Suffix = "",
-    Callback = function(value)
-        print("Slider:", value)
-    end
-})
-
-Section:AddButton({
-    Name = "Click Me",
-    ButtonText = "Execute",
-    Callback = function()
-        print("Button clicked!")
-    end
-})
-
-Section:AddDropdown({
-    Name = "Select Option",
-    Options = {"Option 1", "Option 2", "Option 3"},
-    Default = "Option 1",
-    Callback = function(selected)
-        print("Selected:", selected)
-    end
-})
-
-Section:AddKeybind({
-    Name = "Keybind",
-    Default = Enum.KeyCode.E,
-    Callback = function(key)
-        print("New key:", key.Name)
-    end
-})
-
-Section:AddTextbox({
-    Name = "Input",
-    Default = "",
-    Placeholder = "Type here...",
-    Callback = function(text, enter)
-        print("Text:", text, "Enter:", enter)
-    end
-})
-
-Section:AddColorPicker({
-    Name = "Color",
-    Default = Color3.fromRGB(255, 0, 0),
-    Callback = function(color)
-        print("Color:", color)
     end
 })
 ]]
