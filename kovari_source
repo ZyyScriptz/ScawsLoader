@@ -951,7 +951,6 @@ function Kovari:Init(config)
             Size = UDim2.new(1, 0, 0, 0),
             AutomaticSize = Enum.AutomaticSize.Y,
             BackgroundColor3 = Theme.Secondary,
-            BackgroundTransparency = 1,
             Parent = parent
         })
         Util.Corner(SectionFrame, Theme.CornerRadius)
@@ -1532,33 +1531,13 @@ function Kovari:Init(config)
             
             if CurrentTab then
                 Util.Tween(CurrentTab.Button, {BackgroundTransparency = 1, TextColor3 = Theme.TextSecondary}, Theme.QuickSpeed)
-                -- Hide previous tab content with fade out
-                for _, child in ipairs(CurrentTab.Content:GetChildren()) do
-                    if child:IsA("Frame") and child.BackgroundTransparency < 1 then
-                        Util.Tween(child, {BackgroundTransparency = 1}, Theme.QuickSpeed)
-                    end
-                end
-                task.delay(Theme.QuickSpeed, function()
-                    CurrentTab.Content.Visible = false
-                end)
+                CurrentTab.Content.Visible = false
             end
             
             CurrentTab = tab
             Util.Tween(TabButton, {BackgroundTransparency = 0, BackgroundColor3 = Theme.Accent, TextColor3 = Theme.TextPrimary}, Theme.QuickSpeed)
             
             TabContent.Visible = true
-            -- Animate sections in from top to bottom
-            local sections = {}
-            for _, child in ipairs(TabContent:GetChildren()) do
-                if child:IsA("Frame") then
-                    table.insert(sections, child)
-                end
-            end
-            for i, section in ipairs(sections) do
-                task.delay(i * 0.1, function()
-                    Util.Tween(section, {BackgroundTransparency = 0}, Theme.NormalSpeed)
-                end)
-            end
         end
         
         table.insert(Connections, TabButton.MouseButton1Click:Connect(SelectTab))
