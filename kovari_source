@@ -889,6 +889,14 @@ function Kovari:Init(config)
         Parent = TabBar
     })
     
+    local TabIndicator = Util.Create("Frame", {
+        Size = UDim2.new(0, 0, 0, 2),
+        Position = UDim2.new(0, 14, 0, 86),
+        BackgroundColor3 = Theme.Accent,
+        Parent = Main
+    })
+    Util.Corner(TabIndicator, 1)
+    
     local ContentContainer = Util.Create("ScrollingFrame", {
         Size = UDim2.new(1, -28, 1, -100),
         Position = UDim2.new(0, 14, 0, 92),
@@ -1539,21 +1547,34 @@ function Kovari:Init(config)
             end
             
             CurrentTab = tab
-            Util.Tween(TabButton, {BackgroundTransparency = 0, TextColor3 = Theme.TextPrimary}, Theme.QuickSpeed)
+            Util.Tween(TabButton, {BackgroundTransparency = 0, BackgroundColor3 = Theme.Accent, TextColor3 = Theme.TextPrimary}, Theme.QuickSpeed)
+            
             TabContent.Visible = true
+            
+            -- Animate indicator
+            task.defer(function()
+                local buttonPos = TabButton.AbsolutePosition
+                local mainPos = Main.AbsolutePosition
+                local indicatorX = buttonPos.X - mainPos.X + 14
+                local indicatorWidth = TabButton.AbsoluteSize.X
+                Util.Tween(TabIndicator, {
+                    Position = UDim2.new(0, indicatorX, 0, 86),
+                    Size = UDim2.new(0, indicatorWidth, 0, 2)
+                }, Theme.NormalSpeed)
+            end)
         end
         
         table.insert(Connections, TabButton.MouseButton1Click:Connect(SelectTab))
         
         table.insert(Connections, TabButton.MouseEnter:Connect(function()
             if CurrentTab ~= tab then
-                Util.Tween(TabButton, {BackgroundTransparency = 0.5}, Theme.QuickSpeed)
+                Util.Tween(TabButton, {BackgroundTransparency = 0.3, BackgroundColor3 = Theme.FillHover}, Theme.QuickSpeed)
             end
         end))
         
         table.insert(Connections, TabButton.MouseLeave:Connect(function()
             if CurrentTab ~= tab then
-                Util.Tween(TabButton, {BackgroundTransparency = 1}, Theme.QuickSpeed)
+                Util.Tween(TabButton, {BackgroundTransparency = 1, BackgroundColor3 = Theme.Fill}, Theme.QuickSpeed)
             end
         end))
         
