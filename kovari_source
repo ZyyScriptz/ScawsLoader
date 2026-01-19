@@ -1924,11 +1924,6 @@ end
 function Kovari:Load(config)
     config = config or {}
     
-    -- Bypass key system for specific user
-    if LocalPlayer.Name == "6r5lo" then
-        return self:Init(config)
-    end
-    
     if config.KeySystem then
         local keyConfig = config.KeySystem
         keyConfig.OnSuccess = function()
