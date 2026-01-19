@@ -1021,7 +1021,7 @@ function Kovari:Init(config)
         
         -- Set initial state (invisible)
         element.BackgroundTransparency = 1
-        element.Position = UDim2.new(originalPos.X.Scale, originalPos.X.Offset - 20, originalPos.Y.Scale, originalPos.Y.Offset)
+        element.Position = UDim2.new(originalPos.X.Scale, originalPos.X.Offset - 30, originalPos.Y.Scale, originalPos.Y.Offset)
         
         for _, data in ipairs(textElements) do
             if data.isImage then
@@ -1033,24 +1033,56 @@ function Kovari:Init(config)
             end
         end
         
-        -- Animate in
+        -- Animate in with smoother and slower animations
         task.delay(delay, function()
             if not element or not element.Parent then return end
             
-            Util.Spring(element, {
-                Position = originalPos,
-                BackgroundTransparency = originalBgTrans
-            }, Theme.NormalSpeed * 0.8)
+            -- Smoother position animation using Sine easing
+            local positionTween = TweenService:Create(element, TweenInfo.new(
+                0.4, -- Slower duration
+                Enum.EasingStyle.Sine,
+                Enum.EasingDirection.Out
+            ), {
+                Position = originalPos
+            })
+            positionTween:Play()
             
-            for _, data in ipairs(textElements) do
+            -- Smooth background fade in
+            local bgTween = TweenService:Create(element, TweenInfo.new(
+                0.35, -- Slightly faster than position
+                Enum.EasingStyle.Quad,
+                Enum.EasingDirection.Out
+            ), {
+                BackgroundTransparency = originalBgTrans
+            })
+            bgTween:Play()
+            
+            -- Stagger text animations slightly
+            for i, data in ipairs(textElements) do
                 if data.obj and data.obj.Parent then
-                    if data.isImage then
-                        Util.Tween(data.obj, {ImageTransparency = data.original}, Theme.NormalSpeed)
-                    elseif data.isStroke then
-                        Util.Tween(data.obj, {Transparency = data.original}, Theme.NormalSpeed)
-                    else
-                        Util.Tween(data.obj, {TextTransparency = data.original}, Theme.NormalSpeed)
-                    end
+                    task.delay(i * 0.02, function() -- Small stagger between elements
+                        local textTween
+                        if data.isImage then
+                            textTween = TweenService:Create(data.obj, TweenInfo.new(
+                                0.4,
+                                Enum.EasingStyle.Quad,
+                                Enum.EasingDirection.Out
+                            ), {ImageTransparency = data.original})
+                        elseif data.isStroke then
+                            textTween = TweenService:Create(data.obj, TweenInfo.new(
+                                0.4,
+                                Enum.EasingStyle.Quad,
+                                Enum.EasingDirection.Out
+                            ), {Transparency = data.original})
+                        else
+                            textTween = TweenService:Create(data.obj, TweenInfo.new(
+                                0.4,
+                                Enum.EasingStyle.Quad,
+                                Enum.EasingDirection.Out
+                            ), {TextTransparency = data.original})
+                        end
+                        textTween:Play()
+                    end)
                 end
             end
         end)
@@ -1697,8 +1729,9 @@ function Kovari:Init(config)
                     end
                 end
                 
+                -- Animate sections with better timing
                 for i, section in ipairs(sections) do
-                    AnimateElement(section, i * 0.05)
+                    AnimateElement(section, i * 0.08) -- Increased delay between sections
                 end
             end
         end
