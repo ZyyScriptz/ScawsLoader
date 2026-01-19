@@ -1007,39 +1007,50 @@ function Kovari:Init(config)
         local originalBgTrans = element.BackgroundTransparency
         local originalPos = element.Position
         
-        -- Set initial state
+        -- Store original text transparencies
+        local textElements = {}
+        for _, child in ipairs(element:GetDescendants()) do
+            if child:IsA("TextLabel") or child:IsA("TextButton") or child:IsA("TextBox") then
+                table.insert(textElements, {obj = child, original = 0})
+            elseif child:IsA("ImageLabel") and child.Name ~= "Shadow" then
+                table.insert(textElements, {obj = child, original = 0, isImage = true})
+            elseif child:IsA("UIStroke") then
+                table.insert(textElements, {obj = child, original = 0, isStroke = true})
+            end
+        end
+        
+        -- Set initial state (invisible)
         element.BackgroundTransparency = 1
         element.Position = UDim2.new(originalPos.X.Scale, originalPos.X.Offset - 20, originalPos.Y.Scale, originalPos.Y.Offset)
         
-        -- Animate all text elements
-        for _, child in ipairs(element:GetDescendants()) do
-            if child:IsA("TextLabel") or child:IsA("TextButton") or child:IsA("TextBox") then
-                child.TextTransparency = 1
-            end
-            if child:IsA("ImageLabel") then
-                child.ImageTransparency = 1
-            end
-            if child:IsA("UIStroke") then
-                child.Transparency = 1
+        for _, data in ipairs(textElements) do
+            if data.isImage then
+                data.obj.ImageTransparency = 1
+            elseif data.isStroke then
+                data.obj.Transparency = 1
+            else
+                data.obj.TextTransparency = 1
             end
         end
         
         -- Animate in
         task.delay(delay, function()
+            if not element or not element.Parent then return end
+            
             Util.Spring(element, {
                 Position = originalPos,
                 BackgroundTransparency = originalBgTrans
             }, Theme.NormalSpeed * 0.8)
             
-            for _, child in ipairs(element:GetDescendants()) do
-                if child:IsA("TextLabel") or child:IsA("TextButton") or child:IsA("TextBox") then
-                    Util.Tween(child, {TextTransparency = 0}, Theme.NormalSpeed)
-                end
-                if child:IsA("ImageLabel") and child.Name ~= "Shadow" then
-                    Util.Tween(child, {ImageTransparency = 0}, Theme.NormalSpeed)
-                end
-                if child:IsA("UIStroke") then
-                    Util.Tween(child, {Transparency = 0}, Theme.NormalSpeed)
+            for _, data in ipairs(textElements) do
+                if data.obj and data.obj.Parent then
+                    if data.isImage then
+                        Util.Tween(data.obj, {ImageTransparency = data.original}, Theme.NormalSpeed)
+                    elseif data.isStroke then
+                        Util.Tween(data.obj, {Transparency = data.original}, Theme.NormalSpeed)
+                    else
+                        Util.Tween(data.obj, {TextTransparency = data.original}, Theme.NormalSpeed)
+                    end
                 end
             end
         end)
@@ -1159,7 +1170,6 @@ function Kovari:Init(config)
             })
             
             CreateRowDivider(Row)
-            AnimateElement(Row, myIndex * 0.03)
             
             table.insert(Connections, SwitchButton.MouseButton1Click:Connect(function()
                 state = not state
@@ -1256,7 +1266,6 @@ function Kovari:Init(config)
             })
             
             CreateRowDivider(Row)
-            AnimateElement(Row, myIndex * 0.03)
             
             local sliderDragging = false
             
@@ -1342,7 +1351,6 @@ function Kovari:Init(config)
             Util.Corner(Button, Theme.CornerRadiusSmall)
             
             CreateRowDivider(Row)
-            AnimateElement(Row, myIndex * 0.03)
             
             local hovered = false
             
@@ -1448,7 +1456,6 @@ function Kovari:Init(config)
             })
             
             CreateRowDivider(Row)
-            AnimateElement(Row, myIndex * 0.03)
             
             local function CloseDropdown()
                 isOpen = false
@@ -1550,8 +1557,6 @@ function Kovari:Init(config)
                 Parent = Row
             })
             
-            AnimateElement(Row, myIndex * 0.03)
-            
             return {
                 SetText = function(_, newText)
                     Label.Text = newText
@@ -1600,7 +1605,6 @@ function Kovari:Init(config)
             Util.Stroke(ColorButton, Theme.Border)
             
             CreateRowDivider(Row)
-            AnimateElement(Row, myIndex * 0.03)
             
             table.insert(Connections, ColorButton.MouseButton1Click:Connect(function()
                 callback(currentColor)
@@ -1652,6 +1656,7 @@ function Kovari:Init(config)
         tab.Button = TabButton
         tab.Content = TabContent
         tab.Name = name
+        tab.AnimatedIn = false
         
         table.insert(AllTabs, tab)
         
@@ -1665,31 +1670,8 @@ function Kovari:Init(config)
                     TextColor3 = Theme.TextSecondary
                 }, Theme.QuickSpeed)
                 
-                -- Animate out old content
-                for i, child in ipairs(CurrentTab.Content:GetChildren()) do
-                    if child:IsA("Frame") and child.Name ~= "UIListLayout" then
-                        Util.Tween(child, {
-                            Position = UDim2.new(child.Position.X.Scale, child.Position.X.Offset - 20, child.Position.Y.Scale, child.Position.Y.Offset),
-                            BackgroundTransparency = 1
-                        }, Theme.QuickSpeed)
-                        
-                        for _, desc in ipairs(child:GetDescendants()) do
-                            if desc:IsA("TextLabel") or desc:IsA("TextButton") or desc:IsA("TextBox") then
-                                Util.Tween(desc, {TextTransparency = 1}, Theme.QuickSpeed)
-                            end
-                            if desc:IsA("ImageLabel") then
-                                Util.Tween(desc, {ImageTransparency = 1}, Theme.QuickSpeed)
-                            end
-                            if desc:IsA("UIStroke") then
-                                Util.Tween(desc, {Transparency = 1}, Theme.QuickSpeed)
-                            end
-                        end
-                    end
-                end
-                
-                task.delay(Theme.QuickSpeed, function()
-                    CurrentTab.Content.Visible = false
-                end)
+                CurrentTab.Content.Visible = false
+                CurrentTab.AnimatedIn = false
             end
             
             -- Set new tab
@@ -1701,51 +1683,24 @@ function Kovari:Init(config)
                 TextColor3 = Theme.TextPrimary
             }, Theme.QuickSpeed)
             
-            -- Show and animate in new content
+            -- Show content
             TabContent.Visible = true
             
-            task.delay(Theme.QuickSpeed, function()
-                for i, child in ipairs(TabContent:GetChildren()) do
+            -- Animate content only once
+            if not tab.AnimatedIn then
+                tab.AnimatedIn = true
+                
+                local sections = {}
+                for _, child in ipairs(TabContent:GetChildren()) do
                     if child:IsA("Frame") and child.Name ~= "UIListLayout" then
-                        local originalPos = child.Position
-                        child.Position = UDim2.new(originalPos.X.Scale, originalPos.X.Offset + 20, originalPos.Y.Scale, originalPos.Y.Offset)
-                        child.BackgroundTransparency = 1
-                        
-                        -- Set all text to transparent
-                        for _, desc in ipairs(child:GetDescendants()) do
-                            if desc:IsA("TextLabel") or desc:IsA("TextButton") or desc:IsA("TextBox") then
-                                desc.TextTransparency = 1
-                            end
-                            if desc:IsA("ImageLabel") then
-                                desc.ImageTransparency = 1
-                            end
-                            if desc:IsA("UIStroke") then
-                                desc.Transparency = 1
-                            end
-                        end
-                        
-                        -- Animate in with delay
-                        task.delay(i * 0.05, function()
-                            Util.Spring(child, {
-                                Position = originalPos,
-                                BackgroundTransparency = 0
-                            }, Theme.NormalSpeed * 0.7)
-                            
-                            for _, desc in ipairs(child:GetDescendants()) do
-                                if desc:IsA("TextLabel") or desc:IsA("TextButton") or desc:IsA("TextBox") then
-                                    Util.Tween(desc, {TextTransparency = 0}, Theme.NormalSpeed * 0.8)
-                                end
-                                if desc:IsA("ImageLabel") and desc.Name ~= "Shadow" then
-                                    Util.Tween(desc, {ImageTransparency = 0}, Theme.NormalSpeed * 0.8)
-                                end
-                                if desc:IsA("UIStroke") then
-                                    Util.Tween(desc, {Transparency = 0}, Theme.NormalSpeed * 0.8)
-                                end
-                            end
-                        end)
+                        table.insert(sections, child)
                     end
                 end
-            end)
+                
+                for i, section in ipairs(sections) do
+                    AnimateElement(section, i * 0.05)
+                end
+            end
         end
         
         table.insert(Connections, TabButton.MouseButton1Click:Connect(SelectTab))
