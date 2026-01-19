@@ -299,6 +299,7 @@ function Kovari:CreateKeyUI(config)
         Position = UDim2.new(0.5, 0, 0.5, 0),
         Size = UDim2.new(0, 400, 0, 340),
         BackgroundColor3 = Theme.Secondary,
+        BackgroundTransparency = 1,
         ClipsDescendants = true,
         Parent = ScreenGui
     })
@@ -711,6 +712,9 @@ function Kovari:CreateKeyUI(config)
         end)
     end))
     
+    -- Smooth fade in animation
+    Util.Tween(MainFrame, {BackgroundTransparency = 0}, Theme.NormalSpeed)
+    
     return {
         Destroy = function()
             getgenv().UI_CLOSED = true
@@ -889,14 +893,6 @@ function Kovari:Init(config)
         Parent = TabBar
     })
     
-    local TabIndicator = Util.Create("Frame", {
-        Size = UDim2.new(0, 0, 0, 2),
-        Position = UDim2.new(0, 14, 0, 86),
-        BackgroundColor3 = Theme.Accent,
-        Parent = Main
-    })
-    Util.Corner(TabIndicator, 1)
-    
     local ContentContainer = Util.Create("ScrollingFrame", {
         Size = UDim2.new(1, -28, 1, -100),
         Position = UDim2.new(0, 14, 0, 92),
@@ -963,6 +959,7 @@ function Kovari:Init(config)
             Size = UDim2.new(1, 0, 0, 0),
             AutomaticSize = Enum.AutomaticSize.Y,
             BackgroundColor3 = Theme.Secondary,
+            BackgroundTransparency = 1,
             Parent = parent
         })
         Util.Corner(SectionFrame, Theme.CornerRadius)
@@ -1543,25 +1540,33 @@ function Kovari:Init(config)
             
             if CurrentTab then
                 Util.Tween(CurrentTab.Button, {BackgroundTransparency = 1, TextColor3 = Theme.TextSecondary}, Theme.QuickSpeed)
-                CurrentTab.Content.Visible = false
+                -- Hide previous tab content with fade out
+                for _, child in ipairs(CurrentTab.Content:GetChildren()) do
+                    if child:IsA("Frame") and child.BackgroundTransparency < 1 then
+                        Util.Tween(child, {BackgroundTransparency = 1}, Theme.QuickSpeed)
+                    end
+                end
+                task.delay(Theme.QuickSpeed, function()
+                    CurrentTab.Content.Visible = false
+                end)
             end
             
             CurrentTab = tab
             Util.Tween(TabButton, {BackgroundTransparency = 0, BackgroundColor3 = Theme.Accent, TextColor3 = Theme.TextPrimary}, Theme.QuickSpeed)
             
             TabContent.Visible = true
-            
-            -- Animate indicator
-            task.defer(function()
-                local buttonPos = TabButton.AbsolutePosition
-                local mainPos = Main.AbsolutePosition
-                local indicatorX = buttonPos.X - mainPos.X + 14
-                local indicatorWidth = TabButton.AbsoluteSize.X
-                Util.Tween(TabIndicator, {
-                    Position = UDim2.new(0, indicatorX, 0, 86),
-                    Size = UDim2.new(0, indicatorWidth, 0, 2)
-                }, Theme.NormalSpeed)
-            end)
+            -- Animate sections in from top to bottom
+            local sections = {}
+            for _, child in ipairs(TabContent:GetChildren()) do
+                if child:IsA("Frame") then
+                    table.insert(sections, child)
+                end
+            end
+            for i, section in ipairs(sections) do
+                task.delay(i * 0.1, function()
+                    Util.Tween(section, {BackgroundTransparency = 0}, Theme.NormalSpeed)
+                end)
+            end
         end
         
         table.insert(Connections, TabButton.MouseButton1Click:Connect(SelectTab))
